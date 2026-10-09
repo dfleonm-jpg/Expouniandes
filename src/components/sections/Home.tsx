@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, MessageSquare, ListChecks, GraduationCap, Layers, FileText, CalendarClock, HeartPulse, ArrowRight } from "lucide-react";
 import { useApp } from "@/lib/app-context";
@@ -16,7 +17,14 @@ const item = {
 };
 
 export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
-  const { t } = useApp();
+  const { t, userName } = useApp();
+
+  // La hora se lee solo en el cliente (evita el error de prerender).
+  const [greeting, setGreeting] = useState("");
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setGreeting(hour < 12 ? t.ui.greetingMorning : hour < 19 ? t.ui.greetingAfternoon : t.ui.greetingEvening);
+  }, [t]);
 
   const features = [
     { icon: MessageSquare, ...t.features.tutor, section: "tutor" as Section, color: "from-violet-500 to-indigo-500" },
@@ -39,6 +47,12 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
             <Sparkles className="h-3.5 w-3.5 text-accent" />
           </span>
         </motion.div>
+
+        {userName && greeting && (
+          <motion.p variants={item} className="mb-3 text-lg font-medium text-accent">
+            {greeting}, {userName} 👋
+          </motion.p>
+        )}
 
         <motion.h1
           variants={item}

@@ -23,6 +23,14 @@ const DEFAULT_STATS: Stats = {
 
 export type SereneDoc = { id: string; name: string; content: string };
 
+export type ExamRecord = {
+  id: string;
+  topic: string;
+  score: number;
+  total: number;
+  date: string; // ISO
+};
+
 type Streak = { count: number; lastDay: string };
 
 type AppContextType = {
@@ -35,6 +43,10 @@ type AppContextType = {
   addDoc: (name: string, content: string) => void;
   removeDoc: (id: string) => void;
   streak: number;
+  userName: string;
+  setUserName: (name: string) => void;
+  examHistory: ExamRecord[];
+  addExamRecord: (rec: Omit<ExamRecord, "id" | "date">) => void;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -48,6 +60,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<Stats>(DEFAULT_STATS);
   const [docs, setDocs] = useState<SereneDoc[]>([]);
   const [streak, setStreak] = useState(0);
+  const [userName, setUserNameState] = useState("");
+  const [examHistory, setExamHistory] = useState<ExamRecord[]>([]);
   const [mounted, setMounted] = useState(false);
 
   // Cargar preferencias guardadas.
@@ -61,6 +75,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const savedDocs = localStorage.getItem("sereno:docs");
       if (savedDocs) setDocs(JSON.parse(savedDocs));
+
+      const savedName = localStorage.getItem("sereno:userName");
+      if (savedName) setUserNameState(savedName);
+
+      const savedExams = localStorage.getItem("sereno:examHistory");
+      if (savedExams) setExamHistory(JSON.parse(savedExams));
 
       // Racha de estudio: incrementa si entra en días consecutivos.
       const rawStreak = localStorage.getItem("sereno:streak");
@@ -115,6 +135,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const setUserName = useCallback((name: string) => {
+    setUserNameState(name);
+    try {
+      localStorage.setItem("sereno:userName", name);
+    } catch {}
+  }, []);
+
+  const addExamRecord = useCallback((rec: Omit<ExamRecord, "id" | "date">) => {
+    setExamHistory((prev) => {
+      const next = [
+        { ...rec, id: crypto.randomUUID(), date: new Date().toISOString() },
+        ...prev,
+      ].slice(0, 50);
+      try {
+        localStorage.setItem("sereno:examHistory", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
   const value: AppContextType = {
     locale,
     setLocale,
@@ -125,6 +165,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addDoc,
     removeDoc,
     streak,
+    userName,
+    setUserName,
+    examHistory,
+    addExamRecord,
   };
 
   return (

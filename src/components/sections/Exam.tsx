@@ -31,7 +31,7 @@ const DURATIONS = [
 ];
 
 export function Exam() {
-  const { t, locale, addStat } = useApp();
+  const { t, locale, addStat, addExamRecord } = useApp();
   const { notify } = useToast();
 
   const [phase, setPhase] = useState<Phase>("setup");
@@ -55,7 +55,9 @@ export function Exam() {
     setPhase("results");
     addStat("quizzesTaken", 1);
     addStat("questionsAnswered", questions.length);
-  }, [addStat, questions.length]);
+    const correct = questions.reduce((acc, q, i) => acc + (answers[i] === q.correctIndex ? 1 : 0), 0);
+    addExamRecord({ topic: topic || t.exam.title, score: correct, total: questions.length });
+  }, [addStat, addExamRecord, questions, answers, topic, t.exam.title]);
 
   // Temporizador
   useEffect(() => {

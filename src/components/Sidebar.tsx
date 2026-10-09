@@ -6,6 +6,7 @@ import {
   MessageSquare,
   ListChecks,
   GraduationCap,
+  Search,
   Layers,
   FileText,
   CalendarClock,
@@ -23,6 +24,7 @@ export type Section =
   | "tutor"
   | "quiz"
   | "exam"
+  | "search"
   | "flashcards"
   | "summary"
   | "planner"
@@ -35,6 +37,7 @@ const NAV_ITEMS: { id: Section; icon: typeof MessageSquare; key: NavKey }[] = [
   { id: "tutor", icon: MessageSquare, key: "tutor" },
   { id: "quiz", icon: ListChecks, key: "quiz" },
   { id: "exam", icon: GraduationCap, key: "exam" },
+  { id: "search", icon: Search, key: "search" },
   { id: "flashcards", icon: Layers, key: "flashcards" },
   { id: "summary", icon: FileText, key: "summary" },
   { id: "planner", icon: CalendarClock, key: "planner" },

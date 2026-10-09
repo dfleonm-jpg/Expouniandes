@@ -1,12 +1,25 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BarChart3, ListChecks, MessageSquare, Timer, CheckCircle2, Layers, FileText, Flame } from "lucide-react";
+import {
+  BarChart3,
+  ListChecks,
+  MessageSquare,
+  Timer,
+  CheckCircle2,
+  Layers,
+  FileText,
+  Flame,
+  Award,
+  GraduationCap,
+  Lock,
+} from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { SectionHeader } from "../ui/SectionHeader";
+import { cn } from "@/lib/utils";
 
 export function Progress() {
-  const { t, stats, streak } = useApp();
+  const { t, stats, streak, examHistory } = useApp();
 
   const cards = [
     { icon: ListChecks, label: t.progress.quizzesTaken, value: stats.quizzesTaken, color: "from-cyan-500 to-blue-500" },
@@ -18,6 +31,17 @@ export function Progress() {
   ];
 
   const totalActivity = Object.values(stats).reduce((a, b) => a + b, 0);
+
+  // Logros desbloqueables
+  const badges = [
+    { emoji: "🚀", label: "Primer paso", unlocked: totalActivity > 0 },
+    { emoji: "💬", label: "Curioso", unlocked: stats.questionsAnswered >= 10 },
+    { emoji: "📝", label: "Examinado", unlocked: stats.quizzesTaken >= 1 },
+    { emoji: "🔥", label: "Constante", unlocked: streak >= 3 },
+    { emoji: "⏱️", label: "Enfocado", unlocked: stats.focusMinutes >= 25 },
+    { emoji: "🧠", label: "Erudito", unlocked: stats.questionsAnswered >= 50 },
+    { emoji: "🏆", label: "Maestro", unlocked: examHistory.some((e) => e.score / e.total >= 0.9) },
+  ];
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-28 lg:pb-10">
@@ -64,6 +88,74 @@ export function Progress() {
           })}
         </div>
       )}
+
+      {/* Logros */}
+      <div className="mt-8">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold">
+          <Award className="h-5 w-5 text-warn" />
+          {t.ui.achievements}
+        </h2>
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          {badges.map((b, i) => (
+            <motion.div
+              key={b.label}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.05 }}
+              className={cn(
+                "glass flex flex-col items-center gap-1.5 rounded-2xl p-3 text-center",
+                !b.unlocked && "opacity-40 grayscale"
+              )}
+            >
+              <span className="text-2xl">{b.unlocked ? b.emoji : <Lock className="h-6 w-6 text-muted" />}</span>
+              <span className="text-[10px] font-medium leading-tight text-muted">{b.label}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Historial de parciales */}
+      <div className="mt-8">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold">
+          <GraduationCap className="h-5 w-5 text-brand" />
+          {t.ui.examHistory}
+        </h2>
+        {examHistory.length === 0 ? (
+          <p className="glass rounded-2xl p-6 text-center text-sm text-muted">{t.ui.noExams}</p>
+        ) : (
+          <div className="space-y-2">
+            {examHistory.slice(0, 10).map((e, i) => {
+              const pct = Math.round((e.score / e.total) * 100);
+              const grade = Math.round((e.score / e.total) * 10 * 10) / 10;
+              const good = pct >= 60;
+              return (
+                <motion.div
+                  key={e.id}
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="glass flex items-center gap-3 rounded-xl p-3"
+                >
+                  <span
+                    className={cn(
+                      "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold",
+                      good ? "bg-calm/20 text-calm" : "bg-danger/20 text-danger"
+                    )}
+                  >
+                    {grade}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{e.topic}</p>
+                    <p className="text-xs text-muted">
+                      {e.score}/{e.total} · {new Date(e.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { Home } from "@/components/sections/Home";
 import { Tutor } from "@/components/sections/Tutor";
 import { Quiz } from "@/components/sections/Quiz";
 import { Exam } from "@/components/sections/Exam";
+import { Search } from "@/components/sections/Search";
 import { Flashcards } from "@/components/sections/Flashcards";
 import { Summary } from "@/components/sections/Summary";
 import { Planner } from "@/components/sections/Planner";
@@ -74,6 +75,7 @@ export default function Page() {
           <AnimatePresence mode="wait">
             <Fade key={section}>
               {section === "home" && <Home onNavigate={navigate} />}
+              {section === "search" && <Search onNavigate={navigate} />}
               {section === "summary" && <Summary />}
               {section === "planner" && <Planner />}
               {section === "wellbeing" && <Wellbeing />}

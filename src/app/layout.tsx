@@ -4,6 +4,7 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 import { AppProvider } from "@/lib/app-context";
 import { ToastProvider } from "@/components/ui/Toast";
+import { WelcomeScreen } from "@/components/ui/WelcomeScreen";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-full">
         <div className="aurora-bg" />
         <AppProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <WelcomeScreen />
+            {children}
+          </ToastProvider>
         </AppProvider>
       </body>
     </html>
