@@ -110,7 +110,7 @@ export function Sidebar({
                 <span className="text-muted">{streak === 1 ? t.ui.day : t.ui.days} 🔥</span>
               </div>
             )}
-            <LanguageSwitcher />
+            <LanguageSwitcher direction="up" />
           </div>
         </div>
       </aside>
@@ -131,7 +131,9 @@ export function Sidebar({
                 {streak}
               </span>
             )}
-            <LanguageSwitcher />
+            <div className="w-40">
+              <LanguageSwitcher direction="down" />
+            </div>
           </div>
         </div>
       </header>
