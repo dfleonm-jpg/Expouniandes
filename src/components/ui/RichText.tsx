@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeHighlight from "rehype-highlight";
 
 /**
  * Renderiza texto en Markdown con soporte de matemáticas (KaTeX).
@@ -20,7 +21,10 @@ export function RichText({ children, className = "prose-sereno" }: { children: s
     <div className={className}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[[rehypeKatex, { throwOnError: false, errorColor: "#fb7185", strict: false }]]}
+        rehypePlugins={[
+          [rehypeKatex, { throwOnError: false, errorColor: "#fb7185", strict: false }],
+          [rehypeHighlight, { detect: true, ignoreMissing: true }],
+        ]}
       >
         {normalized}
       </ReactMarkdown>
