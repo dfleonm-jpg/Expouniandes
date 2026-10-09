@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar, type Section } from "@/components/Sidebar";
+import { AIStatusBanner } from "@/components/ui/AIStatusBanner";
 import { Home } from "@/components/sections/Home";
 import { Tutor } from "@/components/sections/Tutor";
 import { Quiz } from "@/components/sections/Quiz";
@@ -25,6 +26,7 @@ export default function Page() {
       <Sidebar active={section} onNavigate={navigate} />
 
       <main className="pt-4 lg:pt-6">
+        <AIStatusBanner />
         <AnimatePresence mode="wait">
           <motion.div
             key={section}

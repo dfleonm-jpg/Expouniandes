@@ -3,20 +3,43 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Brain, User, Sparkles, FileText, Trash2, Upload } from "lucide-react";
+import { Send, Brain, User, Sparkles, FileText, Trash2, Upload, Copy, Square, Eraser } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useApp } from "@/lib/app-context";
+import { useToast } from "../ui/Toast";
 import { SectionHeader } from "../ui/SectionHeader";
 
 type Message = { role: "user" | "model"; text: string };
 
 export function Tutor() {
   const { t, locale, addStat, docs, addDoc, removeDoc } = useApp();
+  const { notify } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  function stop() {
+    abortRef.current?.abort();
+    setLoading(false);
+  }
+
+  function clearChat() {
+    stop();
+    setMessages([]);
+    notify("info", t.ui.cleared);
+  }
+
+  async function copyText(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      notify("success", t.ui.copied);
+    } catch {
+      notify("error", t.common.error);
+    }
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -43,11 +66,15 @@ export function Tutor() {
     // Une los documentos como contexto para el tutor.
     const context = docs.map((d) => `### ${d.name}\n${d.content}`).join("\n\n");
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: newMessages, locale, context }),
+        signal: controller.signal,
       });
 
       if (!res.ok || !res.body) {
@@ -78,10 +105,13 @@ export function Tutor() {
           return copy;
         });
       }
-    } catch {
-      setMessages((m) => [...m, { role: "model", text: `⚠️ ${t.common.error}` }]);
+    } catch (err) {
+      if ((err as Error)?.name !== "AbortError") {
+        setMessages((m) => [...m, { role: "model", text: `⚠️ ${t.common.error}` }]);
+      }
     } finally {
       setLoading(false);
+      abortRef.current = null;
     }
   }
 
@@ -89,11 +119,22 @@ export function Tutor() {
     <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-4xl flex-col px-4 pb-28 lg:h-[calc(100vh-5rem)] lg:pb-6">
       <div className="flex items-center justify-between gap-3">
         <SectionHeader icon={Brain} title={t.tutor.title} subtitle={t.tutor.subtitle} />
-        <label className="glass flex shrink-0 cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10">
-          <Upload className="h-4 w-4 text-accent" />
-          <span className="hidden sm:inline">{t.documents.upload}</span>
-          <input type="file" accept=".txt,.md,text/plain" onChange={onFile} className="hidden" />
-        </label>
+        <div className="flex shrink-0 items-center gap-2">
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10"
+            >
+              <Eraser className="h-4 w-4 text-danger" />
+              <span className="hidden sm:inline">{t.ui.clear}</span>
+            </button>
+          )}
+          <label className="glass flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10">
+            <Upload className="h-4 w-4 text-accent" />
+            <span className="hidden sm:inline">{t.documents.upload}</span>
+            <input type="file" accept=".txt,.md,text/plain" onChange={onFile} className="hidden" />
+          </label>
+        </div>
       </div>
 
       {/* Documentos activos */}
@@ -160,19 +201,28 @@ export function Tutor() {
                       <Brain className="h-5 w-5 text-white" />
                     )}
                   </div>
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                      m.role === "user"
-                        ? "bg-brand/90 text-white"
-                        : "glass text-foreground/90"
-                    }`}
-                  >
-                    {m.text ? (
-                      <div className="prose-sereno">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
-                      </div>
-                    ) : (
-                      <TypingDots />
+                  <div className="group/msg max-w-[80%]">
+                    <div
+                      className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                        m.role === "user" ? "bg-brand/90 text-white" : "glass text-foreground/90"
+                      }`}
+                    >
+                      {m.text ? (
+                        <div className="prose-sereno">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <TypingDots />
+                      )}
+                    </div>
+                    {m.role === "model" && m.text && !m.text.startsWith("⚠️") && (
+                      <button
+                        onClick={() => copyText(m.text)}
+                        className="mt-1.5 flex items-center gap-1 text-xs text-muted opacity-0 transition hover:text-foreground group-hover/msg:opacity-100"
+                      >
+                        <Copy className="h-3 w-3" />
+                        {t.ui.copy}
+                      </button>
                     )}
                   </div>
                 </motion.div>
@@ -213,14 +263,25 @@ export function Tutor() {
           rows={1}
           className="max-h-32 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none"
         />
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent text-white transition hover:opacity-90 disabled:opacity-40"
-          aria-label={t.tutor.send}
-        >
-          <Send className="h-5 w-5" />
-        </button>
+        {loading ? (
+          <button
+            type="button"
+            onClick={stop}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-danger/90 text-white transition hover:opacity-90"
+            aria-label={t.ui.stop}
+          >
+            <Square className="h-4 w-4 fill-current" />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent text-white transition hover:opacity-90 disabled:opacity-40"
+            aria-label={t.tutor.send}
+          >
+            <Send className="h-5 w-5" />
+          </button>
+        )}
       </form>
     </div>
   );

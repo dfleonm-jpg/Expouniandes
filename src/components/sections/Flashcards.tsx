@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Layers, Sparkles, Loader2, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { Layers, Sparkles, Loader2, ChevronLeft, ChevronRight, RotateCcw, Shuffle } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { SectionHeader } from "../ui/SectionHeader";
@@ -37,6 +37,12 @@ export function Flashcards() {
   function reset() {
     setCards([]);
     setTopic("");
+    setIdx(0);
+    setFlipped(false);
+  }
+
+  function shuffle() {
+    setCards((prev) => [...prev].sort(() => Math.random() - 0.5));
     setIdx(0);
     setFlipped(false);
   }
@@ -84,10 +90,16 @@ export function Flashcards() {
               <span>
                 {t.flashcards.cardOf} {idx + 1}/{cards.length}
               </span>
-              <button onClick={reset} className="flex items-center gap-1.5 transition hover:text-foreground">
-                <RotateCcw className="h-4 w-4" />
-                {t.flashcards.new}
-              </button>
+              <div className="flex items-center gap-3">
+                <button onClick={shuffle} className="flex items-center gap-1.5 transition hover:text-foreground">
+                  <Shuffle className="h-4 w-4" />
+                  {t.ui.shuffle}
+                </button>
+                <button onClick={reset} className="flex items-center gap-1.5 transition hover:text-foreground">
+                  <RotateCcw className="h-4 w-4" />
+                  {t.flashcards.new}
+                </button>
+              </div>
             </div>
 
             {/* Tarjeta 3D */}
