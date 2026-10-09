@@ -8,12 +8,18 @@ Proyecto para **ExpoUniandes**. Sereno es un compañero de estudio con inteligen
 
 | Módulo | Descripción |
 |--------|-------------|
-| 💬 **Tutor IA** | Chat en tiempo real (streaming) que explica cualquier tema con lenguaje claro. |
+| 💬 **Tutor IA** | Chat en tiempo real (streaming) que explica cualquier tema. Puedes **subir documentos/apuntes** y preguntar sobre ellos. |
 | 📝 **Generador de Quizzes** | Crea cuestionarios de opción múltiple sobre cualquier tema, con explicaciones. |
-| 🗓️ **Gestor de tiempo** | Lista de tareas + temporizador Pomodoro para mantener el foco. |
+| 🃏 **Flashcards** | Tarjetas de estudio generadas por IA con animación de volteo 3D. |
+| 📑 **Resúmenes inteligentes** | Pega apuntes o sube un archivo y la IA extrae TL;DR, puntos clave y conceptos. |
+| 🗓️ **Planificador con IA** | Describe tus exámenes y la IA arma un plan de estudio realista por días. Incluye tareas + Pomodoro. |
 | 🧘 **Bienestar** | Ejercicio de respiración guiada y consejos para reducir el estrés. |
-| 📊 **Progreso** | Estadísticas de tu actividad (guardadas en tu navegador). |
+| 📊 **Progreso + Racha** | Estadísticas de actividad y racha de días estudiando (guardado local). |
 | 🌍 **Multi-idioma** | Español, Inglés, Portugués y Francés. |
+
+## 🩺 Diagnóstico de IA
+
+Visita `/api/health` para comprobar si las claves están bien configuradas en producción.
 
 ## 🎨 Diseño
 

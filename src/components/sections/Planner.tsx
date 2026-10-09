@@ -1,10 +1,12 @@
 "use client";
+"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Plus, Check, Trash2, Play, Pause, RotateCcw } from "lucide-react";
+import { CalendarClock, Plus, Check, Trash2, Play, Pause, RotateCcw } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { SectionHeader } from "../ui/SectionHeader";
+import { StudyPlanGenerator } from "./StudyPlanGenerator";
 import { cn } from "@/lib/utils";
 
 type Task = { id: string; text: string; done: boolean };
@@ -99,10 +101,15 @@ export function Planner() {
   const doneCount = tasks.filter((task) => task.done).length;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-24 lg:pb-8">
-      <SectionHeader icon={Clock} title={t.planner.title} subtitle={t.planner.subtitle} />
+    <div className="mx-auto max-w-5xl px-4 pb-28 lg:pb-10">
+      <SectionHeader icon={CalendarClock} title={t.planner.title} subtitle={t.planner.subtitle} />
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-5">
+      {/* Generador de plan con IA */}
+      <div className="mt-6">
+        <StudyPlanGenerator />
+      </div>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-5">
         {/* Tareas */}
         <div className="glass rounded-3xl p-6 lg:col-span-3">
           <div className="mb-4 flex gap-2">

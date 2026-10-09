@@ -1,9 +1,10 @@
 "use client";
+"use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, MessageSquare, ListChecks, Clock, HeartPulse, ArrowRight } from "lucide-react";
+import { Sparkles, MessageSquare, ListChecks, Layers, FileText, CalendarClock, HeartPulse, ArrowRight } from "lucide-react";
 import { useApp } from "@/lib/app-context";
-import type { Section } from "../Navbar";
+import type { Section } from "../Sidebar";
 
 const container = {
   hidden: { opacity: 0 },
@@ -20,7 +21,9 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
   const features = [
     { icon: MessageSquare, ...t.features.tutor, section: "tutor" as Section, color: "from-violet-500 to-indigo-500" },
     { icon: ListChecks, ...t.features.quiz, section: "quiz" as Section, color: "from-cyan-500 to-blue-500" },
-    { icon: Clock, ...t.features.planner, section: "planner" as Section, color: "from-emerald-500 to-teal-500" },
+    { icon: Layers, title: t.nav.flashcards, desc: t.flashcards.subtitle, section: "flashcards" as Section, color: "from-amber-500 to-orange-500" },
+    { icon: FileText, title: t.nav.summary, desc: t.summary.subtitle, section: "summary" as Section, color: "from-fuchsia-500 to-purple-500" },
+    { icon: CalendarClock, ...t.features.planner, section: "planner" as Section, color: "from-emerald-500 to-teal-500" },
     { icon: HeartPulse, ...t.features.wellbeing, section: "wellbeing" as Section, color: "from-rose-500 to-pink-500" },
   ];
 
@@ -93,7 +96,7 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true }}
-        className="mt-12 grid gap-5 sm:grid-cols-2"
+        className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
       >
         {features.map((f) => {
           const Icon = f.icon;

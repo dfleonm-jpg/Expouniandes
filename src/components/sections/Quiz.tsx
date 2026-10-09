@@ -1,4 +1,5 @@
 "use client";
+"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,13 +39,13 @@ export function Quiz() {
         body: JSON.stringify({ topic, count, difficulty, locale }),
       });
       const data = await res.json();
-      if (!res.ok || !data.questions?.length) throw new Error(data.error || "error");
+      if (!res.ok || !data.questions?.length) throw new Error(data.error || t.common.error);
       setQuestions(data.questions);
       setAnswers(new Array(data.questions.length).fill(-1));
       setCurrent(0);
       setPhase("quiz");
-    } catch {
-      setError(t.common.error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.common.error);
       setPhase("setup");
     }
   }

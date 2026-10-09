@@ -8,6 +8,8 @@ export type Stats = {
   questionsAnswered: number;
   focusMinutes: number;
   tasksDone: number;
+  flashcardsReviewed: number;
+  summariesCreated: number;
 };
 
 const DEFAULT_STATS: Stats = {
@@ -15,7 +17,13 @@ const DEFAULT_STATS: Stats = {
   questionsAnswered: 0,
   focusMinutes: 0,
   tasksDone: 0,
+  flashcardsReviewed: 0,
+  summariesCreated: 0,
 };
+
+export type SereneDoc = { id: string; name: string; content: string };
+
+type Streak = { count: number; lastDay: string };
 
 type AppContextType = {
   locale: Locale;
@@ -23,13 +31,23 @@ type AppContextType = {
   t: Translation;
   stats: Stats;
   addStat: (key: keyof Stats, amount: number) => void;
+  docs: SereneDoc[];
+  addDoc: (name: string, content: string) => void;
+  removeDoc: (id: string) => void;
+  streak: number;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
 
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("es");
   const [stats, setStats] = useState<Stats>(DEFAULT_STATS);
+  const [docs, setDocs] = useState<SereneDoc[]>([]);
+  const [streak, setStreak] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   // Cargar preferencias guardadas.
@@ -37,8 +55,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const savedLocale = localStorage.getItem("sereno:locale") as Locale | null;
       if (savedLocale && savedLocale in translations) setLocaleState(savedLocale);
+
       const savedStats = localStorage.getItem("sereno:stats");
       if (savedStats) setStats({ ...DEFAULT_STATS, ...JSON.parse(savedStats) });
+
+      const savedDocs = localStorage.getItem("sereno:docs");
+      if (savedDocs) setDocs(JSON.parse(savedDocs));
+
+      // Racha de estudio: incrementa si entra en días consecutivos.
+      const rawStreak = localStorage.getItem("sereno:streak");
+      const today = todayKey();
+      const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+      let s: Streak = rawStreak ? JSON.parse(rawStreak) : { count: 0, lastDay: "" };
+      if (s.lastDay !== today) {
+        s = { count: s.lastDay === yesterday ? s.count + 1 : 1, lastDay: today };
+        localStorage.setItem("sereno:streak", JSON.stringify(s));
+      }
+      setStreak(s.count);
     } catch {
       /* ignore */
     }
@@ -49,9 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setLocaleState(l);
     try {
       localStorage.setItem("sereno:locale", l);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, []);
 
   const addStat = useCallback((key: keyof Stats, amount: number) => {
@@ -59,12 +90,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const next = { ...prev, [key]: prev[key] + amount };
       try {
         localStorage.setItem("sereno:stats", JSON.stringify(next));
-      } catch {
-        /* ignore */
-      }
+      } catch {}
       return next;
     });
   }, []);
+
+  const persistDocs = useCallback((next: SereneDoc[]) => {
+    setDocs(next);
+    try {
+      localStorage.setItem("sereno:docs", JSON.stringify(next));
+    } catch {}
+  }, []);
+
+  const addDoc = useCallback(
+    (name: string, content: string) => {
+      persistDocs([...docs, { id: crypto.randomUUID(), name, content }]);
+    },
+    [docs, persistDocs]
+  );
+
+  const removeDoc = useCallback(
+    (id: string) => {
+      persistDocs(docs.filter((d) => d.id !== id));
+    },
+    [docs, persistDocs]
+  );
 
   const value: AppContextType = {
     locale,
@@ -72,9 +122,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     t: translations[locale] as Translation,
     stats,
     addStat,
+    docs,
+    addDoc,
+    removeDoc,
+    streak,
   };
 
-  // Evita parpadeo de hidratación mostrando contenido una vez montado.
   return (
     <AppContext.Provider value={value}>
       <div style={{ visibility: mounted ? "visible" : "hidden" }}>{children}</div>
