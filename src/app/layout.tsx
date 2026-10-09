@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 import { AppProvider } from "@/lib/app-context";
 import { ToastProvider } from "@/components/ui/Toast";
 

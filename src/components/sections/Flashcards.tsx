@@ -7,6 +7,7 @@ import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
+import { RichText } from "../ui/RichText";
 import type { Flashcard } from "@/lib/types";
 
 export function Flashcards() {
@@ -119,7 +120,7 @@ export function Flashcards() {
                   style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "translateZ(0)" }}
                 >
                   <span className="mb-3 text-xs uppercase tracking-widest text-accent">{t.nav.flashcards}</span>
-                  <p className="text-xl font-semibold">{cards[idx].front}</p>
+                  <RichText className="prose-sereno text-xl font-semibold [&_p]:m-0">{cards[idx].front}</RichText>
                   <span className="mt-6 text-xs text-muted">{t.flashcards.flip}</span>
                 </div>
                 {/* Reverso */}
@@ -127,7 +128,7 @@ export function Flashcards() {
                   className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-brand/25 to-accent/25 p-8 text-center ring-1 ring-white/10"
                   style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(180deg) translateZ(0)" }}
                 >
-                  <p className="text-lg leading-relaxed">{cards[idx].back}</p>
+                  <RichText className="prose-sereno text-lg leading-relaxed [&_p]:m-0">{cards[idx].back}</RichText>
                 </div>
               </motion.button>
             </div>

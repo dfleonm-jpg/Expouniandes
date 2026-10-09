@@ -211,3 +211,18 @@ body {
 .prose-sereno table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.82rem; }
 .prose-sereno th, .prose-sereno td { border: 1px solid var(--border); padding: 0.4rem 0.6rem; text-align: left; }
 .prose-sereno th { background: rgba(255,255,255,0.05); font-weight: 600; }
+
+/* ---- Matemáticas (KaTeX) ---- */
+.prose-sereno .katex { font-size: 1.05em; }
+.prose-sereno .katex-display {
+  margin: 0.8rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.3rem 0.1rem;
+}
+.prose-sereno .katex-display > .katex { text-align: center; }
+/* Mejora el contraste de las fórmulas sobre fondo oscuro */
+.prose-sereno .katex, .prose-sereno .katex .mord, .prose-sereno .katex .mbin,
+.prose-sereno .katex .mrel, .prose-sereno .katex .mopen, .prose-sereno .katex .mclose {
+  color: #f4f4f8;
+}

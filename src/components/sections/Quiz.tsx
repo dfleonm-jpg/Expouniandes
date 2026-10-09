@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ListChecks, Check, X, RotateCcw, Trophy, Loader2, Sparkles, ChevronRight } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { SectionHeader } from "../ui/SectionHeader";
+import { RichText } from "../ui/RichText";
 import { cn } from "@/lib/utils";
 
 type Question = {
@@ -198,9 +199,9 @@ export function Quiz() {
                 </div>
               </div>
 
-              <h3 className="text-lg font-semibold leading-relaxed">
+              <RichText className="prose-sereno text-lg font-semibold leading-relaxed">
                 {questions[current].question}
-              </h3>
+              </RichText>
 
               <div className="mt-5 space-y-3">
                 {questions[current].options.map((opt, i) => {
@@ -238,7 +239,7 @@ export function Quiz() {
                           String.fromCharCode(65 + i)
                         )}
                       </span>
-                      {opt}
+                      <RichText className="prose-sereno [&_p]:m-0">{opt}</RichText>
                     </button>
                   );
                 })}
@@ -254,7 +255,7 @@ export function Quiz() {
                   >
                     <div className="glass rounded-xl p-4 text-sm">
                       <span className="font-semibold text-accent">{t.quiz.explanation}: </span>
-                      <span className="text-foreground/80">{questions[current].explanation}</span>
+                      <RichText className="prose-sereno text-foreground/80">{questions[current].explanation}</RichText>
                     </div>
                     <button
                       onClick={nextQuestion}

@@ -16,14 +16,19 @@ Reglas:
 - Si detectas estrés o ansiedad, ofrece una técnica breve (respiración, descansos, dividir tareas) además de responder.
 - Si te dan documentos o apuntes como contexto, básate en ellos y cítalos cuando sea relevante.
 - No inventes datos; si no sabes algo, dilo con honestidad.
-- Sé conciso pero completo. Usa formato markdown.`;
+- Sé conciso pero completo. Usa formato markdown.
+- Para CUALQUIER expresión matemática usa SIEMPRE LaTeX: en línea con $...$ y en bloque con $$...$$. Ejemplos: una fracción $\\frac{a}{b}$, una derivada $\\frac{dy}{dx}$, una integral $$\\int_0^1 x^2\\,dx = \\frac{1}{3}$$, raíces $\\sqrt{x}$, sumatorias $\\sum_{i=1}^n i$, límites $\\lim_{x\\to 0}$. Nunca escribas matemáticas como texto plano (nada de x^2 ni *); usa LaTeX.`;
 }
+
+const MATH_RULE =
+  "Si incluyes matemáticas, escríbelas en LaTeX: en línea con $...$ y en bloque con $$...$$ (ej. $\\frac{dy}{dx}$, $\\int_0^1 x\\,dx$). Nunca uses texto plano para fórmulas.";
 
 export function quizPrompt(topic: string, count: number, difficulty: string, locale?: string) {
   const l = lang(locale);
   return `Genera un quiz de opción múltiple sobre: "${topic}".
 Idioma: ${l}. Cantidad: ${count}. Dificultad: ${difficulty}.
 Cada pregunta: exactamente 4 opciones, una sola correcta (correctIndex = índice 0-3), y una explicación breve.
+${MATH_RULE}
 Escribe TODO en ${l}.`;
 }
 
@@ -34,6 +39,7 @@ export function flashcardsPrompt(topic: string, count: number, locale?: string) 
   const l = lang(locale);
   return `Genera ${count} flashcards (tarjetas de estudio) sobre: "${topic}".
 Idioma: ${l}. "front" = concepto/pregunta corta. "back" = respuesta/definición clara y breve.
+${MATH_RULE}
 Escribe TODO en ${l}.`;
 }
 
@@ -57,7 +63,8 @@ Texto:
 """
 ${text.slice(0, 12000)}
 """
-Devuelve: un título, un TL;DR de 2-3 frases, los puntos clave, y los conceptos importantes con su definición. Todo en ${l}.`;
+Devuelve: un título, un TL;DR de 2-3 frases, los puntos clave, y los conceptos importantes con su definición. Todo en ${l}.
+${MATH_RULE}`;
 }
 
 export const SUMMARY_SHAPE =

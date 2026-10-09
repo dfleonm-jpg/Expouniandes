@@ -18,6 +18,7 @@ import { useApp } from "@/lib/app-context";
 import { useToast } from "../ui/Toast";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
+import { RichText } from "../ui/RichText";
 import { cn } from "@/lib/utils";
 import type { QuizQuestion, Difficulty } from "@/lib/types";
 
@@ -276,7 +277,9 @@ export function Exam() {
                 <p className="mb-1 text-xs uppercase tracking-widest text-accent">
                   {t.exam.question} {current + 1}/{questions.length}
                 </p>
-                <h3 className="text-lg font-semibold leading-relaxed">{questions[current].question}</h3>
+                <RichText className="prose-sereno text-lg font-semibold leading-relaxed">
+                  {questions[current].question}
+                </RichText>
 
                 <div className="mt-5 space-y-3">
                   {questions[current].options.map((opt, i) => {
@@ -300,7 +303,7 @@ export function Exam() {
                         >
                           {String.fromCharCode(65 + i)}
                         </span>
-                        {opt}
+                        <RichText className="prose-sereno [&_p]:m-0">{opt}</RichText>
                       </button>
                     );
                   })}
@@ -410,18 +413,22 @@ export function Exam() {
                           >
                             {correct ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
                           </span>
-                          <p className="text-sm font-medium">{q.question}</p>
+                          <RichText className="prose-sereno text-sm font-medium">{q.question}</RichText>
                         </div>
                         <div className="ml-8 space-y-1 text-xs">
-                          <p className={correct ? "text-calm" : "text-danger"}>
-                            {t.exam.yourAnswer}: {userAns >= 0 ? q.options[userAns] : t.exam.noAnswer}
-                          </p>
+                          <div className={cn("flex gap-1", correct ? "text-calm" : "text-danger")}>
+                            <span>{t.exam.yourAnswer}:</span>
+                            <RichText className="prose-sereno [&_p]:m-0">
+                              {userAns >= 0 ? q.options[userAns] : t.exam.noAnswer}
+                            </RichText>
+                          </div>
                           {!correct && (
-                            <p className="text-calm">
-                              {t.exam.correctAnswer}: {q.options[q.correctIndex]}
-                            </p>
+                            <div className="flex gap-1 text-calm">
+                              <span>{t.exam.correctAnswer}:</span>
+                              <RichText className="prose-sereno [&_p]:m-0">{q.options[q.correctIndex]}</RichText>
+                            </div>
                           )}
-                          <p className="text-muted">{q.explanation}</p>
+                          <RichText className="prose-sereno text-muted">{q.explanation}</RichText>
                         </div>
                       </div>
                     );

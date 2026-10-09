@@ -3,13 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Eraser } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { useApp } from "@/lib/app-context";
 import { useToast } from "../ui/Toast";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FileUploadButton } from "../ui/FileUploadButton";
 import { SpeakButton } from "../ui/SpeakButton";
+import { RichText } from "../ui/RichText";
 
 type Message = { id: string; role: "user" | "model"; text: string };
 
@@ -201,9 +200,7 @@ export function Tutor() {
                       }`}
                     >
                       {m.text ? (
-                        <div className="prose-sereno">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
-                        </div>
+                        <RichText>{m.text}</RichText>
                       ) : (
                         <TypingDots />
                       )}

@@ -10,6 +10,7 @@ import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { FileUploadButton } from "../ui/FileUploadButton";
 import { SpeakButton } from "../ui/SpeakButton";
+import { RichText } from "../ui/RichText";
 import type { SummaryResult } from "@/lib/types";
 
 const MAX_CHARS = 12000;
@@ -103,7 +104,7 @@ export function Summary() {
                 <Lightbulb className="h-4 w-4" />
                 {t.summary.tldr}
               </div>
-              <p className="leading-relaxed text-foreground/90">{data.tldr}</p>
+              <RichText className="prose-sereno leading-relaxed text-foreground/90">{data.tldr}</RichText>
             </div>
 
             {/* Puntos clave */}
@@ -116,7 +117,7 @@ export function Summary() {
                 {data.keyPoints?.map((p, i) => (
                   <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-foreground/85">
                     <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
-                    {p}
+                    <RichText className="prose-sereno">{p}</RichText>
                   </li>
                 ))}
               </ul>
@@ -133,7 +134,7 @@ export function Summary() {
                   {data.concepts.map((c, i) => (
                     <div key={i} className="rounded-xl bg-white/[0.03] p-3">
                       <p className="text-sm font-semibold">{c.term}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-muted">{c.definition}</p>
+                      <RichText className="prose-sereno mt-1 text-xs leading-relaxed text-muted">{c.definition}</RichText>
                     </div>
                   ))}
                 </div>
