@@ -1,35 +1,47 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, RefreshCw, Loader2, X } from "lucide-react";
+import { AlertTriangle, RefreshCw, X } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 
 /**
- * Comprueba /api/health y muestra un aviso claro si la IA no está
- * configurada en el servidor (ej. falta GROQ_API_KEY en Vercel).
+ * Comprueba /api/health y SOLO avisa si la IA de verdad no está configurada
+ * en el servidor (falta la clave). Se revisa automáticamente cada cierto
+ * tiempo y se oculta solo en cuanto la IA vuelve a estar lista, para no
+ * dejar un aviso "pegado" después de un redeploy o un corte momentáneo.
  */
 export function AIStatusBanner() {
   const { t } = useApp();
-  const [status, setStatus] = useState<"checking" | "ok" | "down">("checking");
+  const [configured, setConfigured] = useState<boolean | null>(null); // null = aún comprobando
   const [dismissed, setDismissed] = useState(false);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const check = useCallback(async () => {
-    setStatus("checking");
     try {
       const res = await fetch("/api/health", { cache: "no-store" });
       const data = await res.json();
-      setStatus(data.ok ? "ok" : "down");
+      // Solo nos importa si la CLAVE está configurada en el servidor.
+      const ok = Boolean(data?.configured?.groq || data?.configured?.gemini);
+      setConfigured(ok);
+      if (ok) setDismissed(false); // si se recupera, el banner podrá volver a mostrarse si hiciera falta
     } catch {
-      setStatus("down");
+      // Error de red puntual: no afirmamos que esté mal configurada.
+      setConfigured((prev) => (prev === null ? null : prev));
     }
   }, []);
 
   useEffect(() => {
     check();
+    // Re-comprueba cada 20s para auto-recuperarse tras un redeploy.
+    timer.current = setInterval(check, 20000);
+    return () => {
+      if (timer.current) clearInterval(timer.current);
+    };
   }, [check]);
 
-  if (status === "ok" || status === "checking" || dismissed) return null;
+  // Solo mostramos el aviso si confirmamos que NO hay clave configurada.
+  if (configured !== false || dismissed) return null;
 
   return (
     <AnimatePresence>
@@ -58,13 +70,5 @@ export function AIStatusBanner() {
         </div>
       </motion.div>
     </AnimatePresence>
-  );
-}
-
-export function AIStatusChecking() {
-  return (
-    <span className="inline-flex items-center gap-1 text-xs text-muted">
-      <Loader2 className="h-3 w-3 animate-spin" /> …
-    </span>
   );
 }

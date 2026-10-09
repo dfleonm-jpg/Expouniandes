@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, Sparkles, Loader2, RotateCcw, Lightbulb, ListTree, BookMarked, Save } from "lucide-react";
+import { FileText, Sparkles, Loader2, RotateCcw, Lightbulb, ListTree, BookMarked, Save, Printer } from "lucide-react";
+import { printHTML, escapeHtml } from "@/lib/export";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { useToast } from "../ui/Toast";
@@ -47,6 +48,25 @@ export function Summary() {
     ? `${data.tldr}. ${t.summary.keyPoints}: ${data.keyPoints?.join(". ")}`
     : "";
 
+  function exportPdf() {
+    if (!data) return;
+    const html = `
+      <div class="brand">✦ SERENO · Uniandes</div>
+      <h1>${escapeHtml(data.title)}</h1>
+      <h2>${escapeHtml(t.summary.tldr)}</h2>
+      <p>${escapeHtml(data.tldr)}</p>
+      <h2>${escapeHtml(t.summary.keyPoints)}</h2>
+      <ul>${data.keyPoints?.map((p) => `<li>${escapeHtml(p)}</li>`).join("")}</ul>
+      ${
+        data.concepts?.length
+          ? `<h2>${escapeHtml(t.summary.concepts)}</h2><ul>${data.concepts
+              .map((c) => `<li><strong>${escapeHtml(c.term)}:</strong> ${escapeHtml(c.definition)}</li>`)
+              .join("")}</ul>`
+          : ""
+      }`;
+    printHTML(data.title, html);
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
       <SectionHeader icon={FileText} title={t.summary.title} subtitle={t.summary.subtitle} />
@@ -88,6 +108,13 @@ export function Summary() {
               <h2 className="text-xl font-bold">{data.title}</h2>
               <div className="flex items-center gap-4">
                 <SpeakButton text={speakText} label="🔊" />
+                <button
+                  onClick={exportPdf}
+                  className="flex items-center gap-1.5 text-sm text-muted transition hover:text-foreground"
+                >
+                  <Printer className="h-4 w-4" />
+                  {t.ui.exportPdf}
+                </button>
                 <button
                   onClick={startOver}
                   className="flex items-center gap-1.5 text-sm text-muted transition hover:text-foreground"

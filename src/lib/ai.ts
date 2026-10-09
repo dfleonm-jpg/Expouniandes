@@ -48,6 +48,37 @@ export function getProvider(): Provider {
 export type ChatRole = "user" | "model";
 export type ChatMessage = { role: ChatRole; text: string };
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Llama a la API de Groq con reintentos automáticos si llega un 429
+ * (límite de peticiones del plan gratuito) o un error 5xx temporal.
+ * Respeta el header `retry-after` cuando viene.
+ */
+async function groqFetch(body: unknown, retries = 2): Promise<Response> {
+  let lastRes: Response | null = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const res = await fetch(GROQ_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) return res;
+    lastRes = res;
+    // Solo reintenta en 429 (rate limit) o 5xx.
+    if (res.status !== 429 && res.status < 500) return res;
+    if (attempt < retries) {
+      const retryAfter = Number(res.headers.get("retry-after"));
+      const waitMs = retryAfter > 0 ? retryAfter * 1000 : 1200 * (attempt + 1);
+      await sleep(Math.min(waitMs, 6000));
+    }
+  }
+  return lastRes!;
+}
+
 // ---------------------------------------------------------------
 // CHAT EN STREAMING
 // ---------------------------------------------------------------
@@ -59,24 +90,17 @@ export async function streamChat(
   const encoder = new TextEncoder();
 
   if (provider === "groq") {
-    const res = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        stream: true,
-        temperature: 0.7,
-        messages: [
-          { role: "system", content: system },
-          ...messages.map((m) => ({
-            role: m.role === "model" ? "assistant" : "user",
-            content: m.text,
-          })),
-        ],
-      }),
+    const res = await groqFetch({
+      model: GROQ_MODEL,
+      stream: true,
+      temperature: 0.7,
+      messages: [
+        { role: "system", content: system },
+        ...messages.map((m) => ({
+          role: m.role === "model" ? "assistant" : "user",
+          content: m.text,
+        })),
+      ],
     });
 
     if (!res.ok || !res.body) {
@@ -158,21 +182,14 @@ export async function generateJSON<T>(prompt: string, shapeHint: string): Promis
   const system = `Eres un asistente que responde EXCLUSIVAMENTE con JSON válido, sin texto adicional, sin markdown, sin bloques de código. La forma del JSON debe ser exactamente: ${shapeHint}`;
 
   if (provider === "groq") {
-    const res = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        temperature: 0.7,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: prompt },
-        ],
-      }),
+    const res = await groqFetch({
+      model: GROQ_MODEL,
+      temperature: 0.7,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: prompt },
+      ],
     });
 
     if (!res.ok) {
@@ -207,20 +224,13 @@ export async function generateText(prompt: string, system: string): Promise<stri
   const provider = getProvider();
 
   if (provider === "groq") {
-    const res = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        temperature: 0.7,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: prompt },
-        ],
-      }),
+    const res = await groqFetch({
+      model: GROQ_MODEL,
+      temperature: 0.7,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: prompt },
+      ],
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => "");

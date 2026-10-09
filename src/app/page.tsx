@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar, type Section } from "@/components/Sidebar";
 import { AIStatusBanner } from "@/components/ui/AIStatusBanner";
@@ -38,6 +38,18 @@ function Fade({ children }: { children: React.ReactNode }) {
   );
 }
 
+const SHORTCUTS: Record<string, Section> = {
+  "1": "tutor",
+  "2": "quiz",
+  "3": "exam",
+  "4": "search",
+  "5": "flashcards",
+  "6": "summary",
+  "7": "planner",
+  "8": "wellbeing",
+  "9": "progress",
+};
+
 export default function Page() {
   const [section, setSection] = useState<Section>("home");
 
@@ -45,6 +57,23 @@ export default function Page() {
     setSection(s);
     window.scrollTo({ top: 0 });
   }
+
+  // Atajos de teclado: 1-9 cambian de sección, "/" va a Buscar.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const el = document.activeElement;
+      const typing = el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || (el as HTMLElement).isContentEditable);
+      if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "/") {
+        e.preventDefault();
+        navigate("search");
+      } else if (SHORTCUTS[e.key]) {
+        navigate(SHORTCUTS[e.key]);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Secciones con estado que NO debe perderse al navegar (se mantienen montadas).
   const stateful: Section[] = ["tutor", "quiz", "exam", "flashcards"];

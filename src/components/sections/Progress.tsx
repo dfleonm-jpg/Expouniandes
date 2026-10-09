@@ -124,6 +124,7 @@ export function Progress() {
           <p className="glass rounded-2xl p-6 text-center text-sm text-muted">{t.ui.noExams}</p>
         ) : (
           <div className="space-y-2">
+            {examHistory.length >= 2 && <GradeChart history={examHistory} label={t.ui.evolution} />}
             {examHistory.slice(0, 10).map((e, i) => {
               const pct = Math.round((e.score / e.total) * 100);
               const grade = Math.round((e.score / e.total) * 10 * 10) / 10;
@@ -156,6 +157,50 @@ export function Progress() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Mini-gráfica de líneas (SVG) con la evolución de las notas (más antigua → más reciente). */
+function GradeChart({
+  history,
+  label,
+}: {
+  history: { score: number; total: number }[];
+  label: string;
+}) {
+  const data = [...history].reverse().map((e) => (e.score / e.total) * 10); // 0..10, cronológico
+  const w = 100;
+  const h = 42;
+  const max = 10;
+  const step = data.length > 1 ? w / (data.length - 1) : w;
+  const points = data.map((v, i) => `${i * step},${h - (v / max) * h}`).join(" ");
+
+  return (
+    <div className="glass mb-3 rounded-2xl p-4">
+      <p className="mb-3 text-xs font-medium text-muted">{label}</p>
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-24 w-full">
+        {/* línea de aprobado (6/10) */}
+        <line x1="0" y1={h - (6 / max) * h} x2={w} y2={h - (6 / max) * h} stroke="rgba(52,211,153,0.3)" strokeWidth="0.5" strokeDasharray="2 2" />
+        <polyline
+          points={points}
+          fill="none"
+          stroke="url(#g)"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+        {data.map((v, i) => (
+          <circle key={i} cx={i * step} cy={h - (v / max) * h} r="1.4" fill={v >= 6 ? "#34d399" : "#fb7185"} vectorEffect="non-scaling-stroke" />
+        ))}
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#22d3ee" />
+          </linearGradient>
+        </defs>
+      </svg>
     </div>
   );
 }

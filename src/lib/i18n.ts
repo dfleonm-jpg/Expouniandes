@@ -184,6 +184,10 @@ export const translations = {
       examHistory: "Historial de parciales",
       noExams: "Aún no has hecho parciales. ¡Haz el primero!",
       achievements: "Logros",
+      exportPdf: "Exportar / Imprimir",
+      download: "Descargar",
+      evolution: "Evolución de tus notas",
+      shortcuts: "Atajos de teclado",
     },
     exam: {
       title: "Modo Parcial",
@@ -411,6 +415,10 @@ export const translations = {
       examHistory: "Exam history",
       noExams: "No exams yet. Take your first one!",
       achievements: "Achievements",
+      exportPdf: "Export / Print",
+      download: "Download",
+      evolution: "Your grade evolution",
+      shortcuts: "Keyboard shortcuts",
     },
     exam: {
       title: "Exam Mode",
@@ -638,6 +646,10 @@ export const translations = {
       examHistory: "Histórico de provas",
       noExams: "Ainda não fez provas. Faça a primeira!",
       achievements: "Conquistas",
+      exportPdf: "Exportar / Imprimir",
+      download: "Baixar",
+      evolution: "Evolução das suas notas",
+      shortcuts: "Atalhos de teclado",
     },
     exam: {
       title: "Modo Prova",
@@ -865,6 +877,10 @@ export const translations = {
       examHistory: "Historique des examens",
       noExams: "Pas encore d'examens. Faites le premier !",
       achievements: "Succès",
+      exportPdf: "Exporter / Imprimer",
+      download: "Télécharger",
+      evolution: "Évolution de vos notes",
+      shortcuts: "Raccourcis clavier",
     },
     exam: {
       title: "Mode Examen",

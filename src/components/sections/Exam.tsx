@@ -14,11 +14,13 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { Printer } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useToast } from "../ui/Toast";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { RichText } from "../ui/RichText";
+import { printHTML, escapeHtml } from "@/lib/export";
 import { cn } from "@/lib/utils";
 import type { QuizQuestion, Difficulty } from "@/lib/types";
 
@@ -115,6 +117,28 @@ export function Exam() {
     setAnswers([]);
     setCurrent(0);
     setReviewing(false);
+  }
+
+  function exportPdf() {
+    const correct = questions.reduce((acc, q, i) => acc + (answers[i] === q.correctIndex ? 1 : 0), 0);
+    const grade = Math.round((correct / Math.max(questions.length, 1)) * 10 * 10) / 10;
+    const html = `
+      <div class="brand">✦ SERENO · Uniandes</div>
+      <h1>${escapeHtml(t.exam.title)}: ${escapeHtml(topic)}</h1>
+      <p class="meta">${escapeHtml(t.exam.score)}: ${grade}/10 (${correct}/${questions.length}) · ${new Date().toLocaleDateString()}</p>
+      ${questions
+        .map((q, i) => {
+          const ua = answers[i];
+          const ok = ua === q.correctIndex;
+          return `<div class="q">
+            <p><span class="num">${i + 1}.</span> ${escapeHtml(q.question)}</p>
+            <p>${t.exam.yourAnswer}: ${ua >= 0 ? escapeHtml(q.options[ua]) : escapeHtml(t.exam.noAnswer)} ${ok ? "✓" : "✗"}</p>
+            ${!ok ? `<p class="correct">${t.exam.correctAnswer}: ${escapeHtml(q.options[q.correctIndex])}</p>` : ""}
+            <p class="exp">${escapeHtml(q.explanation)}</p>
+          </div>`;
+        })
+        .join("")}`;
+    printHTML(`${t.exam.title} - ${topic}`, html);
   }
 
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
@@ -388,6 +412,13 @@ export function Exam() {
                       className="glass rounded-xl px-5 py-3 text-sm font-medium transition hover:bg-white/10"
                     >
                       {t.exam.review}
+                    </button>
+                    <button
+                      onClick={exportPdf}
+                      className="glass inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition hover:bg-white/10"
+                    >
+                      <Printer className="h-4 w-4" />
+                      {t.ui.exportPdf}
                     </button>
                     <button
                       onClick={reset}
