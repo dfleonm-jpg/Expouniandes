@@ -1,5 +1,4 @@
 "use client";
-"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -61,27 +60,27 @@ export function Planner() {
     saveTasks(tasks.filter((task) => task.id !== id));
   }
 
-  // Timer
+  // Tic del temporizador (sin efectos secundarios dentro del updater).
   useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => {
-        setSeconds((s) => {
-          if (s <= 1) {
-            // Fin de sesión
-            if (mode === "focus") addStat("focusMinutes", 25);
-            const nextMode = mode === "focus" ? "break" : "focus";
-            setMode(nextMode);
-            setRunning(false);
-            return nextMode === "focus" ? FOCUS_SECONDS : BREAK_SECONDS;
-          }
-          return s - 1;
-        });
-      }, 1000);
-    }
+    if (!running) return;
+    intervalRef.current = setInterval(() => {
+      setSeconds((s) => Math.max(s - 1, 0));
+    }, 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [running, mode, addStat]);
+  }, [running]);
+
+  // Fin de sesión: se dispara una sola vez cuando llega a 0.
+  useEffect(() => {
+    if (running && seconds === 0) {
+      if (mode === "focus") addStat("focusMinutes", 25);
+      const nextMode = mode === "focus" ? "break" : "focus";
+      setMode(nextMode);
+      setRunning(false);
+      setSeconds(nextMode === "focus" ? FOCUS_SECONDS : BREAK_SECONDS);
+    }
+  }, [seconds, running, mode, addStat]);
 
   function resetTimer() {
     setRunning(false);
@@ -166,7 +165,7 @@ export function Planner() {
                     <button
                       onClick={() => removeTask(task.id)}
                       className="text-muted opacity-0 transition hover:text-danger group-hover:opacity-100"
-                      aria-label="Delete"
+                      aria-label={t.documents.remove}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

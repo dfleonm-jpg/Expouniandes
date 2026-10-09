@@ -1,9 +1,9 @@
 "use client";
-"use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, MessageSquare, ListChecks, Layers, FileText, CalendarClock, HeartPulse, ArrowRight } from "lucide-react";
+import { Sparkles, MessageSquare, ListChecks, GraduationCap, Layers, FileText, CalendarClock, HeartPulse, ArrowRight } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { UniandesMark } from "../ui/UniandesMark";
 import type { Section } from "../Sidebar";
 
 const container = {
@@ -21,6 +21,7 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
   const features = [
     { icon: MessageSquare, ...t.features.tutor, section: "tutor" as Section, color: "from-violet-500 to-indigo-500" },
     { icon: ListChecks, ...t.features.quiz, section: "quiz" as Section, color: "from-cyan-500 to-blue-500" },
+    { icon: GraduationCap, title: t.exam.title, desc: t.exam.subtitle, section: "exam" as Section, color: "from-indigo-500 to-blue-600" },
     { icon: Layers, title: t.nav.flashcards, desc: t.flashcards.subtitle, section: "flashcards" as Section, color: "from-amber-500 to-orange-500" },
     { icon: FileText, title: t.nav.summary, desc: t.summary.subtitle, section: "summary" as Section, color: "from-fuchsia-500 to-purple-500" },
     { icon: CalendarClock, ...t.features.planner, section: "planner" as Section, color: "from-emerald-500 to-teal-500" },
@@ -33,8 +34,9 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
       <motion.div variants={container} initial="hidden" animate="show" className="text-center">
         <motion.div variants={item} className="mb-6 flex justify-center">
           <span className="glass glow-border inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-foreground/80">
-            <Sparkles className="h-3.5 w-3.5 text-accent" />
+            <UniandesMark className="h-4 w-4" />
             {t.hero.badge}
+            <Sparkles className="h-3.5 w-3.5 text-accent" />
           </span>
         </motion.div>
 

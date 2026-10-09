@@ -1,16 +1,17 @@
 "use client";
-"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Brain, User, Sparkles, FileText, Trash2, Upload, Copy, Square, Eraser } from "lucide-react";
+import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Eraser } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useApp } from "@/lib/app-context";
 import { useToast } from "../ui/Toast";
 import { SectionHeader } from "../ui/SectionHeader";
+import { FileUploadButton } from "../ui/FileUploadButton";
+import { SpeakButton } from "../ui/SpeakButton";
 
-type Message = { role: "user" | "model"; text: string };
+type Message = { id: string; role: "user" | "model"; text: string };
 
 export function Tutor() {
   const { t, locale, addStat, docs, addDoc, removeDoc } = useApp();
@@ -20,6 +21,14 @@ export function Tutor() {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const atBottomRef = useRef(true);
+
+  // Solo auto-scroll si el usuario ya estaba al final (no interrumpe lectura).
+  function onScroll() {
+    const el = scrollRef.current;
+    if (!el) return;
+    atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  }
 
   function stop() {
     abortRef.current?.abort();
@@ -42,22 +51,16 @@ export function Tutor() {
   }
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    if (atBottomRef.current) {
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+    }
   }, [messages, loading]);
-
-  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const content = await file.text();
-    addDoc(file.name, content);
-    e.target.value = "";
-  }
 
   async function send(text: string) {
     const content = text.trim();
     if (!content || loading) return;
 
-    const newMessages: Message[] = [...messages, { role: "user", text: content }];
+    const newMessages: Message[] = [...messages, { id: crypto.randomUUID(), role: "user", text: content }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -79,11 +82,12 @@ export function Tutor() {
 
       if (!res.ok || !res.body) {
         const payload = await res.json().catch(() => ({}));
-        setMessages((m) => [...m, { role: "model", text: `⚠️ ${payload.error || t.common.error}` }]);
+        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "model", text: `⚠️ ${payload.error || t.common.error}` }]);
         return;
       }
 
-      setMessages((m) => [...m, { role: "model", text: "" }]);
+      const modelId = crypto.randomUUID();
+      setMessages((m) => [...m, { id: modelId, role: "model", text: "" }]);
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let acc = "";
@@ -92,22 +96,14 @@ export function Tutor() {
         const { done, value } = await reader.read();
         if (done) break;
         acc += decoder.decode(value, { stream: true });
-        setMessages((m) => {
-          const copy = [...m];
-          copy[copy.length - 1] = { role: "model", text: acc };
-          return copy;
-        });
+        setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, text: acc } : msg)));
       }
       if (!acc.trim()) {
-        setMessages((m) => {
-          const copy = [...m];
-          copy[copy.length - 1] = { role: "model", text: `⚠️ ${t.common.error}` };
-          return copy;
-        });
+        setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, text: `⚠️ ${t.common.error}` } : msg)));
       }
     } catch (err) {
       if ((err as Error)?.name !== "AbortError") {
-        setMessages((m) => [...m, { role: "model", text: `⚠️ ${t.common.error}` }]);
+        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "model", text: `⚠️ ${t.common.error}` }]);
       }
     } finally {
       setLoading(false);
@@ -116,7 +112,7 @@ export function Tutor() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-4xl flex-col px-4 pb-28 lg:h-[calc(100vh-5rem)] lg:pb-6">
+    <div className="mx-auto flex h-[calc(100dvh-11rem)] max-w-4xl flex-col px-4 pb-24 lg:h-[calc(100dvh-6rem)] lg:pb-4">
       <div className="flex items-center justify-between gap-3">
         <SectionHeader icon={Brain} title={t.tutor.title} subtitle={t.tutor.subtitle} />
         <div className="flex shrink-0 items-center gap-2">
@@ -129,11 +125,7 @@ export function Tutor() {
               <span className="hidden sm:inline">{t.ui.clear}</span>
             </button>
           )}
-          <label className="glass flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10">
-            <Upload className="h-4 w-4 text-accent" />
-            <span className="hidden sm:inline">{t.documents.upload}</span>
-            <input type="file" accept=".txt,.md,text/plain" onChange={onFile} className="hidden" />
-          </label>
+          <FileUploadButton onExtracted={(name, text) => addDoc(name, text)} compact />
         </div>
       </div>
 
@@ -158,6 +150,7 @@ export function Tutor() {
       {/* Mensajes */}
       <div
         ref={scrollRef}
+        onScroll={onScroll}
         className="glass mt-4 flex-1 overflow-y-auto rounded-3xl p-4 sm:p-6"
       >
         {messages.length === 0 ? (
@@ -181,9 +174,9 @@ export function Tutor() {
         ) : (
           <div className="space-y-5">
             <AnimatePresence initial={false}>
-              {messages.map((m, i) => (
+              {messages.map((m) => (
                 <motion.div
-                  key={i}
+                  key={m.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}
@@ -216,13 +209,16 @@ export function Tutor() {
                       )}
                     </div>
                     {m.role === "model" && m.text && !m.text.startsWith("⚠️") && (
-                      <button
-                        onClick={() => copyText(m.text)}
-                        className="mt-1.5 flex items-center gap-1 text-xs text-muted opacity-0 transition hover:text-foreground group-hover/msg:opacity-100"
-                      >
-                        <Copy className="h-3 w-3" />
-                        {t.ui.copy}
-                      </button>
+                      <div className="mt-1.5 flex items-center gap-3 opacity-0 transition group-hover/msg:opacity-100">
+                        <button
+                          onClick={() => copyText(m.text)}
+                          className="flex items-center gap-1 text-xs text-muted transition hover:text-foreground"
+                        >
+                          <Copy className="h-3 w-3" />
+                          {t.ui.copy}
+                        </button>
+                        <SpeakButton text={m.text} label="🔊" />
+                      </div>
                     )}
                   </div>
                 </motion.div>

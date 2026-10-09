@@ -2,34 +2,49 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, Sparkles, Loader2, RotateCcw, Upload, Lightbulb, ListTree, BookMarked } from "lucide-react";
+import { FileText, Sparkles, Loader2, RotateCcw, Lightbulb, ListTree, BookMarked, Save } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
+import { useToast } from "../ui/Toast";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
+import { FileUploadButton } from "../ui/FileUploadButton";
+import { SpeakButton } from "../ui/SpeakButton";
 import type { SummaryResult } from "@/lib/types";
+
+const MAX_CHARS = 12000;
 
 export function Summary() {
   const { t, locale, addStat, addDoc } = useApp();
+  const { notify } = useToast();
   const { loading, error, data, run, reset, setError } = useAIRequest<SummaryResult>();
   const [text, setText] = useState("");
+  const [saved, setSaved] = useState(false);
 
   async function generate() {
     if (text.trim().length < 40) return;
-    const res = await run("/api/summary", { text, locale });
+    const res = await run("/api/summary", { text: text.slice(0, MAX_CHARS), locale });
     if (res) addStat("summariesCreated", 1);
   }
 
-  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const content = await file.text();
-    setText(content);
+  function saveAsDoc() {
+    if (data && !saved) {
+      addDoc(data.title || t.summary.title, text.slice(0, MAX_CHARS));
+      setSaved(true);
+      notify("success", t.documents.added);
+    }
   }
 
-  function saveAsDoc() {
-    if (data) addDoc(data.title || "Resumen", text);
+  function startOver() {
+    reset();
+    setText("");
+    setSaved(false);
   }
+
+  // Texto para leer en voz alta: TL;DR + puntos clave.
+  const speakText = data
+    ? `${data.tldr}. ${t.summary.keyPoints}: ${data.keyPoints?.join(". ")}`
+    : "";
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
@@ -41,11 +56,7 @@ export function Summary() {
         {!data ? (
           <div className="glass rounded-3xl p-6 sm:p-8">
             <div className="mb-3 flex justify-end">
-              <label className="glass flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition hover:bg-white/10">
-                <Upload className="h-3.5 w-3.5" />
-                {t.documents.upload}
-                <input type="file" accept=".txt,.md,text/plain" onChange={onFile} className="hidden" />
-              </label>
+              <FileUploadButton onExtracted={(_, extracted) => setText(extracted)} />
             </div>
             <textarea
               value={text}
@@ -54,7 +65,9 @@ export function Summary() {
               rows={10}
               className="glass w-full resize-none rounded-xl px-4 py-3 text-sm leading-relaxed text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/50"
             />
-            <p className="mt-2 text-right text-xs text-muted">{text.length} / 12000</p>
+            <p className={`mt-2 text-right text-xs ${text.length > MAX_CHARS ? "text-danger" : "text-muted"}`}>
+              {text.length} / {MAX_CHARS}
+            </p>
             <button
               onClick={generate}
               disabled={text.trim().length < 40 || loading}
@@ -72,13 +85,16 @@ export function Summary() {
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">{data.title}</h2>
-              <button
-                onClick={reset}
-                className="flex items-center gap-1.5 text-sm text-muted transition hover:text-foreground"
-              >
-                <RotateCcw className="h-4 w-4" />
-                {t.summary.new}
-              </button>
+              <div className="flex items-center gap-4">
+                <SpeakButton text={speakText} label="🔊" />
+                <button
+                  onClick={startOver}
+                  className="flex items-center gap-1.5 text-sm text-muted transition hover:text-foreground"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  {t.summary.new}
+                </button>
+              </div>
             </div>
 
             {/* TL;DR */}
@@ -126,9 +142,11 @@ export function Summary() {
 
             <button
               onClick={saveAsDoc}
-              className="glass w-full rounded-xl px-4 py-3 text-sm font-medium transition hover:bg-white/10"
+              disabled={saved}
+              className="glass flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition hover:bg-white/10 disabled:opacity-50"
             >
-              💾 {t.documents.added}
+              <Save className="h-4 w-4" />
+              {saved ? t.documents.added : t.summary.askTutor}
             </button>
           </motion.div>
         )}

@@ -1,9 +1,8 @@
 "use client";
-"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ListChecks, Check, X, RotateCcw, Trophy, Loader2, Sparkles } from "lucide-react";
+import { ListChecks, Check, X, RotateCcw, Trophy, Loader2, Sparkles, ChevronRight } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { SectionHeader } from "../ui/SectionHeader";
 import { cn } from "@/lib/utils";
@@ -259,9 +258,16 @@ export function Quiz() {
                     </div>
                     <button
                       onClick={nextQuestion}
-                      className="mt-4 w-full rounded-xl bg-gradient-to-r from-brand to-accent px-6 py-3 font-semibold text-white transition hover:opacity-90"
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-accent px-6 py-3 font-semibold text-white transition hover:opacity-90"
                     >
-                      {current < questions.length - 1 ? "→" : t.quiz.submit}
+                      {current < questions.length - 1 ? (
+                        <>
+                          {t.flashcards.next}
+                          <ChevronRight className="h-4 w-4" />
+                        </>
+                      ) : (
+                        t.quiz.submit
+                      )}
                     </button>
                   </motion.div>
                 )}

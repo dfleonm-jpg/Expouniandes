@@ -5,6 +5,7 @@ import {
   Brain,
   MessageSquare,
   ListChecks,
+  GraduationCap,
   Layers,
   FileText,
   CalendarClock,
@@ -14,12 +15,14 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { LanguageSwitcher } from "./ui/LanguageSwitcher";
+import { UniandesMark } from "./ui/UniandesMark";
 import { cn } from "@/lib/utils";
 
 export type Section =
   | "home"
   | "tutor"
   | "quiz"
+  | "exam"
   | "flashcards"
   | "summary"
   | "planner"
@@ -31,6 +34,7 @@ type NavKey = keyof ReturnType<typeof useApp>["t"]["nav"];
 const NAV_ITEMS: { id: Section; icon: typeof MessageSquare; key: NavKey }[] = [
   { id: "tutor", icon: MessageSquare, key: "tutor" },
   { id: "quiz", icon: ListChecks, key: "quiz" },
+  { id: "exam", icon: GraduationCap, key: "exam" },
   { id: "flashcards", icon: Layers, key: "flashcards" },
   { id: "summary", icon: FileText, key: "summary" },
   { id: "planner", icon: CalendarClock, key: "planner" },
@@ -55,6 +59,7 @@ export function Sidebar({
           {/* Logo */}
           <button
             onClick={() => onNavigate("home")}
+            aria-label={t.brand}
             className="mb-6 flex items-center gap-3 px-2 transition hover:opacity-80"
           >
             <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent">
@@ -62,7 +67,9 @@ export function Sidebar({
             </span>
             <div className="text-left">
               <p className="text-lg font-bold leading-none tracking-tight">{t.brand}</p>
-              <p className="mt-1 text-[11px] text-muted">ExpoUniandes</p>
+              <p className="mt-1 flex items-center gap-1 text-[11px] text-muted">
+                <UniandesMark className="h-3 w-3" /> Uniandes
+              </p>
             </div>
           </button>
 
@@ -100,9 +107,7 @@ export function Sidebar({
               <div className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-sm">
                 <Flame className="h-4 w-4 text-warn" />
                 <span className="font-semibold">{streak}</span>
-                <span className="text-muted">
-                  {streak === 1 ? "día" : "días"} 🔥
-                </span>
+                <span className="text-muted">{streak === 1 ? t.ui.day : t.ui.days} 🔥</span>
               </div>
             )}
             <LanguageSwitcher />
@@ -113,7 +118,7 @@ export function Sidebar({
       {/* Top bar móvil */}
       <header className="sticky top-0 z-40 lg:hidden">
         <div className="glass-strong mx-3 mt-3 flex items-center justify-between rounded-2xl px-3 py-2.5">
-          <button onClick={() => onNavigate("home")} className="flex items-center gap-2.5">
+          <button onClick={() => onNavigate("home")} aria-label={t.brand} className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent">
               <Brain className="h-5 w-5 text-white" />
             </span>

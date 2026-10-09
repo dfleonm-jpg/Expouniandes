@@ -35,7 +35,7 @@ export function Progress() {
         <div>
           <p className="text-3xl font-extrabold tabular-nums">{streak}</p>
           <p className="text-sm text-muted">
-            {streak === 1 ? "día seguido estudiando" : "días seguidos estudiando"} 🔥
+            {streak === 1 ? t.ui.day : t.ui.days} {t.ui.streakLabel} 🔥
           </p>
         </div>
       </motion.div>

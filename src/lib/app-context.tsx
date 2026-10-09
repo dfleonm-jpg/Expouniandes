@@ -95,26 +95,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const persistDocs = useCallback((next: SereneDoc[]) => {
-    setDocs(next);
-    try {
-      localStorage.setItem("sereno:docs", JSON.stringify(next));
-    } catch {}
+  const addDoc = useCallback((name: string, content: string) => {
+    setDocs((prev) => {
+      const next = [...prev, { id: crypto.randomUUID(), name, content }];
+      try {
+        localStorage.setItem("sereno:docs", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
   }, []);
 
-  const addDoc = useCallback(
-    (name: string, content: string) => {
-      persistDocs([...docs, { id: crypto.randomUUID(), name, content }]);
-    },
-    [docs, persistDocs]
-  );
-
-  const removeDoc = useCallback(
-    (id: string) => {
-      persistDocs(docs.filter((d) => d.id !== id));
-    },
-    [docs, persistDocs]
-  );
+  const removeDoc = useCallback((id: string) => {
+    setDocs((prev) => {
+      const next = prev.filter((d) => d.id !== id);
+      try {
+        localStorage.setItem("sereno:docs", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
 
   const value: AppContextType = {
     locale,
@@ -130,7 +129,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={value}>
-      <div style={{ visibility: mounted ? "visible" : "hidden" }}>{children}</div>
+      <div
+        className="transition-opacity duration-300"
+        style={{ opacity: mounted ? 1 : 0 }}
+      >
+        {children}
+      </div>
     </AppContext.Provider>
   );
 }

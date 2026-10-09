@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Layers, Sparkles, Loader2, ChevronLeft, ChevronRight, RotateCcw, Shuffle } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
@@ -102,25 +102,31 @@ export function Flashcards() {
               </div>
             </div>
 
-            {/* Tarjeta 3D */}
-            <div className="[perspective:1600px]">
+            {/* Tarjeta 3D (compatible con Safari/iOS) */}
+            <div style={{ perspective: "1600px" }}>
               <motion.button
                 key={idx}
                 onClick={() => setFlipped((f) => !f)}
-                className="relative h-72 w-full cursor-pointer rounded-3xl text-left [transform-style:preserve-3d]"
+                aria-label={flipped ? cards[idx].back : cards[idx].front}
+                className="relative h-72 w-full cursor-pointer rounded-3xl text-left"
+                style={{ transformStyle: "preserve-3d", willChange: "transform" }}
                 animate={{ rotateY: flipped ? 180 : 0 }}
                 transition={{ duration: 0.5 }}
               >
                 {/* Frente */}
-                <div className="glass glow-border absolute inset-0 flex flex-col items-center justify-center rounded-3xl p-8 text-center [backface-visibility:hidden]">
-                  <span className="mb-3 text-xs uppercase tracking-widest text-accent">
-                    {t.nav.flashcards}
-                  </span>
+                <div
+                  className="glass absolute inset-0 flex flex-col items-center justify-center rounded-3xl p-8 text-center ring-1 ring-brand/30"
+                  style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "translateZ(0)" }}
+                >
+                  <span className="mb-3 text-xs uppercase tracking-widest text-accent">{t.nav.flashcards}</span>
                   <p className="text-xl font-semibold">{cards[idx].front}</p>
                   <span className="mt-6 text-xs text-muted">{t.flashcards.flip}</span>
                 </div>
                 {/* Reverso */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-brand/20 to-accent/20 p-8 text-center ring-1 ring-white/10 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                <div
+                  className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-brand/25 to-accent/25 p-8 text-center ring-1 ring-white/10"
+                  style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(180deg) translateZ(0)" }}
+                >
                   <p className="text-lg leading-relaxed">{cards[idx].back}</p>
                 </div>
               </motion.button>
