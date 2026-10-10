@@ -16,10 +16,12 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { SectionHeader } from "../ui/SectionHeader";
+import { computeXP, levelInfo } from "@/lib/levels";
 import { cn } from "@/lib/utils";
 
 export function Progress() {
   const { t, stats, streak, examHistory } = useApp();
+  const lvl = levelInfo(computeXP(stats));
 
   const cards = [
     { icon: ListChecks, label: t.progress.quizzesTaken, value: stats.quizzesTaken, color: "from-cyan-500 to-blue-500" },
@@ -47,11 +49,45 @@ export function Progress() {
     <div className="mx-auto max-w-5xl px-4 pb-28 lg:pb-10">
       <SectionHeader icon={BarChart3} title={t.progress.title} subtitle={t.progress.subtitle} />
 
+      {/* Nivel + XP */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass glow-border mt-6 rounded-3xl p-6"
+      >
+        <div className="flex items-center gap-4">
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-accent">
+            <span className="text-2xl font-extrabold text-white">{lvl.level}</span>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-baseline justify-between">
+              <p className="font-bold">
+                {t.ui.level} {lvl.level}
+              </p>
+              <p className="text-xs text-muted">
+                {lvl.xp} {t.ui.xp}
+              </p>
+            </div>
+            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/10">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-brand to-accent"
+                initial={{ width: 0 }}
+                animate={{ width: `${lvl.progress * 100}%` }}
+                transition={{ duration: 0.8 }}
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-muted">
+              {lvl.toNext} {t.ui.xp} {t.ui.toNextLevel}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Racha destacada */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass glow-border mt-6 flex items-center gap-4 rounded-3xl p-6"
+        className="glass mt-5 flex items-center gap-4 rounded-3xl p-6"
       >
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-warn to-danger">
           <Flame className="h-8 w-8 text-white" />

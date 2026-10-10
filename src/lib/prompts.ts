@@ -74,3 +74,20 @@ ${MATH_RULE}`;
 
 export const SUMMARY_SHAPE =
   '{"title":string,"tldr":string,"keyPoints":[string],"concepts":[{"term":string,"definition":string}]}';
+
+export function mindMapPrompt(topic: string, locale?: string) {
+  const l = lang(locale);
+  return `Crea un mapa mental sobre: "${topic}".
+Idioma: ${l}. Devuelve un tema central y entre 4 y 6 ramas principales; cada rama con 2-4 ideas/conceptos cortos.
+Sé claro y conciso (ideas de pocas palabras). Todo en ${l}.`;
+}
+
+export const MINDMAP_SHAPE =
+  '{"central":string,"branches":[{"label":string,"items":[string]}]}';
+
+export function methodRecommendPrompt(situation: string, locale?: string) {
+  const l = lang(locale);
+  return `Un estudiante describe su situación: "${situation}".
+Recomiéndale UN método de estudio adecuado (ej. Pomodoro, Feynman, repetición espaciada, Cornell, mapas mentales, práctica activa, 80/20...).
+Idioma: ${l}. Explica en 2-3 frases por qué ese método encaja con su caso y da un primer paso concreto para empezar hoy. Responde en ${l}, cálido y motivador.`;
+}

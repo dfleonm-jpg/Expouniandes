@@ -11,8 +11,11 @@ import { Exam } from "@/components/sections/Exam";
 import { Search } from "@/components/sections/Search";
 import { Flashcards } from "@/components/sections/Flashcards";
 import { Summary } from "@/components/sections/Summary";
+import { MindMap } from "@/components/sections/MindMap";
+import { Methods } from "@/components/sections/Methods";
 import { Planner } from "@/components/sections/Planner";
 import { Calendar } from "@/components/sections/Calendar";
+import { Groups } from "@/components/sections/Groups";
 import { Wellbeing } from "@/components/sections/Wellbeing";
 import { Support } from "@/components/sections/Support";
 import { Progress } from "@/components/sections/Progress";
@@ -44,9 +47,9 @@ const SHORTCUTS: Record<string, Section> = {
   "1": "tutor",
   "2": "quiz",
   "3": "exam",
-  "4": "search",
-  "5": "flashcards",
-  "6": "summary",
+  "4": "flashcards",
+  "5": "mindmap",
+  "6": "methods",
   "7": "planner",
   "8": "calendar",
   "9": "wellbeing",
@@ -112,8 +115,11 @@ export default function Page() {
               {section === "home" && <Home onNavigate={navigate} />}
               {section === "search" && <Search onNavigate={navigate} />}
               {section === "summary" && <Summary />}
+              {section === "mindmap" && <MindMap />}
+              {section === "methods" && <Methods onNavigate={navigate} />}
               {section === "planner" && <Planner />}
               {section === "calendar" && <Calendar />}
+              {section === "groups" && <Groups />}
               {section === "wellbeing" && <Wellbeing />}
               {section === "progress" && <Progress />}
             </Fade>

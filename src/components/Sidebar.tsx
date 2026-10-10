@@ -9,8 +9,11 @@ import {
   Search,
   Layers,
   FileText,
+  Network,
+  BookMarked,
   CalendarClock,
   CalendarDays,
+  Users,
   HeartPulse,
   HeartHandshake,
   BarChart3,
@@ -29,27 +32,63 @@ export type Section =
   | "search"
   | "flashcards"
   | "summary"
+  | "mindmap"
+  | "methods"
   | "planner"
   | "calendar"
+  | "groups"
   | "wellbeing"
   | "support"
   | "progress";
 
 type NavKey = keyof ReturnType<typeof useApp>["t"]["nav"];
+type GroupKey = keyof ReturnType<typeof useApp>["t"]["navGroups"];
 
-const NAV_ITEMS: { id: Section; icon: typeof MessageSquare; key: NavKey }[] = [
-  { id: "tutor", icon: MessageSquare, key: "tutor" },
-  { id: "quiz", icon: ListChecks, key: "quiz" },
-  { id: "exam", icon: GraduationCap, key: "exam" },
-  { id: "search", icon: Search, key: "search" },
-  { id: "flashcards", icon: Layers, key: "flashcards" },
-  { id: "summary", icon: FileText, key: "summary" },
-  { id: "planner", icon: CalendarClock, key: "planner" },
-  { id: "calendar", icon: CalendarDays, key: "calendar" },
-  { id: "wellbeing", icon: HeartPulse, key: "wellbeing" },
-  { id: "support", icon: HeartHandshake, key: "support" },
-  { id: "progress", icon: BarChart3, key: "progress" },
+type Item = { id: Section; icon: typeof MessageSquare; key: NavKey };
+
+// Navegación agrupada por categorías para mantener el orden.
+const GROUPS: { group: GroupKey; items: Item[] }[] = [
+  {
+    group: "learn",
+    items: [
+      { id: "tutor", icon: MessageSquare, key: "tutor" },
+      { id: "search", icon: Search, key: "search" },
+      { id: "summary", icon: FileText, key: "summary" },
+      { id: "mindmap", icon: Network, key: "mindmap" },
+    ],
+  },
+  {
+    group: "practice",
+    items: [
+      { id: "quiz", icon: ListChecks, key: "quiz" },
+      { id: "exam", icon: GraduationCap, key: "exam" },
+      { id: "flashcards", icon: Layers, key: "flashcards" },
+    ],
+  },
+  {
+    group: "organize",
+    items: [
+      { id: "methods", icon: BookMarked, key: "methods" },
+      { id: "planner", icon: CalendarClock, key: "planner" },
+      { id: "calendar", icon: CalendarDays, key: "calendar" },
+      { id: "groups", icon: Users, key: "groups" },
+    ],
+  },
+  {
+    group: "wellness",
+    items: [
+      { id: "wellbeing", icon: HeartPulse, key: "wellbeing" },
+      { id: "support", icon: HeartHandshake, key: "support" },
+    ],
+  },
+  {
+    group: "you",
+    items: [{ id: "progress", icon: BarChart3, key: "progress" }],
+  },
 ];
+
+// Lista plana para el nav móvil (orden recorriendo los grupos).
+const FLAT: Item[] = GROUPS.flatMap((g) => g.items);
 
 export function Sidebar({
   active,
@@ -69,7 +108,7 @@ export function Sidebar({
           <button
             onClick={() => onNavigate("home")}
             aria-label={t.brand}
-            className="mb-6 flex items-center gap-3 px-2 transition hover:opacity-80"
+            className="mb-5 flex shrink-0 items-center gap-3 px-2 transition hover:opacity-80"
           >
             <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent">
               <Brain className="h-6 w-6 text-white" />
@@ -82,36 +121,45 @@ export function Sidebar({
             </div>
           </button>
 
-          {/* Nav */}
-          <nav className="flex flex-1 flex-col gap-1">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = active === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onNavigate(item.id)}
-                  className={cn(
-                    "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                    isActive ? "text-white" : "text-muted hover:text-foreground hover:bg-white/5"
-                  )}
-                >
-                  {isActive && (
-                    <motion.span
-                      layoutId="side-pill"
-                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand/25 to-accent/15 ring-1 ring-white/10"
-                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                    />
-                  )}
-                  <Icon className="relative z-10 h-5 w-5 shrink-0" />
-                  <span className="relative z-10">{t.nav[item.key]}</span>
-                </button>
-              );
-            })}
+          {/* Nav agrupado (con scroll propio) */}
+          <nav className="flex-1 space-y-4 overflow-y-auto pr-1 [scrollbar-width:thin]">
+            {GROUPS.map((g) => (
+              <div key={g.group}>
+                <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted/70">
+                  {t.navGroups[g.group]}
+                </p>
+                <div className="space-y-0.5">
+                  {g.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = active === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => onNavigate(item.id)}
+                        className={cn(
+                          "relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition",
+                          isActive ? "text-white" : "text-muted hover:text-foreground hover:bg-white/5"
+                        )}
+                      >
+                        {isActive && (
+                          <motion.span
+                            layoutId="side-pill"
+                            className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand/25 to-accent/15 ring-1 ring-white/10"
+                            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                          />
+                        )}
+                        <Icon className="relative z-10 h-[18px] w-[18px] shrink-0" />
+                        <span className="relative z-10">{t.nav[item.key]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
 
           {/* Racha + idioma */}
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 shrink-0 space-y-3 border-t border-white/5 pt-3">
             {streak > 0 && (
               <div className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-sm">
                 <Flame className="h-4 w-4 text-warn" />
@@ -150,7 +198,7 @@ export function Sidebar({
       {/* Nav inferior móvil (scrollable) */}
       <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
         <div className="glass-strong mx-3 mb-3 flex items-center gap-1 overflow-x-auto rounded-2xl px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {NAV_ITEMS.map((item) => {
+          {FLAT.map((item) => {
             const Icon = item.icon;
             const isActive = active === item.id;
             return (

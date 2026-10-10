@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "katex/dist/katex.min.css";
@@ -21,6 +21,13 @@ export const metadata: Metadata = {
   title: "Sereno — Tu tutor con IA para estudiar sin estrés",
   description:
     "Sereno es un tutor académico con IA que te ayuda a estudiar, generar quizzes, organizar tu tiempo y cuidar tu bienestar. Proyecto ExpoUniandes.",
+  appleWebApp: { capable: true, title: "Sereno", statusBarStyle: "black-translucent" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#8b5cf6",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
