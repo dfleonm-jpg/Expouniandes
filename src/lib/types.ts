@@ -33,12 +33,16 @@ export type SummaryResult = {
 
 export type Difficulty = "easy" | "medium" | "hard";
 
-export type MindMapNode = {
+export type MindMapItem = { text: string; detail?: string };
+
+export type MindMapBranch = {
+  emoji?: string;
   label: string;
-  children?: { label: string; items?: string[] }[];
+  items: MindMapItem[];
 };
 
 export type MindMap = {
   central: string;
-  branches: { label: string; items: string[] }[];
+  summary?: string;
+  branches: MindMapBranch[];
 };

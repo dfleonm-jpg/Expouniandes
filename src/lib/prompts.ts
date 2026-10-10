@@ -77,13 +77,18 @@ export const SUMMARY_SHAPE =
 
 export function mindMapPrompt(topic: string, locale?: string) {
   const l = lang(locale);
-  return `Crea un mapa mental sobre: "${topic}".
-Idioma: ${l}. Devuelve un tema central y entre 4 y 6 ramas principales; cada rama con 2-4 ideas/conceptos cortos.
-Sé claro y conciso (ideas de pocas palabras). Todo en ${l}.`;
+  return `Crea un MAPA MENTAL completo y bien estructurado sobre: "${topic}".
+Idioma: ${l}.
+Requisitos:
+- Un resumen de 1 frase del tema (campo "summary").
+- Entre 5 y 7 ramas principales, cada una con: un "emoji" representativo, un "label" corto (2-4 palabras) y entre 3 y 5 "items".
+- Cada "item" tiene un "text" (idea concreta y clara, no genérica) y, cuando aporte, un "detail" breve (una frase con un dato, ejemplo o definición útil).
+- Que las ramas cubran distintos ángulos del tema (definición, tipos, causas, ejemplos, aplicaciones, importancia, etc.) según corresponda.
+- Contenido real y específico, nada de relleno. Todo en ${l}.`;
 }
 
 export const MINDMAP_SHAPE =
-  '{"central":string,"branches":[{"label":string,"items":[string]}]}';
+  '{"central":string,"summary":string,"branches":[{"emoji":string,"label":string,"items":[{"text":string,"detail":string}]}]}';
 
 export function methodRecommendPrompt(situation: string, locale?: string) {
   const l = lang(locale);
