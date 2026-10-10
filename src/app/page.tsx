@@ -12,7 +12,9 @@ import { Search } from "@/components/sections/Search";
 import { Flashcards } from "@/components/sections/Flashcards";
 import { Summary } from "@/components/sections/Summary";
 import { Planner } from "@/components/sections/Planner";
+import { Calendar } from "@/components/sections/Calendar";
 import { Wellbeing } from "@/components/sections/Wellbeing";
+import { Support } from "@/components/sections/Support";
 import { Progress } from "@/components/sections/Progress";
 
 /** Envoltura que mantiene la sección montada pero oculta cuando no está activa,
@@ -46,8 +48,9 @@ const SHORTCUTS: Record<string, Section> = {
   "5": "flashcards",
   "6": "summary",
   "7": "planner",
-  "8": "wellbeing",
-  "9": "progress",
+  "8": "calendar",
+  "9": "wellbeing",
+  "0": "support",
 };
 
 export default function Page() {
@@ -76,7 +79,7 @@ export default function Page() {
   }, []);
 
   // Secciones con estado que NO debe perderse al navegar (se mantienen montadas).
-  const stateful: Section[] = ["tutor", "quiz", "exam", "flashcards"];
+  const stateful: Section[] = ["tutor", "quiz", "exam", "flashcards", "support"];
 
   return (
     <div className="min-h-screen lg:pl-64">
@@ -98,6 +101,9 @@ export default function Page() {
         <Keep active={section === "flashcards"}>
           <Flashcards />
         </Keep>
+        <Keep active={section === "support"}>
+          <Support />
+        </Keep>
 
         {/* Secciones ligeras (animadas) */}
         {!stateful.includes(section) && (
@@ -107,6 +113,7 @@ export default function Page() {
               {section === "search" && <Search onNavigate={navigate} />}
               {section === "summary" && <Summary />}
               {section === "planner" && <Planner />}
+              {section === "calendar" && <Calendar />}
               {section === "wellbeing" && <Wellbeing />}
               {section === "progress" && <Progress />}
             </Fade>

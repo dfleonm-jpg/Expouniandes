@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Eraser, Globe } from "lucide-react";
+import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Eraser, Globe, Mic } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useToast } from "../ui/Toast";
+import { useVoiceInput } from "@/lib/useVoiceInput";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FileUploadButton } from "../ui/FileUploadButton";
 import { SpeakButton } from "../ui/SpeakButton";
@@ -25,6 +26,7 @@ export function Tutor() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const atBottomRef = useRef(true);
+  const voice = useVoiceInput(locale, (text) => setInput((prev) => (prev ? prev + " " + text : text)));
 
   // Solo auto-scroll si el usuario ya estaba al final (no interrumpe lectura).
   function onScroll() {
@@ -316,6 +318,20 @@ export function Tutor() {
         >
           <Globe className="h-5 w-5" />
         </button>
+        {voice.supported && (
+          <button
+            type="button"
+            onClick={voice.toggle}
+            title={t.ui.voiceInput}
+            aria-pressed={voice.listening}
+            className={cn(
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition",
+              voice.listening ? "bg-danger/25 text-danger ring-1 ring-danger/40 animate-pulse" : "text-muted hover:bg-white/10"
+            )}
+          >
+            <Mic className="h-5 w-5" />
+          </button>
+        )}
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}

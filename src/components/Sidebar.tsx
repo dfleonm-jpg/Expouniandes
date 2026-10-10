@@ -10,7 +10,9 @@ import {
   Layers,
   FileText,
   CalendarClock,
+  CalendarDays,
   HeartPulse,
+  HeartHandshake,
   BarChart3,
   Flame,
 } from "lucide-react";
@@ -28,7 +30,9 @@ export type Section =
   | "flashcards"
   | "summary"
   | "planner"
+  | "calendar"
   | "wellbeing"
+  | "support"
   | "progress";
 
 type NavKey = keyof ReturnType<typeof useApp>["t"]["nav"];
@@ -41,7 +45,9 @@ const NAV_ITEMS: { id: Section; icon: typeof MessageSquare; key: NavKey }[] = [
   { id: "flashcards", icon: Layers, key: "flashcards" },
   { id: "summary", icon: FileText, key: "summary" },
   { id: "planner", icon: CalendarClock, key: "planner" },
+  { id: "calendar", icon: CalendarDays, key: "calendar" },
   { id: "wellbeing", icon: HeartPulse, key: "wellbeing" },
+  { id: "support", icon: HeartHandshake, key: "support" },
   { id: "progress", icon: BarChart3, key: "progress" },
 ];
 
