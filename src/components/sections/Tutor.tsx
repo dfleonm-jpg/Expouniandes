@@ -2,15 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Eraser } from "lucide-react";
+import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Eraser, Globe } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useToast } from "../ui/Toast";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FileUploadButton } from "../ui/FileUploadButton";
 import { SpeakButton } from "../ui/SpeakButton";
 import { RichText } from "../ui/RichText";
+import { cn } from "@/lib/utils";
 
-type Message = { id: string; role: "user" | "model"; text: string };
+type Source = { title: string; url: string };
+type Message = { id: string; role: "user" | "model"; text: string; sources?: Source[] };
 
 export function Tutor() {
   const { t, locale, addStat, docs, addDoc, removeDoc } = useApp();
@@ -18,6 +20,8 @@ export function Tutor() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
+  const [searching, setSearching] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const atBottomRef = useRef(true);
@@ -66,7 +70,34 @@ export function Tutor() {
     addStat("questionsAnswered", 1);
 
     // Une los documentos como contexto para el tutor.
-    const context = docs.map((d) => `### ${d.name}\n${d.content}`).join("\n\n");
+    let context = docs.map((d) => `### ${d.name}\n${d.content}`).join("\n\n");
+    let sources: { title: string; url: string }[] = [];
+
+    // Si está activada la búsqueda web, trae resultados de internet.
+    if (webSearch) {
+      setSearching(true);
+      try {
+        const r = await fetch("/api/web-search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: content, locale }),
+        });
+        if (r.ok) {
+          const data = await r.json();
+          const results = (data.results ?? []) as { title: string; url: string; snippet: string }[];
+          sources = results.map((x) => ({ title: x.title, url: x.url }));
+          if (results.length) {
+            const web = results
+              .map((x, i) => `[${i + 1}] ${x.title}\n${x.snippet}\n(${x.url})`)
+              .join("\n\n");
+            context += `\n\nRESULTADOS DE BÚSQUEDA EN INTERNET (úsalos para responder y cita las fuentes como [1], [2]...):\n${web}`;
+          }
+        }
+      } catch {
+        /* si falla la web, se responde igual con conocimiento general */
+      }
+      setSearching(false);
+    }
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -99,6 +130,8 @@ export function Tutor() {
       }
       if (!acc.trim()) {
         setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, text: `⚠️ ${t.common.error}` } : msg)));
+      } else if (sources.length) {
+        setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, sources } : msg)));
       }
     } catch (err) {
       if ((err as Error)?.name !== "AbortError") {
@@ -205,6 +238,27 @@ export function Tutor() {
                         <TypingDots />
                       )}
                     </div>
+                    {/* Fuentes de internet */}
+                    {m.role === "model" && m.sources && m.sources.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <span className="flex items-center gap-1 text-xs text-muted">
+                          <Globe className="h-3 w-3 text-accent" />
+                          {t.ui.sources}:
+                        </span>
+                        {m.sources.map((s, i) => (
+                          <a
+                            key={i}
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={s.title}
+                            className="glass max-w-[160px] truncate rounded-full px-2 py-0.5 text-xs text-accent transition hover:bg-white/10"
+                          >
+                            [{i + 1}] {hostOf(s.url)}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                     {m.role === "model" && m.text && !m.text.startsWith("⚠️") && (
                       <div className="mt-1.5 flex items-center gap-3 opacity-0 transition group-hover/msg:opacity-100">
                         <button
@@ -226,8 +280,15 @@ export function Tutor() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent">
                   <Brain className="h-5 w-5 text-white" />
                 </div>
-                <div className="glass rounded-2xl px-4 py-3">
-                  <TypingDots />
+                <div className="glass flex items-center gap-2 rounded-2xl px-4 py-3">
+                  {searching ? (
+                    <span className="flex items-center gap-2 text-sm text-muted">
+                      <Globe className="h-4 w-4 animate-pulse text-accent" />
+                      {t.ui.webSearching}
+                    </span>
+                  ) : (
+                    <TypingDots />
+                  )}
                 </div>
               </div>
             )}
@@ -243,6 +304,18 @@ export function Tutor() {
         }}
         className="glass-strong mt-4 flex items-end gap-2 rounded-2xl p-2"
       >
+        <button
+          type="button"
+          onClick={() => setWebSearch((w) => !w)}
+          title={t.ui.webSearch}
+          aria-pressed={webSearch}
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition",
+            webSearch ? "bg-accent/25 text-accent ring-1 ring-accent/40" : "text-muted hover:bg-white/10"
+          )}
+        >
+          <Globe className="h-5 w-5" />
+        </button>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -278,6 +351,14 @@ export function Tutor() {
       </form>
     </div>
   );
+}
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url.slice(0, 20);
+  }
 }
 
 function TypingDots() {
