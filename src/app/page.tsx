@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/lib/auth-context";
+import { Landing } from "@/components/Landing";
 import { Sidebar, type Section } from "@/components/Sidebar";
 import { AIStatusBanner } from "@/components/ui/AIStatusBanner";
 import { Home } from "@/components/sections/Home";
@@ -61,11 +63,18 @@ const SHORTCUTS: Record<string, Section> = {
 
 export default function Page() {
   const [section, setSection] = useState<Section>("home");
+  const [guest, setGuest] = useState(false);
+  const auth = useAuth();
 
   function navigate(s: Section) {
     setSection(s);
     window.scrollTo({ top: 0 });
   }
+
+  // Mostrar la landing hasta que el usuario entre (con cuenta o como invitado).
+  // Si Firebase está activo: hasta que haya sesión o pulse "entrar sin cuenta".
+  // Si no está activo: hasta que pulse entrar (guest).
+  const showLanding = auth.enabled ? !auth.loading && !auth.user && !guest : !guest;
 
   // Atajos de teclado: 1-9 cambian de sección, "/" va a Buscar.
   useEffect(() => {
@@ -86,6 +95,10 @@ export default function Page() {
 
   // Secciones con estado que NO debe perderse al navegar (se mantienen montadas).
   const stateful: Section[] = ["tutor", "quiz", "exam", "flashcards", "support", "codePractice", "mathPractice"];
+
+  if (showLanding) {
+    return <Landing onGuest={() => setGuest(true)} />;
+  }
 
   return (
     <div className="min-h-screen lg:pl-64">
