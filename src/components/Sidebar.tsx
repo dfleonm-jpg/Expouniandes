@@ -11,11 +11,14 @@ import {
   FileText,
   Network,
   BookMarked,
+  Code2,
+  Sigma,
   CalendarClock,
   CalendarDays,
   Users,
   HeartPulse,
   HeartHandshake,
+  Compass,
   BarChart3,
   Flame,
 } from "lucide-react";
@@ -34,11 +37,14 @@ export type Section =
   | "summary"
   | "mindmap"
   | "methods"
+  | "codePractice"
+  | "mathPractice"
   | "planner"
   | "calendar"
   | "groups"
   | "wellbeing"
   | "support"
+  | "diagnostic"
   | "progress";
 
 type NavKey = keyof ReturnType<typeof useApp>["t"]["nav"];
@@ -66,6 +72,13 @@ const GROUPS: { group: GroupKey; items: Item[] }[] = [
     ],
   },
   {
+    group: "science",
+    items: [
+      { id: "codePractice", icon: Code2, key: "codePractice" },
+      { id: "mathPractice", icon: Sigma, key: "mathPractice" },
+    ],
+  },
+  {
     group: "organize",
     items: [
       { id: "methods", icon: BookMarked, key: "methods" },
@@ -83,7 +96,10 @@ const GROUPS: { group: GroupKey; items: Item[] }[] = [
   },
   {
     group: "you",
-    items: [{ id: "progress", icon: BarChart3, key: "progress" }],
+    items: [
+      { id: "diagnostic", icon: Compass, key: "diagnostic" },
+      { id: "progress", icon: BarChart3, key: "progress" },
+    ],
   },
 ];
 

@@ -46,3 +46,39 @@ export type MindMap = {
   summary?: string;
   branches: MindMapBranch[];
 };
+
+export type CodeExercise = {
+  title: string;
+  statement: string;
+  functionSignature: string;
+  hints: string[];
+};
+
+export type CodeReview = {
+  correct: boolean;
+  respectsRestrictions: boolean;
+  score: number;
+  summary: string;
+  errors: { line: string; problem: string; why: string; fix: string }[];
+  improvements: string[];
+  avoidNextTime: string[];
+  complexity: string;
+};
+
+export type MathProblem = { title: string; problem: string; answer: string };
+
+export type MathReview = {
+  correct: boolean;
+  score: number;
+  summary: string;
+  mistakeStep: string;
+  feedback: string;
+  solution: string;
+};
+
+export type DiagnosticQuestion = {
+  area: string;
+  question: string;
+  options: string[];
+  correctIndex: number;
+};

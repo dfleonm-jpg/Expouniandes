@@ -96,3 +96,105 @@ export function methodRecommendPrompt(situation: string, locale?: string) {
 Recomiéndale UN método de estudio adecuado (ej. Pomodoro, Feynman, repetición espaciada, Cornell, mapas mentales, práctica activa, 80/20...).
 Idioma: ${l}. Explica en 2-3 frases por qué ese método encaja con su caso y da un primer paso concreto para empezar hoy. Responde en ${l}, cálido y motivador.`;
 }
+
+// ===================== CIENCIAS E INGENIERÍA =====================
+
+/** Genera un ejercicio de programación en Python tipo parcial Uniandes. */
+export function codeExercisePrompt(topic: string, level: string, restrictions: string[], locale?: string) {
+  const l = lang(locale);
+  const rules = restrictions.length ? restrictions.join(", ") : "ninguna restricción especial";
+  return `Eres profesor de Introducción a la Programación en Python (estilo Universidad de los Andes).
+Crea UN ejercicio de programación tipo parcial sobre: "${topic || "fundamentos de Python"}".
+Nivel: ${level}. Restricciones que el estudiante DEBE respetar: ${rules}.
+Idioma: ${l}.
+El enunciado debe pedir escribir una función en Python, ser claro y realista (como un punto de parcial). Incluye 2-3 ejemplos de entrada→salida esperada.
+Devuelve: "title" (corto), "statement" (enunciado en markdown con los ejemplos), "functionSignature" (la firma sugerida, ej. "def contar_pares(lista):"), y "hints" (2 pistas sin dar la solución). Todo en ${l}.`;
+}
+
+export const CODE_EXERCISE_SHAPE =
+  '{"title":string,"statement":string,"functionSignature":string,"hints":[string]}';
+
+/** Revisa el código del estudiante de forma pedagógica (no solo correcto/incorrecto). */
+export function codeReviewPrompt(
+  statement: string,
+  code: string,
+  restrictions: string[],
+  locale?: string
+) {
+  const l = lang(locale);
+  const rules = restrictions.length ? restrictions.join(", ") : "ninguna";
+  return `Eres un profesor de programación en Python, exigente pero motivador (estilo Uniandes).
+EJERCICIO:
+"""${statement}"""
+RESTRICCIONES QUE EL ESTUDIANTE DEBÍA RESPETAR: ${rules}.
+CÓDIGO DEL ESTUDIANTE (Python):
+\`\`\`python
+${code.slice(0, 4000)}
+\`\`\`
+Analízalo como si fuera un parcial. Idioma: ${l}. Responde SOLO JSON con:
+- "correct": boolean (¿resuelve bien el problema?)
+- "respectsRestrictions": boolean (¿respetó TODAS las restricciones? Si usó algo prohibido, es false)
+- "score": número 0.0 a 5.0 (nota estilo Uniandes, aprobar 3.0)
+- "summary": 1-2 frases de veredicto general, cálido
+- "errors": lista de { "line": string (ej. "línea 3" o "general"), "problem": string, "why": string (por qué está mal), "fix": string (cómo corregirlo) }  — vacía si no hay errores
+- "improvements": lista de strings (cómo mejorar estilo/eficiencia/legibilidad, aunque funcione)
+- "avoidNextTime": lista de strings (consejos para no repetir estos errores)
+- "complexity": string (complejidad Big-O aproximada de su solución, ej. "O(n)")
+No reescribas toda la solución; guíalo. Todo en ${l}.`;
+}
+
+export const CODE_REVIEW_SHAPE =
+  '{"correct":boolean,"respectsRestrictions":boolean,"score":number,"summary":string,"errors":[{"line":string,"problem":string,"why":string,"fix":string}],"improvements":[string],"avoidNextTime":[string],"complexity":string}';
+
+/** Genera un problema de cálculo/física de respuesta ABIERTA (sin opciones). */
+export function mathProblemPrompt(topic: string, difficulty: string, locale?: string) {
+  const l = lang(locale);
+  return `Eres profesor de Cálculo/Física (estilo Universidad de los Andes, parciales SIN calculadora).
+Crea UN problema de respuesta abierta sobre: "${topic}". Dificultad: ${difficulty}.
+Debe resolverse a mano (sin calculadora), como en un parcial real. Idioma: ${l}.
+Devuelve: "title", "problem" (enunciado en markdown con LaTeX para las fórmulas: $...$ y $$...$$), y "answer" (la respuesta final correcta, breve, en LaTeX). Todo en ${l}.`;
+}
+
+export const MATH_PROBLEM_SHAPE = '{"title":string,"problem":string,"answer":string}';
+
+/** Revisa el procedimiento/respuesta del estudiante en un problema de cálculo. */
+export function mathReviewPrompt(problem: string, correctAnswer: string, work: string, locale?: string) {
+  const l = lang(locale);
+  return `Eres profesor de Cálculo (estilo Uniandes). Revisa el desarrollo del estudiante.
+PROBLEMA:
+"""${problem}"""
+RESPUESTA CORRECTA ESPERADA: ${correctAnswer}
+PROCEDIMIENTO Y RESPUESTA DEL ESTUDIANTE:
+"""${work.slice(0, 3000)}"""
+Idioma: ${l}. Responde SOLO JSON con:
+- "correct": boolean (¿la respuesta final es correcta?)
+- "score": número 0.0 a 5.0 (nota estilo Uniandes)
+- "summary": veredicto breve y motivador
+- "mistakeStep": string (en qué paso se equivocó, o "" si todo bien)
+- "feedback": string (explicación de dónde falló o qué hizo bien)
+- "solution": string (la solución COMPLETA paso a paso, a mano, en markdown con LaTeX $...$ y $$...$$)
+Usa LaTeX para TODAS las matemáticas. Todo en ${l}.`;
+}
+
+export const MATH_REVIEW_SHAPE =
+  '{"correct":boolean,"score":number,"summary":string,"mistakeStep":string,"feedback":string,"solution":string}';
+
+/** Quiz diagnóstico: genera preguntas cortas para detectar nivel por área. */
+export function diagnosticPrompt(areas: string[], locale?: string) {
+  const l = lang(locale);
+  return `Crea un quiz diagnóstico corto para ubicar el nivel de un estudiante universitario de primeros semestres.
+Áreas a evaluar: ${areas.join(", ")}.
+Idioma: ${l}. Genera 6 preguntas de opción múltiple (una por concepto base, variando dificultad), cada una etiquetada con su "area" (una de: ${areas.join(", ")}).
+Cada pregunta: 4 opciones, una correcta (correctIndex 0-3). ${MATH_RULE}
+Todo en ${l}.`;
+}
+
+export const DIAGNOSTIC_SHAPE =
+  '{"questions":[{"area":string,"question":string,"options":[string,string,string,string],"correctIndex":number}]}';
+
+/** Plan de estudio personalizado a partir de debilidades detectadas. */
+export function diagnosticPlanPrompt(weakAreas: string[], strongAreas: string[], locale?: string) {
+  const l = lang(locale);
+  return `Un estudiante hizo un diagnóstico. Áreas débiles: ${weakAreas.join(", ") || "ninguna"}. Áreas fuertes: ${strongAreas.join(", ") || "varias"}.
+Idioma: ${l}. Dale un plan de mejora motivador y concreto: por cada área débil, 1-2 acciones específicas y qué sección de la app usar (Tutor, Práctica de código, Práctica de cálculo, Flashcards, etc.). Sé cálido, breve y alentador. Responde en ${l} en markdown.`;
+}

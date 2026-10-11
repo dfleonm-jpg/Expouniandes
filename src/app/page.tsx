@@ -13,11 +13,14 @@ import { Flashcards } from "@/components/sections/Flashcards";
 import { Summary } from "@/components/sections/Summary";
 import { MindMap } from "@/components/sections/MindMap";
 import { Methods } from "@/components/sections/Methods";
+import { CodePractice } from "@/components/sections/CodePractice";
+import { MathPractice } from "@/components/sections/MathPractice";
 import { Planner } from "@/components/sections/Planner";
 import { Calendar } from "@/components/sections/Calendar";
 import { Groups } from "@/components/sections/Groups";
 import { Wellbeing } from "@/components/sections/Wellbeing";
 import { Support } from "@/components/sections/Support";
+import { Diagnostic } from "@/components/sections/Diagnostic";
 import { Progress } from "@/components/sections/Progress";
 
 /** Envoltura que mantiene la sección montada pero oculta cuando no está activa,
@@ -82,7 +85,7 @@ export default function Page() {
   }, []);
 
   // Secciones con estado que NO debe perderse al navegar (se mantienen montadas).
-  const stateful: Section[] = ["tutor", "quiz", "exam", "flashcards", "support"];
+  const stateful: Section[] = ["tutor", "quiz", "exam", "flashcards", "support", "codePractice", "mathPractice"];
 
   return (
     <div className="min-h-screen lg:pl-64">
@@ -107,6 +110,12 @@ export default function Page() {
         <Keep active={section === "support"}>
           <Support />
         </Keep>
+        <Keep active={section === "codePractice"}>
+          <CodePractice />
+        </Keep>
+        <Keep active={section === "mathPractice"}>
+          <MathPractice />
+        </Keep>
 
         {/* Secciones ligeras (animadas) */}
         {!stateful.includes(section) && (
@@ -121,6 +130,7 @@ export default function Page() {
               {section === "calendar" && <Calendar />}
               {section === "groups" && <Groups />}
               {section === "wellbeing" && <Wellbeing />}
+              {section === "diagnostic" && <Diagnostic />}
               {section === "progress" && <Progress />}
             </Fade>
           </AnimatePresence>
