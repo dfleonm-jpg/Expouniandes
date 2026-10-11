@@ -22,7 +22,9 @@ import {
   BarChart3,
   Flame,
 } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { useAuth } from "@/lib/auth-context";
 import { LanguageSwitcher } from "./ui/LanguageSwitcher";
 import { UniandesMark } from "./ui/UniandesMark";
 import { cn } from "@/lib/utils";
@@ -114,6 +116,7 @@ export function Sidebar({
   onNavigate: (s: Section) => void;
 }) {
   const { t, streak } = useApp();
+  const auth = useAuth();
 
   return (
     <>
@@ -174,8 +177,29 @@ export function Sidebar({
             ))}
           </nav>
 
-          {/* Racha + idioma */}
+          {/* Usuario + racha + idioma */}
           <div className="mt-3 shrink-0 space-y-3 border-t border-white/5 pt-3">
+            {auth.enabled && auth.user && (
+              <div className="glass flex items-center gap-2 rounded-xl px-2.5 py-2">
+                {auth.user.photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={auth.user.photo} alt="" className="h-7 w-7 rounded-full" />
+                ) : (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-brand to-accent text-xs font-bold text-white">
+                    {auth.user.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span className="flex-1 truncate text-sm font-medium">{auth.user.name}</span>
+                <button
+                  onClick={() => auth.logout()}
+                  aria-label={t.ui.logout}
+                  title={t.ui.logout}
+                  className="text-muted transition hover:text-danger"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            )}
             {streak > 0 && (
               <div className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-sm">
                 <Flame className="h-4 w-4 text-warn" />

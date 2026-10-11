@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 import { AppProvider } from "@/lib/app-context";
+import { AuthProvider } from "@/lib/auth-context";
 import { ToastProvider } from "@/components/ui/Toast";
 import { WelcomeScreen } from "@/components/ui/WelcomeScreen";
 import { AccessibilityButton } from "@/components/ui/AccessibilityButton";
@@ -35,13 +36,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full">
         <div className="aurora-bg" />
-        <AppProvider>
-          <ToastProvider>
-            <WelcomeScreen />
-            {children}
-            <AccessibilityButton />
-          </ToastProvider>
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>
+            <ToastProvider>
+              <WelcomeScreen />
+              {children}
+              <AccessibilityButton />
+            </ToastProvider>
+          </AppProvider>
+        </AuthProvider>
       </body>
     </html>
   );

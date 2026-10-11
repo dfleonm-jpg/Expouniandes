@@ -1,7 +1,9 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { type Locale, translations, type Translation } from "./i18n";
+import { useAuth } from "./auth-context";
+import { loadUserData, saveUserData } from "./cloud-sync";
 
 export type Stats = {
   quizzesTaken: number;
@@ -220,6 +222,50 @@ export function AppProvider({ children }: { children: ReactNode }) {
     root.classList.toggle("a11y-contrast", a11y.highContrast);
     root.classList.toggle("a11y-reduce-motion", a11y.reduceMotion);
   }, [a11y]);
+
+  // -------- Sincronización con la nube (Firestore) --------
+  const { user } = useAuth();
+  const cloudLoaded = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Al iniciar sesión, carga los datos de la nube (fusiona con lo local).
+  useEffect(() => {
+    if (!user) {
+      cloudLoaded.current = false;
+      return;
+    }
+    let active = true;
+    (async () => {
+      const cloud = await loadUserData(user.uid);
+      if (!active) return;
+      if (cloud) {
+        if (cloud.stats) setStats((prev) => ({ ...prev, ...(cloud.stats as Stats) }));
+        if (cloud.userName) setUserNameState(cloud.userName as string);
+        if (cloud.examHistory) setExamHistory(cloud.examHistory as ExamRecord[]);
+        if (cloud.examEvents) setExamEvents(cloud.examEvents as ExamEvent[]);
+        if (cloud.docs) setDocs(cloud.docs as SereneDoc[]);
+        if (typeof cloud.streak === "number") setStreak(cloud.streak as number);
+      }
+      // Si no tenía nombre en la nube, usa el de la cuenta.
+      setUserNameState((prev) => prev || user.name);
+      cloudLoaded.current = true;
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  // Guarda en la nube (con debounce) cuando cambian los datos y hay sesión.
+  useEffect(() => {
+    if (!user || !cloudLoaded.current) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveUserData(user.uid, { stats, userName, examHistory, examEvents, docs, streak });
+    }, 800);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [user, stats, userName, examHistory, examEvents, docs, streak]);
 
   const value: AppContextType = {
     locale,
