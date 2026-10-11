@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Eraser, Globe, Mic } from "lucide-react";
+import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Globe, Mic, History, Plus, X } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { useAuth } from "@/lib/auth-context";
 import { useToast } from "../ui/Toast";
 import { useVoiceInput } from "@/lib/useVoiceInput";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FileUploadButton } from "../ui/FileUploadButton";
 import { SpeakButton } from "../ui/SpeakButton";
 import { RichText } from "../ui/RichText";
+import { listChats, saveChat, deleteChat, titleFromMessages, type ChatSession } from "@/lib/chat-store";
 import { cn } from "@/lib/utils";
 
 type Source = { title: string; url: string };
@@ -17,16 +19,73 @@ type Message = { id: string; role: "user" | "model"; text: string; sources?: Sou
 
 export function Tutor() {
   const { t, locale, addStat, docs, addDoc, removeDoc } = useApp();
+  const { user } = useAuth();
   const { notify } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [chatId, setChatId] = useState<string>(() => crypto.randomUUID());
+  const [chats, setChats] = useState<ChatSession[]>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const atBottomRef = useRef(true);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const voice = useVoiceInput(locale, (text) => setInput((prev) => (prev ? prev + " " + text : text)));
+
+  // Carga la lista de chats guardados al iniciar sesión.
+  const refreshChats = useCallback(async () => {
+    if (!user) return;
+    setChats(await listChats(user.uid));
+  }, [user]);
+
+  useEffect(() => {
+    refreshChats();
+  }, [refreshChats]);
+
+  // Guarda la conversación actual en la nube (con debounce) cuando cambia.
+  useEffect(() => {
+    if (!user) return;
+    const real = messages.filter((m) => m.text && !m.text.startsWith("⚠️"));
+    if (real.length < 2) return; // guarda cuando ya hay ida y vuelta
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      const session: ChatSession = {
+        id: chatId,
+        title: titleFromMessages(messages.map((m) => ({ role: m.role, text: m.text }))),
+        messages: messages.map((m) => ({ role: m.role, text: m.text })),
+        updatedAt: Date.now(),
+      };
+      await saveChat(user.uid, session);
+      refreshChats();
+    }, 1500);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [messages, user, chatId, refreshChats]);
+
+  function newChat() {
+    stop();
+    setMessages([]);
+    setChatId(crypto.randomUUID());
+    setHistoryOpen(false);
+  }
+
+  function openChat(c: ChatSession) {
+    stop();
+    setChatId(c.id);
+    setMessages(c.messages.map((m) => ({ id: crypto.randomUUID(), role: m.role, text: m.text })));
+    setHistoryOpen(false);
+  }
+
+  async function removeChat(id: string) {
+    if (!user) return;
+    await deleteChat(user.uid, id);
+    if (id === chatId) newChat();
+    refreshChats();
+  }
 
   // Solo auto-scroll si el usuario ya estaba al final (no interrumpe lectura).
   function onScroll() {
@@ -38,12 +97,6 @@ export function Tutor() {
   function stop() {
     abortRef.current?.abort();
     setLoading(false);
-  }
-
-  function clearChat() {
-    stop();
-    setMessages([]);
-    notify("info", t.ui.cleared);
   }
 
   async function copyText(text: string) {
@@ -150,18 +203,93 @@ export function Tutor() {
       <div className="flex items-center justify-between gap-3">
         <SectionHeader icon={Brain} title={t.tutor.title} subtitle={t.tutor.subtitle} />
         <div className="flex shrink-0 items-center gap-2">
-          {messages.length > 0 && (
-            <button
-              onClick={clearChat}
-              className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10"
-            >
-              <Eraser className="h-4 w-4 text-danger" />
-              <span className="hidden sm:inline">{t.ui.clear}</span>
-            </button>
-          )}
+          <button
+            onClick={newChat}
+            className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10"
+          >
+            <Plus className="h-4 w-4 text-brand" />
+            <span className="hidden sm:inline">{t.ui.newChat2}</span>
+          </button>
+          <button
+            onClick={() => setHistoryOpen(true)}
+            className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10"
+          >
+            <History className="h-4 w-4 text-accent" />
+            <span className="hidden sm:inline">{t.ui.history}</span>
+          </button>
           <FileUploadButton onExtracted={(name, text) => addDoc(name, text)} compact />
         </div>
       </div>
+
+      {/* Panel de historial */}
+      <AnimatePresence>
+        {historyOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] flex justify-end"
+            onClick={() => setHistoryOpen(false)}
+          >
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+            <motion.div
+              initial={{ x: 40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 40, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-strong relative z-10 flex h-full w-full max-w-sm flex-col p-5"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="flex items-center gap-2 font-bold">
+                  <History className="h-5 w-5 text-accent" />
+                  {t.ui.history}
+                </h3>
+                <button onClick={() => setHistoryOpen(false)} className="text-muted transition hover:text-foreground">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <button
+                onClick={newChat}
+                className="mb-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+              >
+                <Plus className="h-4 w-4" />
+                {t.ui.newChat2}
+              </button>
+              <div className="flex-1 space-y-2 overflow-y-auto">
+                {!user ? (
+                  <p className="rounded-xl bg-white/[0.03] p-4 text-center text-sm text-muted">
+                    {t.ui.historyLoginNote}
+                  </p>
+                ) : chats.length === 0 ? (
+                  <p className="rounded-xl bg-white/[0.03] p-4 text-center text-sm text-muted">{t.ui.noHistory}</p>
+                ) : (
+                  chats.map((c) => (
+                    <div
+                      key={c.id}
+                      className={cn(
+                        "group flex items-center gap-2 rounded-xl px-3 py-2.5 transition",
+                        c.id === chatId ? "bg-brand/15 ring-1 ring-brand/30" : "glass hover:bg-white/10"
+                      )}
+                    >
+                      <button onClick={() => openChat(c)} className="min-w-0 flex-1 text-left">
+                        <p className="truncate text-sm font-medium">{c.title}</p>
+                        <p className="text-xs text-muted">{new Date(c.updatedAt).toLocaleDateString()}</p>
+                      </button>
+                      <button
+                        onClick={() => removeChat(c.id)}
+                        aria-label={t.ui.deleteChat}
+                        className="text-muted opacity-0 transition hover:text-danger group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Documentos activos */}
       {docs.length > 0 && (
