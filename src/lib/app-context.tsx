@@ -5,7 +5,17 @@ import { type Locale, translations, type Translation } from "./i18n";
 import { useAuth } from "./auth-context";
 import { loadUserData, saveUserData } from "./cloud-sync";
 import { publishScore } from "./leaderboard-store";
+import { bumpGlobalMetrics } from "./metrics-store";
 import { computeXP, levelInfo } from "./levels";
+
+// Mapea una stat local a su contador global.
+const GLOBAL_KEY: Partial<Record<keyof Stats, keyof import("./metrics-store").GlobalMetrics>> = {
+  focusMinutes: "focusMinutes",
+  quizzesTaken: "quizzes",
+  questionsAnswered: "questions",
+  summariesCreated: "summaries",
+  flashcardsReviewed: "flashcards",
+};
 
 export type Stats = {
   quizzesTaken: number;
@@ -39,6 +49,26 @@ type Streak = { count: number; lastDay: string };
 
 export type ExamEvent = { id: string; subject: string; date: string }; // date = YYYY-MM-DD
 
+export type StudentProfile = {
+  career: string; // carrera
+  semester: string; // semestre
+  university: string;
+  subjects: string[]; // materias críticas
+  studyStyle: string; // estilo de aprendizaje
+  stressLevel: string; // nivel de estrés percibido
+  completed: boolean; // ya hizo el onboarding
+};
+
+const DEFAULT_PROFILE: StudentProfile = {
+  career: "",
+  semester: "",
+  university: "Universidad de los Andes",
+  subjects: [],
+  studyStyle: "",
+  stressLevel: "",
+  completed: false,
+};
+
 export type A11y = {
   dyslexia: boolean; // fuente para dislexia + espaciado
   fontScale: number; // 0.9 .. 1.4
@@ -67,6 +97,8 @@ type AppContextType = {
   removeExamEvent: (id: string) => void;
   a11y: A11y;
   setA11y: (patch: Partial<A11y>) => void;
+  profile: StudentProfile;
+  setProfile: (patch: Partial<StudentProfile>) => void;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -84,6 +116,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [examHistory, setExamHistory] = useState<ExamRecord[]>([]);
   const [examEvents, setExamEvents] = useState<ExamEvent[]>([]);
   const [a11y, setA11yState] = useState<A11y>(DEFAULT_A11Y);
+  const [profile, setProfileState] = useState<StudentProfile>(DEFAULT_PROFILE);
   const [mounted, setMounted] = useState(false);
 
   // Cargar preferencias guardadas.
@@ -109,6 +142,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const savedA11y = localStorage.getItem("sereno:a11y");
       if (savedA11y) setA11yState({ ...DEFAULT_A11Y, ...JSON.parse(savedA11y) });
+
+      const savedProfile = localStorage.getItem("sereno:profile");
+      if (savedProfile) setProfileState({ ...DEFAULT_PROFILE, ...JSON.parse(savedProfile) });
 
       // Racha de estudio: incrementa si entra en días consecutivos.
       const rawStreak = localStorage.getItem("sereno:streak");
@@ -141,6 +177,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } catch {}
       return next;
     });
+    // Suma al contador global de impacto (si corresponde y hay nube).
+    const gk = GLOBAL_KEY[key];
+    if (gk && amount > 0) bumpGlobalMetrics({ [gk]: amount });
   }, []);
 
   const addDoc = useCallback((name: string, content: string) => {
@@ -215,6 +254,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const setProfile = useCallback((patch: Partial<StudentProfile>) => {
+    setProfileState((prev) => {
+      const next = { ...prev, ...patch };
+      try {
+        localStorage.setItem("sereno:profile", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
   // Aplica las preferencias de accesibilidad al documento.
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -247,6 +296,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (cloud.examEvents) setExamEvents(cloud.examEvents as ExamEvent[]);
         if (cloud.docs) setDocs(cloud.docs as SereneDoc[]);
         if (typeof cloud.streak === "number") setStreak(cloud.streak as number);
+        if (cloud.profile) setProfileState({ ...DEFAULT_PROFILE, ...(cloud.profile as StudentProfile) });
       }
       // Si no tenía nombre en la nube, usa el de la cuenta.
       setUserNameState((prev) => prev || user.name);
@@ -262,7 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user || !cloudLoaded.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      saveUserData(user.uid, { stats, userName, examHistory, examEvents, docs, streak });
+      saveUserData(user.uid, { stats, userName, examHistory, examEvents, docs, streak, profile });
       // Publica la puntuación en el ranking (XP y nivel).
       const xp = computeXP(stats);
       publishScore({
@@ -276,7 +326,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [user, stats, userName, examHistory, examEvents, docs, streak]);
+  }, [user, stats, userName, examHistory, examEvents, docs, streak, profile]);
 
   const value: AppContextType = {
     locale,
@@ -297,6 +347,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     removeExamEvent,
     a11y,
     setA11y,
+    profile,
+    setProfile,
   };
 
   return (

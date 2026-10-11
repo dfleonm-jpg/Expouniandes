@@ -14,7 +14,7 @@ import { SpeakButton } from "../ui/SpeakButton";
 import { RichText } from "../ui/RichText";
 import type { SummaryResult } from "@/lib/types";
 
-const MAX_CHARS = 12000;
+const MAX_CHARS = 40000;
 
 export function Summary() {
   const { t, locale, addStat, addDoc } = useApp();

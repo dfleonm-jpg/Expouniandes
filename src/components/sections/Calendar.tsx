@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarClock, Plus, Trash2, CalendarDays } from "lucide-react";
+import { CalendarClock, Plus, Trash2, CalendarDays, CalendarPlus } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { useToast } from "../ui/Toast";
+import { downloadICS } from "@/lib/export";
 import { SectionHeader } from "../ui/SectionHeader";
 import { cn } from "@/lib/utils";
 
 export function Calendar() {
   const { t, examEvents, addExamEvent, removeExamEvent } = useApp();
+  const { notify } = useToast();
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
   const [today, setToday] = useState("");
@@ -42,9 +45,29 @@ export function Calendar() {
 
   const upcoming = examEvents.filter((e) => daysUntil(e.date) >= 0);
 
+  function exportCalendar() {
+    if (upcoming.length === 0) return;
+    downloadICS(
+      "sereno-examenes",
+      upcoming.map((e) => ({ title: `📝 ${e.subject}`, date: e.date, durationMin: 120, description: "Sereno" }))
+    );
+    notify("success", t.ui.exportedCal);
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
-      <SectionHeader icon={CalendarClock} title={t.calendar.title} subtitle={t.calendar.subtitle} />
+      <div className="flex items-start justify-between gap-3">
+        <SectionHeader icon={CalendarClock} title={t.calendar.title} subtitle={t.calendar.subtitle} />
+        {upcoming.length > 0 && (
+          <button
+            onClick={exportCalendar}
+            className="glass flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10"
+          >
+            <CalendarPlus className="h-4 w-4 text-accent" />
+            <span className="hidden sm:inline">{t.ui.exportIcs}</span>
+          </button>
+        )}
+      </div>
 
       {/* Formulario */}
       <div className="glass mt-6 rounded-3xl p-5">

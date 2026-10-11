@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Wand2, Loader2, RotateCcw, Clock3, Lightbulb } from "lucide-react";
+import { Wand2, Loader2, RotateCcw, Clock3, Lightbulb, Download } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
+import { downloadMarkdown } from "@/lib/export";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import type { StudyPlan } from "@/lib/types";
 
@@ -86,16 +87,38 @@ export function StudyPlanGenerator() {
               </motion.div>
             ))}
           </div>
-          <button
-            onClick={() => {
-              reset();
-              setInput("");
-            }}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium transition hover:bg-white/10"
-          >
-            <RotateCcw className="h-4 w-4" />
-            {t.studyPlan.new}
-          </button>
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={() => {
+                if (!data) return;
+                const md =
+                  `# ${t.studyPlan.title}\n\n${data.summary}\n\n` +
+                  data.days
+                    .map(
+                      (d) =>
+                        `## ${d.day} — ${d.focus}\n` +
+                        d.sessions.map((s) => `- **${s.time}** · ${s.task} (${s.durationMin} ${t.studyPlan.min})`).join("\n") +
+                        (d.tip ? `\n\n> 💡 ${d.tip}` : "")
+                    )
+                    .join("\n\n");
+                downloadMarkdown("plan-de-estudio", md);
+              }}
+              className="glass flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition hover:bg-white/10"
+            >
+              <Download className="h-4 w-4 text-accent" />
+              {t.ui.exportMd}
+            </button>
+            <button
+              onClick={() => {
+                reset();
+                setInput("");
+              }}
+              className="flex items-center justify-center gap-2 rounded-xl bg-white/5 px-4 py-2.5 text-sm font-medium transition hover:bg-white/10"
+            >
+              <RotateCcw className="h-4 w-4" />
+              {t.studyPlan.new}
+            </button>
+          </div>
         </motion.div>
       )}
     </div>

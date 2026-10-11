@@ -94,6 +94,7 @@ export async function streamChat(
       model: GROQ_MODEL,
       stream: true,
       temperature: 0.7,
+      max_tokens: 4096,
       messages: [
         { role: "system", content: system },
         ...messages.map((m) => ({
@@ -152,7 +153,7 @@ export async function streamChat(
   const stream = await ai.models.generateContentStream({
     model: GEMINI_MODEL,
     contents: messages.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
-    config: { systemInstruction: system },
+    config: { systemInstruction: system, maxOutputTokens: 4096 },
   });
 
   return new ReadableStream({
@@ -185,6 +186,7 @@ export async function generateJSON<T>(prompt: string, shapeHint: string): Promis
     const res = await groqFetch({
       model: GROQ_MODEL,
       temperature: 0.7,
+      max_tokens: 8000,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },

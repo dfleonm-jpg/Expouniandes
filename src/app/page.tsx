@@ -26,6 +26,7 @@ import { Diagnostic } from "@/components/sections/Diagnostic";
 import { Progress } from "@/components/sections/Progress";
 import { Ranking } from "@/components/sections/Ranking";
 import { Profile } from "@/components/sections/Profile";
+import { Onboarding } from "@/components/ui/Onboarding";
 
 /** Envoltura que mantiene la sección montada pero oculta cuando no está activa,
  *  preservando su estado interno (chat, quiz a medias, etc.). */
@@ -114,6 +115,7 @@ export default function Page() {
 
   return (
     <div className="min-h-screen lg:pl-64">
+      <Onboarding />
       <Sidebar active={section} onNavigate={navigate} />
 
       <main className="pt-4 lg:pt-6">

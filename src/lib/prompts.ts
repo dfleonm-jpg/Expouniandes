@@ -6,15 +6,38 @@ export function lang(locale?: string) {
   return LANGUAGE_NAMES[locale ?? "es"] ?? "español";
 }
 
+export type ProfileInput = {
+  career?: string;
+  semester?: string;
+  university?: string;
+  subjects?: string[];
+  studyStyle?: string;
+  stressLevel?: string;
+};
+
+/** Construye una línea de contexto con el perfil del estudiante para la IA. */
+export function profileContext(p?: ProfileInput): string {
+  if (!p) return "";
+  const parts: string[] = [];
+  if (p.career) parts.push(`carrera: ${p.career}`);
+  if (p.semester) parts.push(`semestre: ${p.semester}`);
+  if (p.university) parts.push(`universidad: ${p.university}`);
+  if (p.subjects?.length) parts.push(`materias críticas: ${p.subjects.join(", ")}`);
+  if (p.studyStyle) parts.push(`estilo de aprendizaje: ${p.studyStyle}`);
+  if (p.stressLevel) parts.push(`nivel de estrés: ${p.stressLevel}`);
+  if (parts.length === 0) return "";
+  return `\nPERFIL DEL ESTUDIANTE (${parts.join("; ")}). Adapta tus explicaciones, ejemplos y analogías a su carrera y materias; sé más contenedor si su estrés es alto.`;
+}
+
 const MATH_RULE =
   "Si incluyes matemáticas, escríbelas en LaTeX: en línea con $...$ y en bloque con $$...$$ (ej. $\\frac{dy}{dx}$, $\\int_0^1 x\\,dx$). Nunca uses texto plano para fórmulas.";
 
 const FORMAT_RULE =
   "Formatea para máxima claridad: usa `código en línea` para valores técnicos concretos (direcciones IP como `192.168.1.0/24`, máscaras como `255.255.255.0`, comandos, puertos, variables); usa bloques de código con su lenguaje (```bash, ```python) para comandos o cálculos de varias líneas; resalta términos clave en **negrita**. En explicaciones de redes/subnetting muestra el paso a paso con los valores exactos. En ecuaciones diferenciales muestra la ecuación en bloque $$...$$ y luego los pasos de solución.";
 
-export function tutorSystem(locale?: string) {
+export function tutorSystem(locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
-  return `Eres Sereno, un tutor académico con IA, empático y motivador, creado para ayudar a estudiantes universitarios a estudiar y a reducir su estrés académico.
+  return `Eres Sereno, un tutor académico con IA, empático y motivador, creado para ayudar a estudiantes universitarios a estudiar y a reducir su estrés académico.${profileContext(profile)}
 Reglas:
 - Responde SIEMPRE en ${l}.
 - Explica de forma clara, estructurada y con ejemplos. Usa listas y pasos cuando ayude.
@@ -66,7 +89,7 @@ export function summaryPrompt(text: string, locale?: string) {
 Idioma: ${l}.
 Texto:
 """
-${text.slice(0, 12000)}
+${text.slice(0, 40000)}
 """
 Devuelve: un título, un TL;DR de 2-3 frases, los puntos clave, y los conceptos importantes con su definición. Todo en ${l}.
 ${MATH_RULE}`;
@@ -129,7 +152,7 @@ EJERCICIO:
 RESTRICCIONES QUE EL ESTUDIANTE DEBÍA RESPETAR: ${rules}.
 CÓDIGO DEL ESTUDIANTE (Python):
 \`\`\`python
-${code.slice(0, 4000)}
+${code.slice(0, 8000)}
 \`\`\`
 Analízalo como si fuera un parcial. Idioma: ${l}. Responde SOLO JSON con:
 - "correct": boolean (¿resuelve bien el problema?)

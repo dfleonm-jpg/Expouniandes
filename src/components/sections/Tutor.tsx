@@ -19,7 +19,7 @@ type Source = { title: string; url: string };
 type Message = { id: string; role: "user" | "model"; text: string; sources?: Source[] };
 
 export function Tutor() {
-  const { t, locale, addStat, docs, addDoc, removeDoc } = useApp();
+  const { t, locale, addStat, docs, addDoc, removeDoc, profile } = useApp();
   const { user } = useAuth();
   const copy = useCopy();
   const { stream, stop: stopStream } = useChatStream();
@@ -158,9 +158,13 @@ export function Tutor() {
     const modelId = crypto.randomUUID();
     setMessages((m) => [...m, { id: modelId, role: "model", text: "" }]);
 
-    const result = await stream("/api/chat", { messages: newMessages, locale, context }, (acc) => {
-      setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, text: acc } : msg)));
-    });
+    const result = await stream(
+      "/api/chat",
+      { messages: newMessages, locale, context, profile: profile.completed ? profile : undefined },
+      (acc) => {
+        setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, text: acc } : msg)));
+      }
+    );
 
     if (!result.ok) {
       setMessages((m) =>

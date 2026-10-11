@@ -53,3 +53,52 @@ export function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
+/** Descarga contenido como archivo .md */
+export function downloadMarkdown(filename: string, content: string) {
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename.endsWith(".md") ? filename : filename + ".md";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export type CalEvent = { title: string; date: string; durationMin?: number; description?: string };
+
+/** Genera y descarga un archivo .ics (calendario) con los eventos dados. */
+export function downloadICS(filename: string, events: CalEvent[]) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const fmt = (d: Date) =>
+    `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
+
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Sereno//ExpoUniandes//ES", "CALSCALE:GREGORIAN"];
+  for (const ev of events) {
+    const start = new Date(ev.date + "T09:00:00");
+    const end = new Date(start.getTime() + (ev.durationMin ?? 60) * 60000);
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${crypto.randomUUID()}@sereno`,
+      `DTSTAMP:${fmt(new Date())}`,
+      `DTSTART:${fmt(start)}`,
+      `DTEND:${fmt(end)}`,
+      `SUMMARY:${escapeICS(ev.title)}`,
+      ev.description ? `DESCRIPTION:${escapeICS(ev.description)}` : "",
+      "END:VEVENT"
+    );
+  }
+  lines.push("END:VCALENDAR");
+
+  const blob = new Blob([lines.filter(Boolean).join("\r\n")], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename.endsWith(".ics") ? filename : filename + ".ics";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeICS(s: string): string {
+  return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+}

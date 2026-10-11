@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Sparkles, MessageSquare, ListChecks, GraduationCap, Layers, FileText, CalendarClock, HeartPulse, ArrowRight } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { UniandesMark } from "../ui/UniandesMark";
+import { ImpactPanel } from "../ui/ImpactPanel";
 import type { Section } from "../Sidebar";
 
 const container = {
@@ -134,6 +135,9 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
           );
         })}
       </motion.div>
+
+      {/* Panel de impacto global */}
+      <ImpactPanel />
     </div>
   );
 }
