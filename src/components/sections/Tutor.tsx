@@ -5,14 +5,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Globe, Mic, History, Plus, X } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/lib/auth-context";
-import { useToast } from "../ui/Toast";
 import { useVoiceInput } from "@/lib/useVoiceInput";
+import { useChatStream } from "@/lib/useChatStream";
+import { useCopy } from "@/lib/useCopy";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FileUploadButton } from "../ui/FileUploadButton";
 import { SpeakButton } from "../ui/SpeakButton";
 import { RichText } from "../ui/RichText";
 import { listChats, saveChat, deleteChat, titleFromMessages, type ChatSession } from "@/lib/chat-store";
-import { cn } from "@/lib/utils";
+import { cn, hostOf } from "@/lib/utils";
 
 type Source = { title: string; url: string };
 type Message = { id: string; role: "user" | "model"; text: string; sources?: Source[] };
@@ -20,7 +21,8 @@ type Message = { id: string; role: "user" | "model"; text: string; sources?: Sou
 export function Tutor() {
   const { t, locale, addStat, docs, addDoc, removeDoc } = useApp();
   const { user } = useAuth();
-  const { notify } = useToast();
+  const copy = useCopy();
+  const { stream, stop: stopStream } = useChatStream();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +32,6 @@ export function Tutor() {
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
   const atBottomRef = useRef(true);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const voice = useVoiceInput(locale, (text) => setInput((prev) => (prev ? prev + " " + text : text)));
@@ -100,17 +101,12 @@ export function Tutor() {
   }
 
   function stop() {
-    abortRef.current?.abort();
+    stopStream();
     setLoading(false);
   }
 
-  async function copyText(text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      notify("success", t.ui.copied);
-    } catch {
-      notify("error", t.common.error);
-    }
+  function copyText(text: string) {
+    copy(text);
   }
 
   useEffect(() => {
@@ -159,48 +155,24 @@ export function Tutor() {
       setSearching(false);
     }
 
-    const controller = new AbortController();
-    abortRef.current = controller;
+    const modelId = crypto.randomUUID();
+    setMessages((m) => [...m, { id: modelId, role: "model", text: "" }]);
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages, locale, context }),
-        signal: controller.signal,
-      });
+    const result = await stream("/api/chat", { messages: newMessages, locale, context }, (acc) => {
+      setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, text: acc } : msg)));
+    });
 
-      if (!res.ok || !res.body) {
-        const payload = await res.json().catch(() => ({}));
-        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "model", text: `⚠️ ${payload.error || t.common.error}` }]);
-        return;
-      }
-
-      const modelId = crypto.randomUUID();
-      setMessages((m) => [...m, { id: modelId, role: "model", text: "" }]);
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, text: acc } : msg)));
-      }
-      if (!acc.trim()) {
-        setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, text: `⚠️ ${t.common.error}` } : msg)));
-      } else if (sources.length) {
-        setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, sources } : msg)));
-      }
-    } catch (err) {
-      if ((err as Error)?.name !== "AbortError") {
-        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "model", text: `⚠️ ${t.common.error}` }]);
-      }
-    } finally {
-      setLoading(false);
-      abortRef.current = null;
+    if (!result.ok) {
+      setMessages((m) =>
+        m.map((msg) => (msg.id === modelId ? { ...msg, text: `⚠️ ${result.error || t.common.error}` } : msg))
+      );
+    } else if (!result.text.trim()) {
+      // Vacío (p. ej. cancelado): quita el placeholder si no tiene texto.
+      setMessages((m) => m.filter((msg) => msg.id !== modelId || msg.text.trim()));
+    } else if (sources.length) {
+      setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, sources } : msg)));
     }
+    setLoading(false);
   }
 
   return (
@@ -500,14 +472,6 @@ export function Tutor() {
       </form>
     </div>
   );
-}
-
-function hostOf(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url.slice(0, 20);
-  }
 }
 
 function TypingDots() {

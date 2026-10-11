@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search as SearchIcon, FileText, Sparkles, Loader2, Upload } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { useChatStream } from "@/lib/useChatStream";
 import { SectionHeader } from "../ui/SectionHeader";
 import { RichText } from "../ui/RichText";
 import { SpeakButton } from "../ui/SpeakButton";
@@ -12,6 +13,7 @@ import type { Section } from "../Sidebar";
 
 export function Search({ onNavigate }: { onNavigate: (s: Section) => void }) {
   const { t, locale, docs } = useApp();
+  const { stream } = useChatStream();
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");
@@ -35,31 +37,9 @@ export function Search({ onNavigate }: { onNavigate: (s: Section) => void }) {
     const context = results.map((r, i) => `[Fragmento ${i + 1} — ${r.docName}]\n${r.text}`).join("\n\n");
     const messages = [{ role: "user" as const, text: submitted }];
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages, locale, context }),
-      });
-      if (!res.ok || !res.body) {
-        const payload = await res.json().catch(() => ({}));
-        setAiAnswer(`⚠️ ${payload.error || t.common.error}`);
-        return;
-      }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setAiAnswer(acc);
-      }
-    } catch {
-      setAiAnswer(`⚠️ ${t.common.error}`);
-    } finally {
-      setAskingAI(false);
-    }
+    const result = await stream("/api/chat", { messages, locale, context }, (acc) => setAiAnswer(acc));
+    if (!result.ok) setAiAnswer(`⚠️ ${result.error || t.common.error}`);
+    setAskingAI(false);
   }
 
   const hasDocs = docs.length > 0;

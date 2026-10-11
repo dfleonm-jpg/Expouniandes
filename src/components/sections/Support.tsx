@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HeartHandshake, Send, Heart, Info, Phone } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { useChatStream } from "@/lib/useChatStream";
 import { SectionHeader } from "../ui/SectionHeader";
 import { RichText } from "../ui/RichText";
 
@@ -11,6 +12,7 @@ type Message = { id: string; role: "user" | "model"; text: string };
 
 export function Support() {
   const { t, locale } = useApp();
+  const { stream } = useChatStream();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,33 +37,21 @@ export function Support() {
     setInput("");
     setLoading(true);
 
-    try {
-      const res = await fetch("/api/support", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next, locale }),
-      });
-      if (!res.ok || !res.body) {
-        const p = await res.json().catch(() => ({}));
-        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "model", text: `⚠️ ${p.error || t.common.error}` }]);
-        return;
-      }
-      const id = crypto.randomUUID();
-      setMessages((m) => [...m, { id, role: "model", text: "" }]);
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let acc = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += dec.decode(value, { stream: true });
-        setMessages((m) => m.map((msg) => (msg.id === id ? { ...msg, text: acc } : msg)));
-      }
-    } catch {
-      setMessages((m) => [...m, { id: crypto.randomUUID(), role: "model", text: `⚠️ ${t.common.error}` }]);
-    } finally {
-      setLoading(false);
+    const id = crypto.randomUUID();
+    setMessages((m) => [...m, { id, role: "model", text: "" }]);
+
+    const result = await stream("/api/support", { messages: next, locale }, (acc) => {
+      setMessages((m) => m.map((msg) => (msg.id === id ? { ...msg, text: acc } : msg)));
+    });
+
+    if (!result.ok) {
+      setMessages((m) =>
+        m.map((msg) => (msg.id === id ? { ...msg, text: `⚠️ ${result.error || t.common.error}` } : msg))
+      );
+    } else if (!result.text.trim()) {
+      setMessages((m) => m.filter((msg) => msg.id !== id || msg.text.trim()));
     }
+    setLoading(false);
   }
 
   return (

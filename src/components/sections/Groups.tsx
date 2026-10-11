@@ -5,12 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Users, Copy, Download, FileText, Check, ClipboardPaste } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useToast } from "../ui/Toast";
+import { useCopy } from "@/lib/useCopy";
 import { SectionHeader } from "../ui/SectionHeader";
 import { encodeShare, decodeShare } from "@/lib/share-code";
 
 export function Groups() {
   const { t, docs, addDoc } = useApp();
   const { notify } = useToast();
+  const copy = useCopy();
   const [codeInput, setCodeInput] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const [copied, setCopied] = useState(false);
@@ -24,13 +26,8 @@ export function Groups() {
   }
 
   async function copyCode() {
-    try {
-      await navigator.clipboard.writeText(generatedCode);
-      setCopied(true);
-      notify("success", t.groups.codeCopied);
-    } catch {
-      notify("error", t.common.error);
-    }
+    const ok = await copy(generatedCode, t.groups.codeCopied);
+    if (ok) setCopied(true);
   }
 
   function importCode() {
