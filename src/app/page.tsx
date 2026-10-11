@@ -63,7 +63,6 @@ const SHORTCUTS: Record<string, Section> = {
 
 export default function Page() {
   const [section, setSection] = useState<Section>("home");
-  const [guest, setGuest] = useState(false);
   const auth = useAuth();
 
   function navigate(s: Section) {
@@ -71,10 +70,11 @@ export default function Page() {
     window.scrollTo({ top: 0 });
   }
 
-  // Mostrar la landing hasta que el usuario entre (con cuenta o como invitado).
-  // Si Firebase está activo: hasta que haya sesión o pulse "entrar sin cuenta".
-  // Si no está activo: hasta que pulse entrar (guest).
-  const showLanding = auth.enabled ? !auth.loading && !auth.user && !guest : !guest;
+  // Login OBLIGATORIO: si Firebase está activo, se exige iniciar sesión para
+  // acceder al tutor y a las herramientas. Mientras no haya sesión, se ve la landing.
+  // (Si por alguna razón Firebase no estuviera configurado, se permite el acceso
+  //  para no bloquear la app por completo.)
+  const showLanding = auth.enabled && !auth.loading && !auth.user;
 
   // Atajos de teclado: 1-9 cambian de sección, "/" va a Buscar.
   useEffect(() => {
@@ -96,8 +96,18 @@ export default function Page() {
   // Secciones con estado que NO debe perderse al navegar (se mantienen montadas).
   const stateful: Section[] = ["tutor", "quiz", "exam", "flashcards", "support", "codePractice", "mathPractice"];
 
+  // Mientras Firebase resuelve si hay sesión, evita parpadeo.
+  if (auth.enabled && auth.loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="aurora-bg" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-brand" />
+      </div>
+    );
+  }
+
   if (showLanding) {
-    return <Landing onGuest={() => setGuest(true)} />;
+    return <Landing />;
   }
 
   return (
