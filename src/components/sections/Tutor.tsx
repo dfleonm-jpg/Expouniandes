@@ -26,7 +26,7 @@ export function Tutor() {
   const [loading, setLoading] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [chatId, setChatId] = useState<string>(() => crypto.randomUUID());
+  const [chatId, setChatId] = useState<string>("");
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -34,6 +34,11 @@ export function Tutor() {
   const atBottomRef = useRef(true);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const voice = useVoiceInput(locale, (text) => setInput((prev) => (prev ? prev + " " + text : text)));
+
+  // Genera el id del chat solo en el cliente (evita el error de prerender).
+  useEffect(() => {
+    setChatId((prev) => prev || crypto.randomUUID());
+  }, []);
 
   // Carga la lista de chats guardados al iniciar sesión.
   const refreshChats = useCallback(async () => {
