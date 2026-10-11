@@ -20,6 +20,8 @@ import {
   HeartHandshake,
   Compass,
   BarChart3,
+  Trophy,
+  UserCircle,
   Flame,
 } from "lucide-react";
 import { LogOut } from "lucide-react";
@@ -47,7 +49,9 @@ export type Section =
   | "wellbeing"
   | "support"
   | "diagnostic"
-  | "progress";
+  | "progress"
+  | "ranking"
+  | "profile";
 
 type NavKey = keyof ReturnType<typeof useApp>["t"]["nav"];
 type GroupKey = keyof ReturnType<typeof useApp>["t"]["navGroups"];
@@ -99,8 +103,10 @@ const GROUPS: { group: GroupKey; items: Item[] }[] = [
   {
     group: "you",
     items: [
+      { id: "profile", icon: UserCircle, key: "profile" },
       { id: "diagnostic", icon: Compass, key: "diagnostic" },
       { id: "progress", icon: BarChart3, key: "progress" },
+      { id: "ranking", icon: Trophy, key: "ranking" },
     ],
   },
 ];

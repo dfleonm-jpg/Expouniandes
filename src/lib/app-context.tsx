@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef, ty
 import { type Locale, translations, type Translation } from "./i18n";
 import { useAuth } from "./auth-context";
 import { loadUserData, saveUserData } from "./cloud-sync";
+import { publishScore } from "./leaderboard-store";
+import { computeXP, levelInfo } from "./levels";
 
 export type Stats = {
   quizzesTaken: number;
@@ -261,6 +263,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       saveUserData(user.uid, { stats, userName, examHistory, examEvents, docs, streak });
+      // Publica la puntuación en el ranking (XP y nivel).
+      const xp = computeXP(stats);
+      publishScore({
+        uid: user.uid,
+        name: userName || user.name,
+        xp,
+        level: levelInfo(xp).level,
+        photo: user.photo ?? null,
+      });
     }, 800);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);

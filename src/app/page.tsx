@@ -24,6 +24,8 @@ import { Wellbeing } from "@/components/sections/Wellbeing";
 import { Support } from "@/components/sections/Support";
 import { Diagnostic } from "@/components/sections/Diagnostic";
 import { Progress } from "@/components/sections/Progress";
+import { Ranking } from "@/components/sections/Ranking";
+import { Profile } from "@/components/sections/Profile";
 
 /** Envoltura que mantiene la sección montada pero oculta cuando no está activa,
  *  preservando su estado interno (chat, quiz a medias, etc.). */
@@ -155,6 +157,8 @@ export default function Page() {
               {section === "wellbeing" && <Wellbeing />}
               {section === "diagnostic" && <Diagnostic />}
               {section === "progress" && <Progress />}
+              {section === "ranking" && <Ranking />}
+              {section === "profile" && <Profile />}
             </Fade>
           </AnimatePresence>
         )}
