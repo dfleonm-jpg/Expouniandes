@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useVoiceInput } from "@/lib/useVoiceInput";
 import { useChatStream } from "@/lib/useChatStream";
 import { useCopy } from "@/lib/useCopy";
+import { useToast } from "../ui/Toast";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FileUploadButton } from "../ui/FileUploadButton";
 import { SpeakButton } from "../ui/SpeakButton";
@@ -21,6 +22,7 @@ type Message = { id: string; role: "user" | "model"; text: string; sources?: Sou
 export function Tutor() {
   const { t, locale, addStat, docs, addDoc, removeDoc, profile } = useApp();
   const { user } = useAuth();
+  const { notify } = useToast();
   const copy = useCopy();
   const { stream, stop: stopStream } = useChatStream();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -44,8 +46,13 @@ export function Tutor() {
   // Carga la lista de chats guardados al iniciar sesión.
   const refreshChats = useCallback(async () => {
     if (!user) return;
-    setChats(await listChats(user.uid));
-  }, [user]);
+    try {
+      setChats(await listChats(user.uid));
+    } catch (e) {
+      console.error("No se pudo cargar el historial:", e);
+      notify("error", t.ui.historyError);
+    }
+  }, [user, notify, t.ui.historyError]);
 
   useEffect(() => {
     refreshChats();
@@ -56,16 +63,25 @@ export function Tutor() {
     if (!user) return;
     const real = messages.filter((m) => m.text && !m.text.startsWith("⚠️"));
     if (real.length < 2) return; // guarda cuando ya hay ida y vuelta
+    // Asegura un id de chat (por si el efecto de generación aún no corrió).
+    const id = chatId || crypto.randomUUID();
+    if (!chatId) setChatId(id);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      const session: ChatSession = {
-        id: chatId,
-        title: titleFromMessages(messages.map((m) => ({ role: m.role, text: m.text }))),
-        messages: messages.map((m) => ({ role: m.role, text: m.text })),
-        updatedAt: Date.now(),
-      };
-      await saveChat(user.uid, session);
-      refreshChats();
+      try {
+        const session: ChatSession = {
+          id,
+          title: titleFromMessages(messages.map((m) => ({ role: m.role, text: m.text }))),
+          messages: messages
+            .filter((m) => m.text && !m.text.startsWith("⚠️"))
+            .map((m) => ({ role: m.role, text: m.text })),
+          updatedAt: Date.now(),
+        };
+        await saveChat(user.uid, session);
+        refreshChats();
+      } catch (e) {
+        console.error("No se pudo guardar el chat:", e);
+      }
     }, 1500);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -88,9 +104,14 @@ export function Tutor() {
 
   async function removeChat(id: string) {
     if (!user) return;
-    await deleteChat(user.uid, id);
-    if (id === chatId) newChat();
-    refreshChats();
+    try {
+      await deleteChat(user.uid, id);
+      if (id === chatId) newChat();
+      refreshChats();
+    } catch (e) {
+      console.error("No se pudo eliminar el chat:", e);
+      notify("error", t.ui.historyError);
+    }
   }
 
   // Solo auto-scroll si el usuario ya estaba al final (no interrumpe lectura).
