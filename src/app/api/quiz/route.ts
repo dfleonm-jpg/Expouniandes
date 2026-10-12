@@ -1,28 +1,34 @@
 import { generateJSON } from "@/lib/ai";
 import { quizPrompt, QUIZ_SHAPE } from "@/lib/prompts";
-import { json, handleApiError } from "@/lib/api-helpers";
+import { json, readJson, requireText, enforceRateLimit, handleApiErrorWithHeaders } from "@/lib/api-helpers";
+import { RATE_PROFILES } from "@/lib/rate-limit";
 import type { QuizQuestion } from "@/lib/types";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
+  let rl: Record<string, string> = {};
   try {
-    const { topic, count, difficulty, locale } = (await req.json()) as {
-      topic: string;
-      count: number;
-      difficulty: string;
+    rl = enforceRateLimit(req, { ...RATE_PROFILES.ai, bucket: "quiz" });
+
+    const { topic, count, difficulty, locale } = await readJson<{
+      topic?: string;
+      count?: number;
+      difficulty?: string;
       locale?: string;
-    };
+    }>(req);
 
-    if (!topic?.trim()) return json({ error: "Falta el tema" }, 400);
-
+    const theTopic = requireText(topic, "Falta el tema", { max: 500 });
     const n = Math.min(Math.max(Number(count) || 5, 3), 12);
     const data = await generateJSON<{ questions: QuizQuestion[] }>(
-      quizPrompt(topic, n, difficulty, locale),
+      quizPrompt(theTopic, n, difficulty ?? "media", locale),
       QUIZ_SHAPE
     );
 
-    if (!data.questions?.length) return json({ error: "No se pudieron generar preguntas." }, 502);
-    return json(data);
+    if (!Array.isArray(data.questions) || !data.questions.length)
+      return json({ error: "No se pudieron generar preguntas." }, 502, rl);
+    return json(data, 200, rl);
   } catch (err) {
-    return handleApiError(err, "Quiz");
+    return handleApiErrorWithHeaders(err, "Quiz", rl);
   }
 }

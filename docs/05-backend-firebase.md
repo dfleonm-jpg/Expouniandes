@@ -114,17 +114,31 @@ Un único documento con contadores agregados de toda la comunidad:
 
 ## 4. Reglas de seguridad de Firestore
 
-Toda la seguridad vive aquí. Resumen de la política:
+Toda la seguridad vive aquí. Las reglas están **versionadas en el repositorio** en
+[`firestore.rules`](../firestore.rules) (con `firebase.json` apuntando a ese archivo),
+así no dependen de lo que haya pegado alguien en la consola y se pueden desplegar con
+`firebase deploy --only firestore:rules`.
+
+Resumen de la política (endurecida):
 
 - **`users/{uid}` y sus subcolecciones** → solo el dueño (`request.auth.uid == uid`)
   puede leer y escribir. Nadie ve el progreso ni los chats de otro.
-- **`leaderboard/{uid}`** → lectura pública (`read: true`); escritura solo del dueño de
-  ese documento. Así el ranking es visible para todos pero nadie falsifica el puntaje de
-  otro.
-- **`metrics/global`** → lectura pública; escritura para cualquier usuario autenticado
-  (solo puede incrementar contadores).
+- **`leaderboard/{uid}`** → lectura pública; escritura solo del dueño de ese documento
+  **y con la forma validada**: `uid` debe coincidir, `name` string ≤ 60, `xp`/`level`
+  enteros dentro de rango. Esto evita inyectar campos raros o tipos incorrectos.
+- **`metrics/global`** → lectura pública; escritura para usuarios autenticados pero
+  **solo como incrementos no negativos**: cada campo numérico debe ser `>=` a su valor
+  anterior y solo se admiten las 5 claves conocidas. Ya no se pueden fijar valores
+  arbitrarios ni poner las métricas a cero.
 
-Reglas completas (modo producción):
+> Límite conocido: Firestore no puede verificar criptográficamente que el XP enviado por
+> el cliente sea "real" (el cálculo vive en el navegador). Las reglas endurecen la
+> **forma** y los **límites**, que es lo máximo sin Cloud Functions. Para un ranking a
+> prueba de trampas, el cálculo de XP debería moverse a una Cloud Function con permisos
+> de administrador.
+
+Las reglas completas y comentadas están en el archivo `firestore.rules`. Versión
+resumida:
 
 ```
 rules_version = '2';

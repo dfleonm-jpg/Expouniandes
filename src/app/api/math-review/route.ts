@@ -1,24 +1,30 @@
 import { generateJSON } from "@/lib/ai";
 import { mathReviewPrompt, MATH_REVIEW_SHAPE } from "@/lib/prompts";
-import { json, handleApiError } from "@/lib/api-helpers";
+import { json, readJson, requireText, clampText, enforceRateLimit, handleApiErrorWithHeaders } from "@/lib/api-helpers";
+import { RATE_PROFILES } from "@/lib/rate-limit";
 import type { MathReview } from "@/lib/types";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
+  let rl: Record<string, string> = {};
   try {
-    const { problem, answer, work, locale } = (await req.json()) as {
-      problem: string;
-      answer: string;
-      work: string;
+    rl = enforceRateLimit(req, { ...RATE_PROFILES.ai, bucket: "math-review" });
+
+    const { problem, answer, work, locale } = await readJson<{
+      problem?: string;
+      answer?: string;
+      work?: string;
       locale?: string;
-    };
-    if (!work?.trim()) return json({ error: "Escribe tu procedimiento." }, 400);
+    }>(req);
+    const theWork = requireText(work, "Escribe tu procedimiento.", { max: 8000 });
 
     const data = await generateJSON<MathReview>(
-      mathReviewPrompt(problem ?? "", answer ?? "", work, locale),
+      mathReviewPrompt(clampText(problem, 2000), clampText(answer, 1000), theWork, locale),
       MATH_REVIEW_SHAPE
     );
-    return json(data);
+    return json(data, 200, rl);
   } catch (err) {
-    return handleApiError(err, "MathReview");
+    return handleApiErrorWithHeaders(err, "MathReview", rl);
   }
 }

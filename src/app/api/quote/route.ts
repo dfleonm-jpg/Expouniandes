@@ -1,17 +1,24 @@
 import { generateText, LANGUAGE_NAMES } from "@/lib/ai";
-import { json, handleApiError } from "@/lib/api-helpers";
+import { json, readJson, clampText, enforceRateLimit, handleApiErrorWithHeaders } from "@/lib/api-helpers";
+import { RATE_PROFILES } from "@/lib/rate-limit";
+
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  let rl: Record<string, string> = {};
   try {
-    const { locale, mood } = (await req.json()) as { locale?: string; mood?: string };
+    rl = enforceRateLimit(req, { ...RATE_PROFILES.ai, bucket: "quote" });
+
+    const { locale, mood } = await readJson<{ locale?: string; mood?: string }>(req);
     const lang = LANGUAGE_NAMES[locale ?? "es"] ?? "español";
 
-    const moodNote = mood ? ` El estudiante se siente: ${mood}. Ten eso en cuenta con empatía.` : "";
+    const cleanMood = clampText(mood, 100);
+    const moodNote = cleanMood ? ` El estudiante se siente: ${cleanMood}. Ten eso en cuenta con empatía.` : "";
     const system = `Eres Sereno, un tutor empático. Devuelve UNA sola frase motivadora, corta (máximo 20 palabras), cálida y original, para animar a un estudiante universitario a estudiar sin estrés. Escríbela en ${lang}. Sin comillas, sin autor, solo la frase.${moodNote}`;
 
     const text = await generateText("Dame una frase motivadora para hoy.", system);
-    return json({ quote: text.replace(/^["'“]|["'”]$/g, "").trim() });
+    return json({ quote: text.replace(/^["'“]|["'”]$/g, "").trim() }, 200, rl);
   } catch (err) {
-    return handleApiError(err, "Quote");
+    return handleApiErrorWithHeaders(err, "Quote", rl);
   }
 }

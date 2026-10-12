@@ -1,18 +1,25 @@
 import { generateText } from "@/lib/ai";
 import { methodRecommendPrompt } from "@/lib/prompts";
-import { json, handleApiError } from "@/lib/api-helpers";
+import { json, readJson, requireText, enforceRateLimit, handleApiErrorWithHeaders } from "@/lib/api-helpers";
+import { RATE_PROFILES } from "@/lib/rate-limit";
+
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
+  let rl: Record<string, string> = {};
   try {
-    const { situation, locale } = (await req.json()) as { situation: string; locale?: string };
-    if (!situation?.trim()) return json({ error: "Describe tu situación." }, 400);
+    rl = enforceRateLimit(req, { ...RATE_PROFILES.ai, bucket: "method" });
+
+    const { situation, locale } = await readJson<{ situation?: string; locale?: string }>(req);
+    const theSituation = requireText(situation, "Describe tu situación.", { max: 2000 });
 
     const text = await generateText(
-      methodRecommendPrompt(situation, locale),
+      methodRecommendPrompt(theSituation, locale),
       "Eres un asesor de estudio experto y empático."
     );
-    return json({ recommendation: text });
+    if (!text.trim()) return json({ error: "No se pudo generar una recomendación." }, 502, rl);
+    return json({ recommendation: text }, 200, rl);
   } catch (err) {
-    return handleApiError(err, "Method");
+    return handleApiErrorWithHeaders(err, "Method", rl);
   }
 }

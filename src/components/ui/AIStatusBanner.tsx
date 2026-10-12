@@ -21,8 +21,8 @@ export function AIStatusBanner() {
     try {
       const res = await fetch("/api/health", { cache: "no-store" });
       const data = await res.json();
-      // Solo nos importa si la CLAVE está configurada en el servidor.
-      const ok = Boolean(data?.configured?.groq || data?.configured?.gemini);
+      // El endpoint responde { ok } sin revelar detalles de infraestructura.
+      const ok = Boolean(data?.ok);
       setConfigured(ok);
       if (ok) setDismissed(false); // si se recupera, el banner podrá volver a mostrarse si hiciera falta
     } catch {
@@ -33,12 +33,17 @@ export function AIStatusBanner() {
 
   useEffect(() => {
     check();
-    // Re-comprueba cada 20s para auto-recuperarse tras un redeploy.
+  }, [check]);
+
+  // Solo sondeamos periódicamente MIENTRAS la IA no esté lista (para
+  // auto-recuperarse tras un redeploy). Si todo va bien, no hay polling.
+  useEffect(() => {
+    if (configured !== false) return;
     timer.current = setInterval(check, 20000);
     return () => {
       if (timer.current) clearInterval(timer.current);
     };
-  }, [check]);
+  }, [configured, check]);
 
   // Solo mostramos el aviso si confirmamos que NO hay clave configurada.
   if (configured !== false || dismissed) return null;

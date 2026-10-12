@@ -1,23 +1,26 @@
-// Endpoint de diagnóstico. Útil para verificar en producción (Vercel)
-// si las claves de IA están correctamente configuradas, SIN exponerlas.
+// Endpoint de diagnóstico. Indica si la IA está lista SIN revelar
+// detalles de infraestructura (qué proveedor, claves, etc.).
 
-export async function GET() {
-  const hasGroq = Boolean(process.env.GROQ_API_KEY);
-  const hasGemini = Boolean(process.env.GEMINI_API_KEY);
-  const provider = hasGroq ? "groq" : hasGemini ? "gemini" : null;
+import { enforceRateLimit, handleApiErrorWithHeaders, json } from "@/lib/api-helpers";
 
-  return new Response(
-    JSON.stringify({
-      ok: Boolean(provider),
-      provider,
-      configured: { groq: hasGroq, gemini: hasGemini },
-      message: provider
-        ? `IA lista usando ${provider}.`
-        : "No hay ninguna clave de IA configurada. Añade GROQ_API_KEY en las variables de entorno de Vercel.",
-    }),
-    {
-      status: provider ? 200 : 503,
-      headers: { "Content-Type": "application/json" },
-    }
-  );
+
+export async function GET(req: Request) {
+  let rl: Record<string, string> = {};
+  try {
+    rl = enforceRateLimit(req, { limit: 60, windowMs: 60_000, bucket: "health" });
+
+    const ready = Boolean(process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY);
+    return json(
+      {
+        ok: ready,
+        message: ready
+          ? "IA lista."
+          : "La IA no está configurada. Añade GROQ_API_KEY en las variables de entorno.",
+      },
+      ready ? 200 : 503,
+      rl
+    );
+  } catch (err) {
+    return handleApiErrorWithHeaders(err, "Health", rl);
+  }
 }
