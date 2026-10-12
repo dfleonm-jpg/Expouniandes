@@ -17,6 +17,7 @@ import {
 import { Printer } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useToast } from "../ui/Toast";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { RichText } from "../ui/RichText";
@@ -48,6 +49,7 @@ export function Exam() {
   const [current, setCurrent] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [reviewing, setReviewing] = useState(false);
+  const [askFinish, setAskFinish] = useState(false);
   const warned = useRef(false);
 
   const score = questions.reduce((acc, q, i) => acc + (answers[i] === q.correctIndex ? 1 : 0), 0);
@@ -349,9 +351,7 @@ export function Exam() {
 
                 {current === questions.length - 1 ? (
                   <button
-                    onClick={() => {
-                      if (confirm(t.exam.confirmFinish)) finish();
-                    }}
+                    onClick={() => setAskFinish(true)}
                     className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-calm to-emerald-500 px-5 py-2.5 text-sm font-semibold text-black transition hover:opacity-90"
                   >
                     <Check className="h-4 w-4" />
@@ -369,9 +369,7 @@ export function Exam() {
               </div>
 
               <button
-                onClick={() => {
-                  if (confirm(t.exam.confirmFinish)) finish();
-                }}
+                onClick={() => setAskFinish(true)}
                 className="mt-3 w-full text-center text-xs text-muted underline-offset-2 transition hover:text-foreground hover:underline"
               >
                 {t.exam.finish}
@@ -479,6 +477,18 @@ export function Exam() {
           )}
         </AnimatePresence>
       </div>
+
+      <ConfirmDialog
+        open={askFinish}
+        title={t.exam.finish}
+        body={t.exam.confirmFinish}
+        confirmLabel={t.exam.finish}
+        onConfirm={() => {
+          setAskFinish(false);
+          finish();
+        }}
+        onCancel={() => setAskFinish(false)}
+      />
     </div>
   );
 }

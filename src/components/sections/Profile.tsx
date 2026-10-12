@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { UserCircle, Flame, Trophy, ListChecks, MessageSquare, Timer, Layers, FileText, CheckCircle2 } from "lucide-react";
+import { UserCircle, Flame, Trophy, ListChecks, MessageSquare, Timer, Layers, FileText, CheckCircle2, Pencil } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/lib/auth-context";
 import { getLeaderboard } from "@/lib/leaderboard-store";
@@ -11,7 +11,7 @@ import { SectionHeader } from "../ui/SectionHeader";
 import { cn } from "@/lib/utils";
 
 export function Profile() {
-  const { t, stats, streak, examHistory } = useApp();
+  const { t, stats, streak, examHistory, profile, setProfile } = useApp();
   const { user } = useAuth();
   const [rank, setRank] = useState<number | null>(null);
 
@@ -117,6 +117,24 @@ export function Profile() {
               <span className="text-muted">{streak === 1 ? t.ui.day : t.ui.days} 🔥</span>
             </div>
           )}
+
+          {/* Perfil de estudio (del onboarding) + editar */}
+          {profile.completed && (profile.career || profile.subjects.length > 0) && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
+              {profile.career && <span className="glass rounded-full px-2.5 py-1">🎓 {profile.career}</span>}
+              {profile.semester && <span className="glass rounded-full px-2.5 py-1">{profile.semester}°</span>}
+              {profile.subjects.slice(0, 4).map((s) => (
+                <span key={s} className="glass rounded-full px-2.5 py-1">{s}</span>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={() => setProfile({ completed: false })}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white/5 px-3 py-2 text-xs font-medium text-foreground/80 transition hover:bg-white/10"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            {t.common2.editProfile}
+          </button>
         </div>
       </motion.div>
 

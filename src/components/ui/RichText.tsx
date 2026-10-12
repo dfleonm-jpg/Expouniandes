@@ -15,10 +15,10 @@ import rehypeHighlight from "rehype-highlight";
  *
  * También acepta \( ... \) y \[ ... \] gracias a la normalización previa.
  */
-export function RichText({ children, className = "prose-sereno" }: { children: string; className?: string }) {
+export function RichText({ children, className = "prose-sereno", id }: { children: string; className?: string; id?: string }) {
   const normalized = normalizeMath(children);
   return (
-    <div className={className}>
+    <div className={className} id={id}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[

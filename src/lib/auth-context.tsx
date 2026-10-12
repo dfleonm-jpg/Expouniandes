@@ -6,6 +6,7 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   onAuthStateChanged,
   updateProfile,
@@ -27,6 +28,7 @@ type AuthContextType = {
   loginGoogle: () => Promise<void>;
   loginEmail: (email: string, password: string) => Promise<void>;
   registerEmail: (name: string, email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -90,6 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(mapUser({ ...cred.user, displayName: name.trim() || cred.user.displayName } as User));
   }, []);
 
+  const resetPassword = useCallback(async (email: string) => {
+    const auth = getFirebaseAuth();
+    if (!auth) return;
+    await sendPasswordResetEmail(auth, email.trim());
+  }, []);
+
   const logout = useCallback(async () => {
     const auth = getFirebaseAuth();
     if (!auth) return;
@@ -97,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ enabled: firebaseEnabled, user, loading, loginGoogle, loginEmail, registerEmail, logout }}>
+    <AuthContext.Provider value={{ enabled: firebaseEnabled, user, loading, loginGoogle, loginEmail, registerEmail, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   );

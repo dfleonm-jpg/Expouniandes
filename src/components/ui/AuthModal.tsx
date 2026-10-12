@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, ArrowRight } from "lucide-react";
+import { X, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth, authErrorMessage } from "@/lib/auth-context";
+import { useModalA11y } from "@/lib/useModalA11y";
 import { UniandesMark } from "./UniandesMark";
 
 /** Modal de inicio de sesión (Google + correo/contraseña + registro). */
@@ -12,17 +13,28 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
   const { t } = useApp();
   const auth = useAuth();
   const L = t.landing;
+  const C = t.common2;
+  const ref = useModalA11y(open, onClose);
 
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+
+  function toggleMode() {
+    setIsRegister((r) => !r);
+    setError("");
+    setInfo("");
+  }
 
   async function doGoogle() {
     setBusy(true);
     setError("");
+    setInfo("");
     try {
       await auth.loginGoogle();
       onClose();
@@ -37,10 +49,29 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
     if (!email.trim() || password.length < 6) return;
     setBusy(true);
     setError("");
+    setInfo("");
     try {
       if (isRegister) await auth.registerEmail(name, email.trim(), password);
       else await auth.loginEmail(email.trim(), password);
       onClose();
+    } catch (e) {
+      setError(authErrorMessage((e as { code?: string })?.code ?? ""));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function doReset() {
+    setError("");
+    setInfo("");
+    if (!email.trim()) {
+      setError(C.resetEnterEmail);
+      return;
+    }
+    setBusy(true);
+    try {
+      await auth.resetPassword(email.trim());
+      setInfo(C.resetSent);
     } catch (e) {
       setError(authErrorMessage((e as { code?: string })?.code ?? ""));
     } finally {
@@ -60,6 +91,10 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <motion.div
+            ref={ref}
+            role="dialog"
+            aria-modal="true"
+            aria-label={isRegister ? t.ui.register : L.authTitle}
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -67,7 +102,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
             onClick={(e) => e.stopPropagation()}
             className="glass-strong glow-border relative w-full max-w-md rounded-3xl p-7"
           >
-            <button onClick={onClose} className="absolute right-4 top-4 text-muted transition hover:text-foreground" aria-label="Cerrar">
+            <button onClick={onClose} className="absolute right-4 top-4 text-muted transition hover:text-foreground" aria-label={C.close}>
               <X className="h-5 w-5" />
             </button>
 
@@ -79,7 +114,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
               <p className="mt-1 text-sm text-muted">{L.authSubtitle}</p>
             </div>
 
-            {error && <p className="mb-4 rounded-xl bg-danger/15 px-3 py-2 text-sm text-danger">{error}</p>}
+            {error && <p className="mb-4 rounded-xl bg-danger/15 px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
+            {info && <p className="mb-4 rounded-xl bg-calm/15 px-3 py-2 text-sm text-calm" role="status">{info}</p>}
 
             {auth.enabled ? (
               <div className="space-y-3">
@@ -114,14 +150,27 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                   placeholder={t.ui.emailLabel}
                   className="glass w-full rounded-xl px-4 py-3 text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/50"
                 />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && doEmail()}
-                  placeholder={t.ui.passwordLabel}
-                  className="glass w-full rounded-xl px-4 py-3 text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/50"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && doEmail()}
+                    placeholder={t.ui.passwordLabel}
+                    className="glass w-full rounded-xl px-4 py-3 pr-11 text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? C.hidePassword : C.showPassword}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted transition hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                  </button>
+                </div>
+                {(isRegister || (password.length > 0 && password.length < 6)) && (
+                  <p className="px-1 text-xs text-muted">{C.passwordHint}</p>
+                )}
                 <button
                   onClick={doEmail}
                   disabled={busy || !email.trim() || password.length < 6}
@@ -130,13 +179,18 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                   {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                   {isRegister ? t.ui.register : t.ui.loginEmail}
                 </button>
-                <button onClick={() => setIsRegister((r) => !r)} className="w-full text-xs text-accent transition hover:underline">
+                {!isRegister && (
+                  <button onClick={doReset} disabled={busy} className="w-full text-xs text-muted transition hover:text-foreground hover:underline disabled:opacity-50">
+                    {C.forgotPassword}
+                  </button>
+                )}
+                <button onClick={toggleMode} className="w-full text-xs text-accent transition hover:underline">
                   {isRegister ? t.ui.haveAccount : t.ui.noAccount}
                 </button>
               </div>
             ) : (
               <p className="rounded-xl bg-warn/15 p-4 text-center text-sm text-warn">
-                {t.ui.aiNotConfiguredTitle}
+                {L.authSubtitle}
               </p>
             )}
           </motion.div>

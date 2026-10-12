@@ -6,6 +6,7 @@ import { Network, Sparkles, Loader2, RotateCcw, ZoomIn, ZoomOut, Maximize2, Down
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { useToast } from "../ui/Toast";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import type { MindMap as MindMapType } from "@/lib/types";
@@ -27,7 +28,14 @@ export function MindMap() {
   const [topic, setTopic] = useState("");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [zoom, setZoom] = useState(1);
+  const [askDiscard, setAskDiscard] = useState(false);
   const svgWrapRef = useRef<HTMLDivElement>(null);
+
+  function discardMap() {
+    reset();
+    setTopic("");
+    setAskDiscard(false);
+  }
 
   async function generate(tp?: string) {
     const topicToUse = (tp ?? topic).trim();
@@ -172,10 +180,7 @@ export function MindMap() {
                   <Download className="h-4 w-4" />
                 </ToolBtn>
                 <ToolBtn
-                  onClick={() => {
-                    reset();
-                    setTopic("");
-                  }}
+                  onClick={() => setAskDiscard(true)}
                   title={t.mindmap.new}
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -354,6 +359,16 @@ export function MindMap() {
           </motion.div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={askDiscard}
+        danger
+        title={t.common2.discardTitle}
+        body={t.common2.discardBody}
+        confirmLabel={t.common2.discard}
+        onConfirm={discardMap}
+        onCancel={() => setAskDiscard(false)}
+      />
     </div>
   );
 }

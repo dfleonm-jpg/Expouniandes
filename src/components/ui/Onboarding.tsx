@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, GraduationCap, BookOpen, Brain, Plus, X, Check } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/lib/auth-context";
+import { useModalA11y } from "@/lib/useModalA11y";
 import { UniandesMark } from "./UniandesMark";
 import { cn } from "@/lib/utils";
 
@@ -14,9 +15,14 @@ export function Onboarding() {
   const { user, enabled } = useAuth();
 
   // Aparece solo si: hay sesión (o Firebase apagado) y aún no completó el perfil.
+  // Se deriva del estado (no de un useState de una vez) para que reaccione si el
+  // perfil llega/cambia por la sincronización con la nube. `dismissed` evita que
+  // reaparezca tras pulsar Omitir/Finalizar en la misma sesión.
   const shouldShow = (enabled ? !!user : true) && !profile.completed;
-  const [visible, setVisible] = useState(shouldShow);
+  const [dismissed, setDismissed] = useState(false);
+  const visible = shouldShow && !dismissed;
   const [step, setStep] = useState(0);
+  const ref = useModalA11y(visible);
 
   // Estado local del formulario.
   const [career, setCareer] = useState(profile.career);
@@ -26,6 +32,20 @@ export function Onboarding() {
   const [subjectInput, setSubjectInput] = useState("");
   const [studyStyle, setStudyStyle] = useState(profile.studyStyle);
   const [stressLevel, setStressLevel] = useState(profile.stressLevel);
+
+  // Al abrirse (incluido al reabrirlo desde "Editar mi perfil"), precarga el
+  // formulario con lo que ya tenga el perfil y vuelve al primer paso.
+  useEffect(() => {
+    if (!visible) return;
+    setCareer(profile.career);
+    setSemester(profile.semester);
+    setUniversity(profile.university || "Universidad de los Andes");
+    setSubjects(profile.subjects);
+    setStudyStyle(profile.studyStyle);
+    setStressLevel(profile.stressLevel);
+    setStep(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
   if (!visible) return null;
 
@@ -37,12 +57,12 @@ export function Onboarding() {
 
   function finish() {
     setProfile({ career, semester, university, subjects, studyStyle, stressLevel, completed: true });
-    setVisible(false);
+    setDismissed(true);
   }
 
   function skip() {
     setProfile({ completed: true });
-    setVisible(false);
+    setDismissed(true);
   }
 
   const steps = [t.ui.ob1Title, t.ui.ob2Title, t.ui.ob3Title];
@@ -70,6 +90,10 @@ export function Onboarding() {
       >
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
         <motion.div
+          ref={ref}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.ui.obTitle}
           initial={{ opacity: 0, y: 24, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           className="glass-strong glow-border relative w-full max-w-lg rounded-3xl p-7"

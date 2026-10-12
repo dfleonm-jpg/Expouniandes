@@ -7,6 +7,7 @@ import { printHTML, escapeHtml } from "@/lib/export";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { useToast } from "../ui/Toast";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { FileUploadButton } from "../ui/FileUploadButton";
@@ -22,6 +23,7 @@ export function Summary() {
   const { loading, error, data, run, reset, setError } = useAIRequest<SummaryResult>();
   const [text, setText] = useState("");
   const [saved, setSaved] = useState(false);
+  const [askDiscard, setAskDiscard] = useState(false);
 
   async function generate() {
     if (text.trim().length < 40) return;
@@ -41,6 +43,13 @@ export function Summary() {
     reset();
     setText("");
     setSaved(false);
+    setAskDiscard(false);
+  }
+
+  // Si hay un resumen generado, pide confirmación antes de descartarlo.
+  function requestStartOver() {
+    if (data) setAskDiscard(true);
+    else startOver();
   }
 
   // Texto para leer en voz alta: TL;DR + puntos clave.
@@ -116,7 +125,7 @@ export function Summary() {
                   {t.ui.exportPdf}
                 </button>
                 <button
-                  onClick={startOver}
+                  onClick={requestStartOver}
                   className="flex items-center gap-1.5 text-sm text-muted transition hover:text-foreground"
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -179,6 +188,16 @@ export function Summary() {
           </motion.div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={askDiscard}
+        danger
+        title={t.common2.discardTitle}
+        body={t.common2.discardBody}
+        confirmLabel={t.common2.discard}
+        onConfirm={startOver}
+        onCancel={() => setAskDiscard(false)}
+      />
     </div>
   );
 }

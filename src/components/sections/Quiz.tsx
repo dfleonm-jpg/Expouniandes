@@ -199,11 +199,11 @@ export function Quiz() {
                 </div>
               </div>
 
-              <RichText className="prose-sereno text-lg font-semibold leading-relaxed">
+              <RichText id={`quiz-q-${current}`} className="prose-sereno text-lg font-semibold leading-relaxed">
                 {questions[current].question}
               </RichText>
 
-              <div className="mt-5 space-y-3">
+              <div className="mt-5 space-y-3" role="radiogroup" aria-labelledby={`quiz-q-${current}`}>
                 {questions[current].options.map((opt, i) => {
                   const selected = answers[current];
                   const isCorrect = i === questions[current].correctIndex;
@@ -212,6 +212,8 @@ export function Quiz() {
                   return (
                     <button
                       key={i}
+                      role="radio"
+                      aria-checked={isSelected}
                       onClick={() => answer(i)}
                       disabled={answered}
                       className={cn(
