@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { UniandesMark } from "./ui/UniandesMark";
+import { UniandesLockup } from "./ui/UniandesLockup";
 import { SerenoLogo } from "./ui/SerenoLogo";
 import { LanguageSwitcher } from "./ui/LanguageSwitcher";
 import { AuthModal } from "./ui/AuthModal";
@@ -305,10 +306,9 @@ export function Landing() {
                 <span className="text-lg font-bold tracking-tight">{t.brand}</span>
               </div>
               <p className="mt-3 text-sm text-muted">{L.footerTagline}</p>
-              <p className="mt-4 flex items-center gap-1.5 text-xs text-muted/80">
-                <UniandesMark className="h-4 w-4" />
-                Universidad de los Andes
-              </p>
+              <div className="mt-5 rounded-xl bg-white/90 px-3 py-2">
+                <UniandesLockup className="h-7 w-auto" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-10 text-sm">
               <div>
