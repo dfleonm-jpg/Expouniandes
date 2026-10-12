@@ -45,7 +45,9 @@ export function LanguageSwitcher({ direction = "down" }: { direction?: "up" | "d
         aria-label="Cambiar idioma / Change language"
       >
         <Globe className="h-4 w-4 text-brand" />
-        <span>{current?.flag}</span>
+        <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-foreground/90">
+          {current?.flag}
+        </span>
         <span>{current?.label}</span>
       </button>
 
@@ -77,7 +79,7 @@ export function LanguageSwitcher({ direction = "down" }: { direction?: "up" | "d
                 )}
               >
                 <span className="flex items-center gap-2">
-                  <span className="text-base">{l.flag}</span>
+                  <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-bold tracking-wide">{l.flag}</span>
                   {l.label}
                 </span>
                 {l.code === locale && <Check className="h-4 w-4" />}

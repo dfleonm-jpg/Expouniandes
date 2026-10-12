@@ -169,11 +169,13 @@ export function Sidebar({
                         {isActive && (
                           <motion.span
                             layoutId="side-pill"
-                            className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand/25 to-accent/15 ring-1 ring-white/10"
+                            className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand/30 to-accent/15 ring-1 ring-brand/25 shadow-[0_0_20px_-6px_rgba(139,92,246,0.6)]"
                             transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                          />
+                          >
+                            <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-brand to-accent" />
+                          </motion.span>
                         )}
-                        <Icon className="relative z-10 h-[18px] w-[18px] shrink-0" />
+                        <Icon className={cn("relative z-10 h-[18px] w-[18px] shrink-0 transition-colors", isActive && "text-accent")} />
                         <span className="relative z-10">{t.nav[item.key]}</span>
                       </button>
                     );

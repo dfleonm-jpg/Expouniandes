@@ -36,6 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full">
         <div className="aurora-bg" />
+        <div className="aurora-orb" aria-hidden="true" />
         <AuthProvider>
           <AppProvider>
             <ToastProvider>

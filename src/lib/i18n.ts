@@ -3,10 +3,10 @@
 export type Locale = "es" | "en" | "pt" | "fr";
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "pt", label: "Português", flag: "🇧🇷" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "es", label: "Español", flag: "ES" },
+  { code: "en", label: "English", flag: "EN" },
+  { code: "pt", label: "Português", flag: "PT" },
+  { code: "fr", label: "Français", flag: "FR" },
 ];
 
 export const translations = {

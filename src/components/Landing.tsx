@@ -54,16 +54,13 @@ export function Landing() {
 
   return (
     <div className="relative min-h-screen overflow-y-auto">
-      <div className="aurora-bg" />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
 
       {/* Barra superior con botón iniciar sesión */}
       <header className="sticky top-0 z-40">
         <div className="glass-strong mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-2xl px-4 py-2.5">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent">
-              <Brain className="h-5 w-5 text-white" />
-            </span>
+            <UniandesMark className="h-9 w-9" />
             <span className="text-lg font-bold tracking-tight">{t.brand}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -72,7 +69,7 @@ export function Landing() {
             </div>
             <button
               onClick={() => setAuthOpen(true)}
-              className="rounded-full bg-gradient-to-r from-brand to-accent px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+              className="shine rounded-full bg-gradient-to-r from-brand to-accent px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
             >
               {L.signIn}
             </button>
@@ -83,7 +80,7 @@ export function Landing() {
       {/* HERO */}
       <section className="mx-auto max-w-4xl px-5 pt-14 pb-10 text-center sm:pt-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <span className="glass glow-border inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-foreground/80">
+          <span className="pill-glow inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-foreground/80">
             <UniandesMark className="h-4 w-4" />
             {L.badge}
           </span>
@@ -94,7 +91,7 @@ export function Landing() {
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <button
               onClick={() => setAuthOpen(true)}
-              className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-accent px-7 py-3.5 font-semibold text-white shadow-lg shadow-brand/25 transition hover:shadow-xl"
+              className="shine group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-accent px-7 py-3.5 font-semibold text-white shadow-lg shadow-brand/30 transition hover:shadow-xl hover:shadow-brand/40"
             >
               {L.ctaStart}
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
@@ -108,7 +105,7 @@ export function Landing() {
               { v: "100%", l: L.statsFree },
               { v: "4", l: L.statsLangs },
             ].map((s, i) => (
-              <div key={i} className="glass rounded-2xl p-4">
+              <div key={i} className="glass hover-lift rounded-2xl p-4">
                 <p className="text-2xl font-extrabold text-gradient">{s.v}</p>
                 <p className="mt-1 text-xs text-muted">{s.l}</p>
               </div>
@@ -127,7 +124,7 @@ export function Landing() {
             const Icon = p.icon;
             return (
               <Reveal key={i} delay={i * 0.1}>
-                <div className="glass h-full rounded-3xl p-6">
+                <div className="glass hover-lift h-full rounded-3xl p-6">
                   <Icon className={`h-8 w-8 ${p.color}`} />
                   <h3 className="mt-3 font-semibold">{p.title}</h3>
                   <p className="mt-1 text-sm text-muted">{p.text}</p>
@@ -147,7 +144,7 @@ export function Landing() {
             const Icon = f.icon;
             return (
               <Reveal key={i} delay={i * 0.06}>
-                <div className="glass flex h-full items-start gap-3 rounded-2xl p-5">
+                <div className="glass hover-lift flex h-full items-start gap-3 rounded-2xl p-5">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand/30 to-accent/30">
                     <Icon className="h-5 w-5 text-accent" />
                   </div>
@@ -168,8 +165,9 @@ export function Landing() {
             const Icon = s.icon;
             return (
               <Reveal key={i} delay={i * 0.08}>
-                <div className="glass relative h-full rounded-3xl p-6">
-                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-accent">
+                <div className="glass hover-lift relative h-full rounded-3xl p-6">
+                  <span className="absolute right-5 top-5 text-3xl font-black text-white/5">{i + 1}</span>
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-accent glow-ring">
                     <Icon className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="font-semibold">{s.title}</h3>
@@ -216,7 +214,7 @@ export function Landing() {
           <p className="mx-auto mt-3 max-w-md text-muted">{L.finalCtaText}</p>
           <button
             onClick={() => setAuthOpen(true)}
-            className="group mt-7 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-accent px-8 py-4 font-semibold text-white shadow-lg shadow-brand/25 transition hover:shadow-xl"
+            className="shine group mt-7 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-accent px-8 py-4 font-semibold text-white shadow-lg shadow-brand/30 transition hover:shadow-xl hover:shadow-brand/40"
           >
             {L.ctaStart}
             <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
