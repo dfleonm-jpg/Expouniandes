@@ -1,6 +1,6 @@
-// Logo propio de "Sereno": un cerebro estilizado (aprendizaje + mente serena)
-// dentro de un contenedor redondeado con el degradado de marca. Diseño
-// original, legible incluso en tamaño pequeño.
+// Logo propio de "Sereno": un cerebro limpio y geométrico (aprendizaje +
+// mente serena) dentro de un contenedor redondeado con el degradado de marca.
+// Diseño original, simétrico y legible incluso en tamaño pequeño.
 
 export function SerenoLogo({ className = "" }: { className?: string }) {
   return (
@@ -14,27 +14,28 @@ export function SerenoLogo({ className = "" }: { className?: string }) {
 
       {/* Contenedor redondeado con el degradado de marca */}
       <rect width="48" height="48" rx="13" fill="url(#serenoBg)" />
-      <rect width="48" height="48" rx="13" fill="#ffffff" fillOpacity="0.06" />
+      {/* Realce superior sutil para dar volumen */}
+      <rect width="48" height="48" rx="13" fill="#ffffff" fillOpacity="0.07" />
 
-      {/* Cerebro estilizado (dos hemisferios + surco central) */}
-      <g
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        {/* Hemisferio izquierdo */}
-        <path d="M22 15.5c-3.2-1.2-6.6 0.3-7.6 3.3c-2.6 0.4-4.2 2.7-3.6 5.1c-1.8 1.6-1.9 4.1-0.2 5.8c-0.4 2.4 1.2 4.6 3.7 4.9c1 2.1 3.6 3 5.9 2.1" />
-        {/* Hemisferio derecho */}
-        <path d="M26 15.5c3.2-1.2 6.6 0.3 7.6 3.3c2.6 0.4 4.2 2.7 3.6 5.1c1.8 1.6 1.9 4.1 0.2 5.8c0.4 2.4-1.2 4.6-3.7 4.9c-1 2.1-3.6 3-5.9 2.1" />
-        {/* Surco central / tallo */}
-        <path d="M24 13.5v22" />
-        {/* Pliegues internos (dan el aspecto de cerebro) */}
-        <path d="M24 20c-1.8 0.3-3 1.8-2.8 3.4" strokeWidth="2" />
-        <path d="M24 26c-2.2 0.2-3.8 1.8-3.6 3.8" strokeWidth="2" />
-        <path d="M24 20c1.8 0.3 3 1.8 2.8 3.4" strokeWidth="2" />
-        <path d="M24 26c2.2 0.2 3.8 1.8 3.6 3.8" strokeWidth="2" />
+      {/* Cerebro: silueta rellena en blanco, simétrica y limpia */}
+      <path
+        fill="#ffffff"
+        d="M24 11.5c-2.1-1.9-5.6-1.7-7.5.4-.6.7-1 1.5-1.2 2.4-2.3.1-4.2 2-4.2 4.4 0 .5.1 1 .2 1.4-1.7 1-2.6 3-2 4.9-1.3 1.3-1.5 3.4-.4 4.9.9 1.2 2.3 1.8 3.7 1.6.4 2 2.2 3.5 4.3 3.5.9 0 1.7-.3 2.4-.7.9.9 2.1 1.4 3.4 1.4V11.5h-1.9c.3 0 .7 0 1 .1-.4-.1-.8-.1-1.1-.1z"
+        fillOpacity="0.95"
+      />
+      <path
+        fill="#ffffff"
+        d="M24 11.5c2.1-1.9 5.6-1.7 7.5.4.6.7 1 1.5 1.2 2.4 2.3.1 4.2 2 4.2 4.4 0 .5-.1 1-.2 1.4 1.7 1 2.6 3 2 4.9 1.3 1.3 1.5 3.4.4 4.9-.9 1.2-2.3 1.8-3.7 1.6-.4 2-2.2 3.5-4.3 3.5-.9 0-1.7-.3-2.4-.7-.9.9-2.1 1.4-3.4 1.4V11.5z"
+        fillOpacity="0.72"
+      />
+
+      {/* Surcos internos (azules) que dan el aspecto de cerebro */}
+      <g stroke="var(--brand, #3b6fe5)" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.75">
+        <path d="M24 15v19" />
+        <path d="M19.5 18.5c1.8.2 3 1.6 3 3.3" />
+        <path d="M17 24c2.3.1 4 1.8 4 3.9" />
+        <path d="M28.5 18.5c-1.8.2-3 1.6-3 3.3" />
+        <path d="M31 24c-2.3.1-4 1.8-4 3.9" />
       </g>
     </svg>
   );
