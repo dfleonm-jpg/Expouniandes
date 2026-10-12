@@ -2,6 +2,7 @@
 
 import { useRef, useCallback } from "react";
 import { STREAM_ERROR_MARKER } from "./stream-protocol";
+import { withProfile } from "./ai-profile";
 
 /**
  * Hook compartido para consumir respuestas de IA en streaming.
@@ -32,7 +33,7 @@ export function useChatStream() {
         const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify(withProfile(body)),
           signal: controller.signal,
         });
 

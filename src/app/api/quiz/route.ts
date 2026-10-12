@@ -1,5 +1,5 @@
 import { generateJSON } from "@/lib/ai";
-import { quizPrompt, QUIZ_SHAPE } from "@/lib/prompts";
+import { quizPrompt, QUIZ_SHAPE, type ProfileInput } from "@/lib/prompts";
 import { json, readJson, requireText, enforceRateLimit, handleApiErrorWithHeaders } from "@/lib/api-helpers";
 import { RATE_PROFILES } from "@/lib/rate-limit";
 import type { QuizQuestion } from "@/lib/types";
@@ -11,17 +11,18 @@ export async function POST(req: Request) {
   try {
     rl = enforceRateLimit(req, { ...RATE_PROFILES.ai, bucket: "quiz" });
 
-    const { topic, count, difficulty, locale } = await readJson<{
+    const { topic, count, difficulty, locale, profile } = await readJson<{
       topic?: string;
       count?: number;
       difficulty?: string;
       locale?: string;
+      profile?: ProfileInput;
     }>(req);
 
     const theTopic = requireText(topic, "Falta el tema", { max: 500 });
     const n = Math.min(Math.max(Number(count) || 5, 3), 12);
     const data = await generateJSON<{ questions: QuizQuestion[] }>(
-      quizPrompt(theTopic, n, difficulty ?? "media", locale),
+      quizPrompt(theTopic, n, difficulty ?? "media", locale, profile),
       QUIZ_SHAPE
     );
 

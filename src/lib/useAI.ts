@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { withProfile } from "./ai-profile";
 
 /**
  * Hook genérico para llamar endpoints de IA que devuelven JSON,
@@ -18,7 +19,7 @@ export function useAIRequest<TResult>() {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(withProfile(body)),
       });
       const payload = await res.json();
       if (!res.ok) {

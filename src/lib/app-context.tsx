@@ -7,6 +7,8 @@ import { loadUserData, saveUserData } from "./cloud-sync";
 import { publishScore } from "./leaderboard-store";
 import { bumpGlobalMetrics } from "./metrics-store";
 import { computeXP, levelInfo } from "./levels";
+import { setActiveProfile } from "./ai-profile";
+import { emitXp } from "./xp-events";
 
 // Mapea una stat local a su contador global.
 const GLOBAL_KEY: Partial<Record<keyof Stats, keyof import("./metrics-store").GlobalMetrics>> = {
@@ -175,6 +177,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem("sereno:stats", JSON.stringify(next));
       } catch {}
+
+      // Notifica la ganancia de XP (y si subió de nivel) para dar feedback.
+      if (amount > 0) {
+        const beforeXP = computeXP(prev);
+        const afterXP = computeXP(next);
+        const gained = afterXP - beforeXP;
+        if (gained > 0) {
+          const beforeLevel = levelInfo(beforeXP).level;
+          const after = levelInfo(afterXP);
+          emitXp({
+            gained,
+            total: afterXP,
+            leveledUp: after.level > beforeLevel,
+            level: after.level,
+          });
+        }
+      }
       return next;
     });
     // Suma al contador global de impacto (si corresponde y hay nube).
@@ -273,6 +292,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     root.classList.toggle("a11y-contrast", a11y.highContrast);
     root.classList.toggle("a11y-reduce-motion", a11y.reduceMotion);
   }, [a11y]);
+
+  // Publica el perfil del estudiante para que los hooks de IA lo adjunten
+  // automáticamente a todas las peticiones (quiz, flashcards, mapas, etc.).
+  // Solo cuando el onboarding está completo, para no enviar datos vacíos.
+  useEffect(() => {
+    setActiveProfile(profile.completed ? profile : undefined);
+  }, [profile]);
 
   // -------- Sincronización con la nube (Firestore) --------
   const { user } = useAuth();

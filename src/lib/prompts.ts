@@ -50,9 +50,9 @@ Reglas:
 - ${FORMAT_RULE}`;
 }
 
-export function quizPrompt(topic: string, count: number, difficulty: string, locale?: string) {
+export function quizPrompt(topic: string, count: number, difficulty: string, locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
-  return `Genera un quiz de opción múltiple sobre: "${topic}".
+  return `Genera un quiz de opción múltiple sobre: "${topic}".${profileContext(profile)}
 Idioma: ${l}. Cantidad: ${count}. Dificultad: ${difficulty}.
 Cada pregunta: exactamente 4 opciones, una sola correcta (correctIndex = índice 0-3), y una explicación clara que enseñe el porqué.
 ${MATH_RULE}
@@ -63,9 +63,9 @@ Escribe TODO en ${l}.`;
 export const QUIZ_SHAPE =
   '{"questions":[{"question":string,"options":[string,string,string,string],"correctIndex":number,"explanation":string}]}';
 
-export function flashcardsPrompt(topic: string, count: number, locale?: string) {
+export function flashcardsPrompt(topic: string, count: number, locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
-  return `Genera ${count} flashcards (tarjetas de estudio) sobre: "${topic}".
+  return `Genera ${count} flashcards (tarjetas de estudio) sobre: "${topic}".${profileContext(profile)}
 Idioma: ${l}. "front" = concepto/pregunta corta. "back" = respuesta/definición clara y breve.
 ${MATH_RULE}
 Escribe TODO en ${l}.`;
@@ -73,10 +73,10 @@ Escribe TODO en ${l}.`;
 
 export const FLASHCARDS_SHAPE = '{"cards":[{"front":string,"back":string}]}';
 
-export function studyPlanPrompt(input: string, locale?: string) {
+export function studyPlanPrompt(input: string, locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
   return `Crea un plan de estudio realista basado en esta información del estudiante:
-"${input}"
+"${input}"${profileContext(profile)}
 Idioma: ${l}. Distribuye el trabajo en días con sesiones concretas (hora sugerida, tarea y duración en minutos). Incluye descansos y un consejo anti-estrés por día. Sé realista, no sobrecargues.`;
 }
 
@@ -98,9 +98,9 @@ ${MATH_RULE}`;
 export const SUMMARY_SHAPE =
   '{"title":string,"tldr":string,"keyPoints":[string],"concepts":[{"term":string,"definition":string}]}';
 
-export function mindMapPrompt(topic: string, locale?: string) {
+export function mindMapPrompt(topic: string, locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
-  return `Crea un MAPA MENTAL completo y bien estructurado sobre: "${topic}".
+  return `Crea un MAPA MENTAL completo y bien estructurado sobre: "${topic}".${profileContext(profile)}
 Idioma: ${l}.
 Requisitos:
 - Un resumen de 1 frase del tema (campo "summary").
@@ -123,11 +123,11 @@ Idioma: ${l}. Explica en 2-3 frases por qué ese método encaja con su caso y da
 // ===================== CIENCIAS E INGENIERÍA =====================
 
 /** Genera un ejercicio de programación en Python tipo parcial Uniandes. */
-export function codeExercisePrompt(topic: string, level: string, restrictions: string[], locale?: string) {
+export function codeExercisePrompt(topic: string, level: string, restrictions: string[], locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
   const rules = restrictions.length ? restrictions.join(", ") : "ninguna restricción especial";
   return `Eres profesor de Introducción a la Programación en Python (estilo Universidad de los Andes).
-Crea UN ejercicio de programación tipo parcial sobre: "${topic || "fundamentos de Python"}".
+Crea UN ejercicio de programación tipo parcial sobre: "${topic || "fundamentos de Python"}".${profileContext(profile)}
 Nivel: ${level}. Restricciones que el estudiante DEBE respetar: ${rules}.
 Idioma: ${l}.
 El enunciado debe pedir escribir una función en Python, ser claro y realista (como un punto de parcial). Incluye 2-3 ejemplos de entrada→salida esperada.
@@ -170,10 +170,10 @@ export const CODE_REVIEW_SHAPE =
   '{"correct":boolean,"respectsRestrictions":boolean,"score":number,"summary":string,"errors":[{"line":string,"problem":string,"why":string,"fix":string}],"improvements":[string],"avoidNextTime":[string],"complexity":string}';
 
 /** Genera un problema de cálculo/física de respuesta ABIERTA (sin opciones). */
-export function mathProblemPrompt(topic: string, difficulty: string, locale?: string) {
+export function mathProblemPrompt(topic: string, difficulty: string, locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
   return `Eres profesor de Cálculo/Física (estilo Universidad de los Andes, parciales SIN calculadora).
-Crea UN problema de respuesta abierta sobre: "${topic}". Dificultad: ${difficulty}.
+Crea UN problema de respuesta abierta sobre: "${topic}". Dificultad: ${difficulty}.${profileContext(profile)}
 Debe resolverse a mano (sin calculadora), como en un parcial real. Idioma: ${l}.
 Devuelve: "title", "problem" (enunciado en markdown con LaTeX para las fórmulas: $...$ y $$...$$), y "answer" (la respuesta final correcta, breve, en LaTeX). Todo en ${l}.`;
 }

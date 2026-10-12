@@ -1,5 +1,5 @@
 import { generateJSON } from "@/lib/ai";
-import { mathProblemPrompt, MATH_PROBLEM_SHAPE } from "@/lib/prompts";
+import { mathProblemPrompt, MATH_PROBLEM_SHAPE, type ProfileInput } from "@/lib/prompts";
 import { json, readJson, requireText, enforceRateLimit, handleApiErrorWithHeaders } from "@/lib/api-helpers";
 import { RATE_PROFILES } from "@/lib/rate-limit";
 import type { MathProblem } from "@/lib/types";
@@ -11,15 +11,16 @@ export async function POST(req: Request) {
   try {
     rl = enforceRateLimit(req, { ...RATE_PROFILES.ai, bucket: "math-problem" });
 
-    const { topic, difficulty, locale } = await readJson<{
+    const { topic, difficulty, locale, profile } = await readJson<{
       topic?: string;
       difficulty?: string;
       locale?: string;
+      profile?: ProfileInput;
     }>(req);
     const theTopic = requireText(topic, "Elige un tema.", { max: 300 });
 
     const data = await generateJSON<MathProblem>(
-      mathProblemPrompt(theTopic, difficulty ?? "media", locale),
+      mathProblemPrompt(theTopic, difficulty ?? "media", locale, profile),
       MATH_PROBLEM_SHAPE
     );
     return json(data, 200, rl);

@@ -5,6 +5,7 @@ import "katex/dist/katex.min.css";
 import { AppProvider } from "@/lib/app-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { ToastProvider } from "@/components/ui/Toast";
+import { XpToaster } from "@/components/ui/XpToaster";
 import { AccessibilityButton } from "@/components/ui/AccessibilityButton";
 
 const geistSans = Geist({
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <AppProvider>
             <ToastProvider>
               {children}
+              <XpToaster />
               <AccessibilityButton />
             </ToastProvider>
           </AppProvider>

@@ -64,14 +64,44 @@ const SHORTCUTS: Record<string, Section> = {
   "0": "support",
 };
 
+// Secciones válidas para leer/validar el hash de la URL (#tutor, #quiz, ...).
+const VALID_SECTIONS: Section[] = [
+  "home", "tutor", "quiz", "exam", "search", "flashcards", "summary", "mindmap",
+  "methods", "codePractice", "mathPractice", "planner", "calendar", "groups",
+  "wellbeing", "support", "diagnostic", "progress", "ranking", "profile",
+];
+
+function sectionFromHash(): Section {
+  if (typeof window === "undefined") return "home";
+  const h = window.location.hash.replace(/^#/, "") as Section;
+  return VALID_SECTIONS.includes(h) ? h : "home";
+}
+
 export default function Page() {
+  // Arranca siempre en "home" para que el render del servidor y el primer
+  // render del cliente coincidan (evita errores de hidratación); el hash se
+  // aplica en un efecto justo después de montar.
   const [section, setSection] = useState<Section>("home");
   const auth = useAuth();
 
+  // Al navegar, actualizamos el hash de la URL (deep-link + historial del
+  // navegador) y el estado. El efecto de `hashchange` sincroniza el estado.
   function navigate(s: Section) {
+    if (typeof window !== "undefined" && sectionFromHash() !== s) {
+      window.location.hash = s === "home" ? "" : s;
+    }
     setSection(s);
     window.scrollTo({ top: 0 });
   }
+
+  // Sincroniza la sección con el hash: carga inicial, botón atrás/adelante
+  // del navegador y refresh conservan la sección actual.
+  useEffect(() => {
+    const apply = () => setSection(sectionFromHash());
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, []);
 
   // Login OBLIGATORIO: si Firebase está activo, se exige iniciar sesión para
   // acceder al tutor y a las herramientas. Mientras no haya sesión, se ve la landing.

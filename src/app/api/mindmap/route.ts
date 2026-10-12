@@ -1,5 +1,5 @@
 import { generateJSON } from "@/lib/ai";
-import { mindMapPrompt, MINDMAP_SHAPE } from "@/lib/prompts";
+import { mindMapPrompt, MINDMAP_SHAPE, type ProfileInput } from "@/lib/prompts";
 import { json, readJson, requireText, enforceRateLimit, handleApiErrorWithHeaders } from "@/lib/api-helpers";
 import { RATE_PROFILES } from "@/lib/rate-limit";
 import type { MindMap } from "@/lib/types";
@@ -11,10 +11,10 @@ export async function POST(req: Request) {
   try {
     rl = enforceRateLimit(req, { ...RATE_PROFILES.ai, bucket: "mindmap" });
 
-    const { topic, locale } = await readJson<{ topic?: string; locale?: string }>(req);
+    const { topic, locale, profile } = await readJson<{ topic?: string; locale?: string; profile?: ProfileInput }>(req);
     const theTopic = requireText(topic, "Falta el tema", { max: 500 });
 
-    const data = await generateJSON<MindMap>(mindMapPrompt(theTopic, locale), MINDMAP_SHAPE);
+    const data = await generateJSON<MindMap>(mindMapPrompt(theTopic, locale, profile), MINDMAP_SHAPE);
     if (!Array.isArray(data.branches) || !data.branches.length)
       return json({ error: "No se pudo generar el mapa." }, 502, rl);
     return json(data, 200, rl);
