@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { UniandesMark } from "./ui/UniandesMark";
+import { SerenoLogo } from "./ui/SerenoLogo";
 import { LanguageSwitcher } from "./ui/LanguageSwitcher";
 import { AuthModal } from "./ui/AuthModal";
 
@@ -88,7 +89,7 @@ export function Landing() {
       <header className="sticky top-0 z-40">
         <div className="glass-strong mx-auto mt-3 flex max-w-6xl items-center justify-between rounded-2xl px-4 py-2.5">
           <div className="flex items-center gap-2.5">
-            <UniandesMark className="h-9 w-9" />
+            <SerenoLogo className="h-9 w-9" />
             <span className="text-lg font-bold tracking-tight">{t.brand}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -257,7 +258,7 @@ export function Landing() {
             <div className="flex items-center justify-center">
               <div className="relative flex h-40 w-40 items-center justify-center">
                 <div className="absolute inset-0 rounded-full bg-brand/20 blur-3xl" />
-                <UniandesMark className="relative h-28 w-28" />
+                <SerenoLogo className="relative h-28 w-28" />
               </div>
             </div>
           </div>
@@ -300,10 +301,14 @@ export function Landing() {
           <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-xs">
               <div className="flex items-center gap-2.5">
-                <UniandesMark className="h-8 w-8" />
+                <SerenoLogo className="h-8 w-8" />
                 <span className="text-lg font-bold tracking-tight">{t.brand}</span>
               </div>
               <p className="mt-3 text-sm text-muted">{L.footerTagline}</p>
+              <p className="mt-4 flex items-center gap-1.5 text-xs text-muted/80">
+                <UniandesMark className="h-4 w-4" />
+                Universidad de los Andes
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-10 text-sm">
               <div>

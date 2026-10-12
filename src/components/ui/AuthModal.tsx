@@ -6,7 +6,7 @@ import { X, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth, authErrorMessage } from "@/lib/auth-context";
 import { useModalA11y } from "@/lib/useModalA11y";
-import { UniandesMark } from "./UniandesMark";
+import { SerenoLogo } from "./SerenoLogo";
 
 /** Modal de inicio de sesión (Google + correo/contraseña + registro). */
 export function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -107,8 +107,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
             </button>
 
             <div className="mb-5 text-center">
-              <div className="glow-ring mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand/20 to-accent/20">
-                <UniandesMark className="h-10 w-10" />
+              <div className="glow-ring mx-auto mb-3 flex items-center justify-center">
+                <SerenoLogo className="h-14 w-14" />
               </div>
               <h2 className="text-xl font-bold">{isRegister ? t.ui.register : L.authTitle}</h2>
               <p className="mt-1 text-sm text-muted">{L.authSubtitle}</p>

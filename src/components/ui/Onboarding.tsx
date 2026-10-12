@@ -6,7 +6,7 @@ import { ArrowRight, ArrowLeft, GraduationCap, BookOpen, Brain, Plus, X, Check }
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/lib/auth-context";
 import { useModalA11y } from "@/lib/useModalA11y";
-import { UniandesMark } from "./UniandesMark";
+import { SerenoLogo } from "./SerenoLogo";
 import { cn } from "@/lib/utils";
 
 /** Cuestionario de 3 pasos que personaliza Sereno. Aparece una vez tras entrar. */
@@ -100,7 +100,7 @@ export function Onboarding() {
         >
           {/* Encabezado */}
           <div className="mb-5 flex items-center gap-3">
-            <UniandesMark className="h-11 w-11 shrink-0" />
+            <SerenoLogo className="h-11 w-11 shrink-0" />
             <div>
               <h2 className="text-lg font-bold leading-tight">{t.ui.obTitle}</h2>
               <p className="text-xs text-muted">

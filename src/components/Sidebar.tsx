@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import {
-  Brain,
   MessageSquare,
   ListChecks,
   GraduationCap,
@@ -29,6 +28,7 @@ import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/lib/auth-context";
 import { LanguageSwitcher } from "./ui/LanguageSwitcher";
 import { UniandesMark } from "./ui/UniandesMark";
+import { SerenoLogo } from "./ui/SerenoLogo";
 import { cn } from "@/lib/utils";
 
 export type Section =
@@ -135,13 +135,11 @@ export function Sidebar({
             aria-label={t.brand}
             className="mb-5 flex shrink-0 items-center gap-3 px-2 transition hover:opacity-80"
           >
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent">
-              <Brain className="h-6 w-6 text-white" />
-            </span>
+            <SerenoLogo className="h-10 w-10 shrink-0" />
             <div className="text-left">
               <p className="text-lg font-bold leading-none tracking-tight">{t.brand}</p>
               <p className="mt-1 flex items-center gap-1 text-[11px] text-muted">
-                <UniandesMark className="h-3 w-3" /> Uniandes
+                <UniandesMark className="h-3.5 w-3.5" /> Uniandes
               </p>
             </div>
           </button>
@@ -224,9 +222,7 @@ export function Sidebar({
       <header className="sticky top-0 z-40 lg:hidden">
         <div className="glass-strong mx-3 mt-3 flex items-center justify-between rounded-2xl px-3 py-2.5">
           <button onClick={() => onNavigate("home")} aria-label={t.brand} className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent">
-              <Brain className="h-5 w-5 text-white" />
-            </span>
+            <SerenoLogo className="h-9 w-9" />
             <span className="text-lg font-bold tracking-tight">{t.brand}</span>
           </button>
           <div className="flex items-center gap-2">
