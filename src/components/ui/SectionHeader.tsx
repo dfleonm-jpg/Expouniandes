@@ -19,7 +19,7 @@ export function SectionHeader({
       transition={{ duration: 0.4 }}
       className="flex items-center gap-4"
     >
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-accent">
+      <div className="glow-ring flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-accent">
         <Icon className="h-6 w-6 text-white" />
       </div>
       <div>

@@ -107,8 +107,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
             </button>
 
             <div className="mb-5 text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center">
-                <UniandesMark className="h-14 w-14" />
+              <div className="glow-ring mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand/20 to-accent/20">
+                <UniandesMark className="h-10 w-10" />
               </div>
               <h2 className="text-xl font-bold">{isRegister ? t.ui.register : L.authTitle}</h2>
               <p className="mt-1 text-sm text-muted">{L.authSubtitle}</p>
@@ -174,7 +174,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                 <button
                   onClick={doEmail}
                   disabled={busy || !email.trim() || password.length < 6}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-accent px-6 py-3.5 font-semibold text-white transition hover:opacity-90 disabled:opacity-40"
+                  className="shine flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-accent px-6 py-3.5 font-semibold text-white transition hover:opacity-90 disabled:opacity-40"
                 >
                   {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                   {isRegister ? t.ui.register : t.ui.loginEmail}
