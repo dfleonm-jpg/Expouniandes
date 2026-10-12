@@ -179,7 +179,7 @@ body {
 }
 .shine:hover::after { transform: translateX(120%); }
 
-/* Aparición al entrar (fallback por si no hay framer) */
+/* Aparición al entrar (CSS puro, siempre termina visible) */
 .reveal {
   animation: reveal-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

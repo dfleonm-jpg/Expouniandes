@@ -340,30 +340,17 @@ function Tag({ children, className = "" }: { children: React.ReactNode; classNam
   return <span className={`text-sm font-semibold uppercase tracking-wider ${className}`}>{children}</span>;
 }
 function Title({ children }: { children: React.ReactNode }) {
-  return (
-    <motion.h2
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
-    >
-      {children}
-    </motion.h2>
-  );
+  return <h2 className="reveal mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{children}</h2>;
 }
 function Lead({ children }: { children: React.ReactNode }) {
   return <p className="mx-auto mt-4 max-w-2xl text-muted">{children}</p>;
 }
+/** Aparición con CSS (siempre termina visible, sin depender de observadores). */
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay }}
-    >
+    <div className="reveal" style={{ animationDelay: `${delay}s` }}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
