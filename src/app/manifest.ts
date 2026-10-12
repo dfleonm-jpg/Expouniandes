@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Tutor académico con IA: resuelve dudas, genera quizzes y parciales, flashcards, resúmenes, planifica tu tiempo y cuida tu bienestar. ExpoUniandes.",
     start_url: "/",
     display: "standalone",
-    background_color: "#07070b",
-    theme_color: "#8b5cf6",
+    background_color: "#060910",
+    theme_color: "#4f7cff",
     orientation: "portrait",
     categories: ["education", "productivity"],
     icons: [
