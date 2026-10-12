@@ -1,14 +1,27 @@
-import { streamChat, type ChatMessage } from "@/lib/ai";
-import { LANGUAGE_NAMES } from "@/lib/ai";
-import { handleApiError, json } from "@/lib/api-helpers";
+import { streamChat, LANGUAGE_NAMES } from "@/lib/ai";
+import {
+  json,
+  streamResponse,
+  readJson,
+  sanitizeMessages,
+  enforceRateLimit,
+  handleApiErrorWithHeaders,
+} from "@/lib/api-helpers";
+import { RATE_PROFILES } from "@/lib/rate-limit";
 
 // Compañero de apoyo emocional. NO es terapia. Empático, breve, seguro.
 // Ante señales de crisis, prioriza derivar a ayuda profesional/líneas.
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
+  let rl: Record<string, string> = {};
   try {
-    const { messages, locale } = (await req.json()) as { messages: ChatMessage[]; locale?: string };
-    if (!messages?.length) return json({ error: "No hay mensajes" }, 400);
+    rl = enforceRateLimit(req, { ...RATE_PROFILES.stream, bucket: "support" });
+
+    const { messages, locale } = await readJson<{ messages?: unknown; locale?: string }>(req);
+    const safeMessages = sanitizeMessages(messages);
+    if (!safeMessages.length) return json({ error: "No hay mensajes" }, 400, rl);
 
     const lang = LANGUAGE_NAMES[locale ?? "es"] ?? "español";
 
@@ -23,11 +36,9 @@ Reglas:
 - No des consejo médico, legal ni farmacológico. No recomiendes medicación.
 - Mantén la conversación centrada en el bienestar del estudiante.`;
 
-    const stream = await streamChat(messages, system);
-    return new Response(stream, {
-      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" },
-    });
+    const stream = await streamChat(safeMessages, system);
+    return streamResponse(stream, rl);
   } catch (err) {
-    return handleApiError(err, "Support");
+    return handleApiErrorWithHeaders(err, "Support", rl);
   }
 }

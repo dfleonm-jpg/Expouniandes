@@ -1,0 +1,98 @@
+rules_version = '2';
+
+// ============================================================
+// Reglas de seguridad de Firestore para Sereno.
+//
+// Principios:
+//  - El progreso del usuario (users/{uid} y sus subcolecciones) es
+//    PRIVADO: solo su dueño lo lee y escribe.
+//  - El ranking (leaderboard) es de lectura pública, pero cada quien
+//    solo escribe SU documento y con una FORMA validada (sin inyectar
+//    campos raros ni tipos incorrectos).
+//  - Las métricas globales (metrics/global) son de lectura pública y
+//    cualquier usuario autenticado puede sumar, pero las escrituras
+//    deben ser INCREMENTOS no negativos (no se pueden fijar valores
+//    arbitrarios ni poner negativos).
+//
+// Nota: Firestore no puede verificar criptográficamente que el XP del
+// cliente sea "real"; estas reglas endurecen la forma y los límites, que
+// es lo máximo alcanzable sin Cloud Functions. Para un ranking
+// totalmente a prueba de trampas, el cálculo de XP debería moverse a una
+// Cloud Function con permisos de administrador.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // ---- Progreso del usuario (privado) ----
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+
+      // Subcolecciones (p. ej. chats): solo el dueño.
+      match /{document=**} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // ---- Ranking (lectura pública, escritura validada del propio doc) ----
+    match /leaderboard/{uid} {
+      allow read: if true;
+
+      allow write: if isOwner(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 60
+        && request.resource.data.xp is int
+        && request.resource.data.xp >= 0
+        && request.resource.data.xp <= 100000000
+        && request.resource.data.level is int
+        && request.resource.data.level >= 1
+        && request.resource.data.level <= 1000
+        && request.resource.data.updatedAt is int;
+    }
+
+    // ---- Métricas globales (lectura pública, solo incrementos) ----
+    match /metrics/{doc} {
+      allow read: if true;
+
+      // Permite crear el documento la primera vez con valores no negativos.
+      allow create: if signedIn()
+        && onlyNonNegativeNumbers(request.resource.data);
+
+      // En updates, exige que cada campo numérico sea >= su valor anterior
+      // (solo se puede sumar, nunca bajar ni fijar a cero).
+      allow update: if signedIn()
+        && onlyNonNegativeNumbers(request.resource.data)
+        && isIncrementOnly();
+    }
+
+    function onlyNonNegativeNumbers(data) {
+      return data.keys().hasOnly(['focusMinutes','quizzes','questions','summaries','flashcards'])
+        && (!('focusMinutes' in data) || (data.focusMinutes is number && data.focusMinutes >= 0))
+        && (!('quizzes' in data)      || (data.quizzes is number && data.quizzes >= 0))
+        && (!('questions' in data)    || (data.questions is number && data.questions >= 0))
+        && (!('summaries' in data)    || (data.summaries is number && data.summaries >= 0))
+        && (!('flashcards' in data)   || (data.flashcards is number && data.flashcards >= 0));
+    }
+
+    function fieldGrows(name) {
+      return !(name in request.resource.data)
+        || !(name in resource.data)
+        || request.resource.data[name] >= resource.data[name];
+    }
+    function isIncrementOnly() {
+      return fieldGrows('focusMinutes')
+        && fieldGrows('quizzes')
+        && fieldGrows('questions')
+        && fieldGrows('summaries')
+        && fieldGrows('flashcards');
+    }
+  }
+}

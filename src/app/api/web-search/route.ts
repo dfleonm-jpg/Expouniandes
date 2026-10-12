@@ -1,23 +1,29 @@
-import { json, handleApiError } from "@/lib/api-helpers";
+import { json, readJson, requireText, enforceRateLimit, handleApiErrorWithHeaders } from "@/lib/api-helpers";
+import { RATE_PROFILES } from "@/lib/rate-limit";
 
 // Búsqueda web educativa gratuita y sin API key, usando la API de Wikipedia
 // en el idioma del usuario (muy fiable para temas académicos). Devuelve
 // resultados { title, url, snippet } que la IA usa para responder y citar.
+
+export const maxDuration = 30;
 
 type WebResult = { title: string; url: string; snippet: string };
 
 const WIKI_LANG: Record<string, string> = { es: "es", en: "en", pt: "pt", fr: "fr" };
 
 export async function POST(req: Request) {
+  let rl: Record<string, string> = {};
   try {
-    const { query, locale } = (await req.json()) as { query: string; locale?: string };
-    if (!query?.trim()) return json({ error: "Falta la consulta" }, 400);
+    rl = enforceRateLimit(req, { ...RATE_PROFILES.util, bucket: "web-search" });
+
+    const { query, locale } = await readJson<{ query?: string; locale?: string }>(req);
+    const theQuery = requireText(query, "Falta la consulta", { max: 300 });
 
     const lang = WIKI_LANG[locale ?? "es"] ?? "es";
-    const results = await wikipediaSearch(query.trim(), lang);
-    return json({ results });
+    const results = await wikipediaSearch(theQuery, lang);
+    return json({ results }, 200, rl);
   } catch (err) {
-    return handleApiError(err, "WebSearch");
+    return handleApiErrorWithHeaders(err, "WebSearch", rl);
   }
 }
 
