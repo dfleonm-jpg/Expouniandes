@@ -34,7 +34,7 @@ const DURATIONS = [
 ];
 
 export function Exam() {
-  const { t, locale, addStat, addExamRecord } = useApp();
+  const { t, locale, addStat, addExamRecord, trackMastery } = useApp();
   const { notify } = useToast();
 
   const [phase, setPhase] = useState<Phase>("setup");
@@ -61,7 +61,10 @@ export function Exam() {
     addStat("questionsAnswered", questions.length);
     const correct = questions.reduce((acc, q, i) => acc + (answers[i] === q.correctIndex ? 1 : 0), 0);
     addExamRecord({ topic: topic || t.exam.title, score: correct, total: questions.length });
-  }, [addStat, addExamRecord, questions, answers, topic, t.exam.title]);
+    if (topic.trim()) {
+      trackMastery([{ label: topic.trim(), performance: (correct / Math.max(questions.length, 1)) * 100 }]);
+    }
+  }, [addStat, addExamRecord, trackMastery, questions, answers, topic, t.exam.title]);
 
   // Temporizador
   useEffect(() => {

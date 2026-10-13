@@ -18,7 +18,7 @@ type Question = {
 type Phase = "setup" | "loading" | "quiz" | "results";
 
 export function Quiz() {
-  const { t, locale, addStat } = useApp();
+  const { t, locale, addStat, trackMastery } = useApp();
   const [phase, setPhase] = useState<Phase>("setup");
   const [topic, setTopic] = useState("");
   const [count, setCount] = useState(5);
@@ -67,8 +67,11 @@ export function Quiz() {
       );
       addStat("quizzesTaken", 1);
       addStat("questionsAnswered", questions.length);
+      // Actualiza el dominio adaptativo del tema con el desempeño obtenido.
+      if (topic.trim()) {
+        trackMastery([{ label: topic.trim(), performance: (score / Math.max(questions.length, 1)) * 100 }]);
+      }
       setPhase("results");
-      void score;
     }
   }
 

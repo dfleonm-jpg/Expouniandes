@@ -91,3 +91,55 @@ export type ExamAnalysis = {
   patterns: string[];
   nextSteps: string[];
 };
+
+// ---- Sistema de dominio adaptativo (fortalezas/debilidades por tema) ----
+// Se actualiza con cada actividad (quiz, parcial, práctica) usando una media
+// móvil exponencial, de modo que refleja el nivel ACTUAL del estudiante.
+export type MasteryTopic = {
+  topic: string;        // nombre del tema/materia (clave normalizada)
+  label: string;        // nombre legible original
+  score: number;        // dominio 0..100 (media móvil)
+  attempts: number;     // nº de evaluaciones registradas
+  lastUpdated: number;  // epoch ms
+  level: "principiante" | "en progreso" | "competente" | "dominado";
+};
+
+export type MasteryState = {
+  topics: Record<string, MasteryTopic>;
+};
+
+// ---- Parcial de respuesta abierta (IP/subnetting, estructuras, etc.) ----
+export type OpenExamQuestion = {
+  id: string;
+  topic: string;
+  prompt: string;        // enunciado (markdown/LaTeX)
+  type: "numeric" | "short" | "long" | "code"; // formato de respuesta esperado
+  expectedAnswer: string; // respuesta/solución de referencia (no se muestra hasta calificar)
+  rubric: string;         // criterios de evaluación para la IA
+  points: number;         // puntos del ítem
+};
+
+export type OpenExam = {
+  title: string;
+  subject: string;
+  questions: OpenExamQuestion[];
+};
+
+export type OpenAnswerGrade = {
+  questionId: string;
+  awarded: number;        // puntos otorgados
+  max: number;            // puntos máximos
+  correct: boolean;       // ¿correcto en lo esencial?
+  feedback: string;       // retroalimentación específica
+  modelAnswer: string;    // solución correcta explicada
+};
+
+export type OpenExamResult = {
+  grades: OpenAnswerGrade[];
+  totalAwarded: number;
+  totalMax: number;
+  score5: number;         // nota 0..5 (escala Uniandes)
+  overview: string;       // veredicto general
+  weakTopics: string[];   // temas donde falló (para actualizar dominio)
+  strongTopics: string[]; // temas donde acertó
+};

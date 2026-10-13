@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { type Locale, translations, type Translation } from "./i18n";
+import type { MasteryState } from "./types";
+import { EMPTY_MASTERY, recordMany } from "./mastery";
 import { useAuth } from "./auth-context";
 import { loadUserData, saveUserData } from "./cloud-sync";
 import { publishScore } from "./leaderboard-store";
@@ -101,6 +103,8 @@ type AppContextType = {
   setA11y: (patch: Partial<A11y>) => void;
   profile: StudentProfile;
   setProfile: (patch: Partial<StudentProfile>) => void;
+  mastery: MasteryState;
+  trackMastery: (entries: { label: string; performance: number }[]) => void;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -119,6 +123,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [examEvents, setExamEvents] = useState<ExamEvent[]>([]);
   const [a11y, setA11yState] = useState<A11y>(DEFAULT_A11Y);
   const [profile, setProfileState] = useState<StudentProfile>(DEFAULT_PROFILE);
+  const [mastery, setMastery] = useState<MasteryState>(EMPTY_MASTERY);
   const [mounted, setMounted] = useState(false);
 
   // Cargar preferencias guardadas.
@@ -147,6 +152,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const savedProfile = localStorage.getItem("sereno:profile");
       if (savedProfile) setProfileState({ ...DEFAULT_PROFILE, ...JSON.parse(savedProfile) });
+
+      const savedMastery = localStorage.getItem("sereno:mastery");
+      if (savedMastery) setMastery({ topics: { ...(JSON.parse(savedMastery).topics ?? {}) } });
 
       // Racha de estudio: incrementa si entra en días consecutivos.
       const rawStreak = localStorage.getItem("sereno:streak");
@@ -283,6 +291,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Registra desempeño por tema y actualiza el perfil de dominio adaptativo.
+  const trackMastery = useCallback((entries: { label: string; performance: number }[]) => {
+    if (!entries.length) return;
+    setMastery((prev) => {
+      const next = recordMany(prev, entries);
+      try {
+        localStorage.setItem("sereno:mastery", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
   // Aplica las preferencias de accesibilidad al documento.
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -323,6 +343,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (cloud.docs) setDocs(cloud.docs as SereneDoc[]);
         if (typeof cloud.streak === "number") setStreak(cloud.streak as number);
         if (cloud.profile) setProfileState({ ...DEFAULT_PROFILE, ...(cloud.profile as StudentProfile) });
+        if (cloud.mastery) setMastery({ topics: { ...((cloud.mastery as MasteryState).topics ?? {}) } });
       }
       // Si no tenía nombre en la nube, usa el de la cuenta.
       setUserNameState((prev) => prev || user.name);
@@ -338,7 +359,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user || !cloudLoaded.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      saveUserData(user.uid, { stats, userName, examHistory, examEvents, docs, streak, profile });
+      saveUserData(user.uid, { stats, userName, examHistory, examEvents, docs, streak, profile, mastery });
       // Publica la puntuación en el ranking (XP y nivel).
       const xp = computeXP(stats);
       publishScore({
@@ -352,7 +373,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [user, stats, userName, examHistory, examEvents, docs, streak, profile]);
+  }, [user, stats, userName, examHistory, examEvents, docs, streak, profile, mastery]);
 
   const value: AppContextType = {
     locale,
@@ -375,6 +396,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setA11y,
     profile,
     setProfile,
+    mastery,
+    trackMastery,
   };
 
   return (

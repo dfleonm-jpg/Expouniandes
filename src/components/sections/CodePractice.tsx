@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import type { CodeExercise, CodeReview } from "@/lib/types";
 
 export function CodePractice() {
-  const { t, locale, addStat } = useApp();
+  const { t, locale, addStat, trackMastery } = useApp();
   const exReq = useAIRequest<CodeExercise>();
   const revReq = useAIRequest<CodeReview>();
 
@@ -50,7 +50,11 @@ export function CodePractice() {
       restrictions,
       locale,
     });
-    if (res) addStat("questionsAnswered", 1);
+    if (res) {
+      addStat("questionsAnswered", 1);
+      // Dominio de programación: usa el tema o "Programación (Python)" por defecto.
+      trackMastery([{ label: topic.trim() || "Programación (Python)", performance: (res.score / 5) * 100 }]);
+    }
   }
 
   const ex = exReq.data;

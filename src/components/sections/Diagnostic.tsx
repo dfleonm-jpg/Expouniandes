@@ -16,7 +16,7 @@ type Phase = "intro" | "loading" | "quiz" | "results";
 const AREA_OPTIONS = ["Programación", "Cálculo", "Física", "Álgebra"];
 
 export function Diagnostic() {
-  const { t, locale } = useApp();
+  const { t, locale, trackMastery } = useApp();
   const quizReq = useAIRequest<{ questions: DiagnosticQuestion[] }>();
   const planReq = useAIRequest<{ plan: string }>();
 
@@ -65,6 +65,10 @@ export function Diagnostic() {
       if (s.ok / s.total >= 0.6) strong.push(area);
       else weak.push(area);
     });
+    // Alimenta el perfil de dominio adaptativo con el desempeño por área.
+    trackMastery(
+      Object.entries(byArea).map(([area, s]) => ({ label: area, performance: (s.ok / Math.max(s.total, 1)) * 100 }))
+    );
     setPhase("results");
     planReq.run("/api/diagnostic", { mode: "plan", weakAreas: weak, strongAreas: strong, locale });
   }

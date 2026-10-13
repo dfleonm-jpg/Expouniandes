@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import type { MathProblem, MathReview } from "@/lib/types";
 
 export function MathPractice() {
-  const { t, locale, addStat } = useApp();
+  const { t, locale, addStat, trackMastery } = useApp();
   const probReq = useAIRequest<MathProblem>();
   const revReq = useAIRequest<MathReview>();
 
@@ -34,7 +34,11 @@ export function MathPractice() {
       work,
       locale,
     });
-    if (res) addStat("questionsAnswered", 1);
+    if (res) {
+      addStat("questionsAnswered", 1);
+      // Actualiza el dominio del tema con la nota 0..5 (escala Uniandes).
+      if (topic.trim()) trackMastery([{ label: topic.trim(), performance: (res.score / 5) * 100 }]);
+    }
   }
 
   const prob = probReq.data;

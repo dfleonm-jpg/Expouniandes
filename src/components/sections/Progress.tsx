@@ -19,19 +19,23 @@ import {
   TrendingDown,
   Minus,
   AlertTriangle,
+  Gauge,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { computeXP, levelInfo } from "@/lib/levels";
+import { sortedTopics, overallMastery } from "@/lib/mastery";
 import { cn } from "@/lib/utils";
 import type { ExamAnalysis } from "@/lib/types";
 
 export function Progress() {
-  const { t, locale, stats, streak, examHistory } = useApp();
+  const { t, locale, stats, streak, examHistory, mastery } = useApp();
   const lvl = levelInfo(computeXP(stats));
   const analysis = useAIRequest<ExamAnalysis>();
+  const masteryTopics = sortedTopics(mastery);
+  const overall = overallMastery(mastery);
 
   function analyzeExams() {
     analysis.run("/api/exam-analysis", {
@@ -116,6 +120,48 @@ export function Progress() {
           </p>
         </div>
       </motion.div>
+
+      {/* Perfil de dominio adaptativo (fortalezas y debilidades) */}
+      {masteryTopics.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass mt-5 rounded-3xl p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <Gauge className="h-5 w-5 text-brand" />
+              {t.ui.masteryTitle}
+            </h2>
+            {overall !== null && (
+              <div className="text-right">
+                <p className="text-2xl font-extrabold tabular-nums text-gradient">{overall}%</p>
+                <p className="text-[10px] uppercase tracking-wide text-muted">{t.ui.masteryOverall}</p>
+              </div>
+            )}
+          </div>
+          <p className="mb-4 text-xs text-muted">{t.ui.masteryDesc}</p>
+          <div className="space-y-3">
+            {masteryTopics.map((m) => (
+              <div key={m.topic}>
+                <div className="mb-1 flex items-center justify-between gap-2 text-sm">
+                  <span className="truncate font-medium">{m.label}</span>
+                  <span className="flex items-center gap-2 shrink-0">
+                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase", levelBadge(m.score))}>
+                      {t.ui.masteryLevels[m.level]}
+                    </span>
+                    <span className="w-9 text-right tabular-nums text-muted">{m.score}%</span>
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <motion.div
+                    className={cn("h-full rounded-full", barColor(m.score))}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${m.score}%` }}
+                    transition={{ duration: 0.7 }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {totalActivity === 0 ? (
         <div className="glass mt-5 rounded-3xl p-16 text-center text-muted">{t.progress.noData}</div>
@@ -347,6 +393,21 @@ function ExamAnalysisPanel({
       )}
     </motion.div>
   );
+}
+
+/** Color de la barra de dominio según el nivel. */
+function barColor(score: number): string {
+  if (score >= 85) return "bg-gradient-to-r from-calm to-emerald-400";
+  if (score >= 65) return "bg-gradient-to-r from-brand to-accent";
+  if (score >= 40) return "bg-gradient-to-r from-warn to-amber-400";
+  return "bg-gradient-to-r from-danger to-rose-400";
+}
+/** Estilo de la insignia de nivel de dominio. */
+function levelBadge(score: number): string {
+  if (score >= 85) return "bg-calm/20 text-calm";
+  if (score >= 65) return "bg-brand/20 text-brand";
+  if (score >= 40) return "bg-warn/20 text-warn";
+  return "bg-danger/20 text-danger";
 }
 
 /** Mini-gráfica de líneas (SVG) con la evolución de las notas (más antigua → más reciente). */
