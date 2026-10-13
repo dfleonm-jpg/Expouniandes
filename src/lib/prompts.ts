@@ -85,11 +85,42 @@ Escribe TODO en ${l}.`;
 
 export const FLASHCARDS_SHAPE = '{"cards":[{"front":string,"back":string}]}';
 
-export function studyPlanPrompt(input: string, locale?: string, profile?: ProfileInput) {
+export type StudyPlanOptions = {
+  subject?: string; // materia (ej. Cálculo, Programación)
+  examDate?: string; // YYYY-MM-DD del parcial objetivo
+  daysUntil?: number; // días hasta el parcial
+  hoursPerDay?: number; // horas disponibles por día
+  intensity?: "ligero" | "equilibrado" | "intensivo";
+  weakAreas?: string[]; // temas débiles a priorizar
+};
+
+export function studyPlanPrompt(input: string, locale?: string, profile?: ProfileInput, opts?: StudyPlanOptions) {
   const l = lang(locale);
-  return `Crea un plan de estudio realista basado en esta información del estudiante:
-"${input}"${profileContext(profile)}
-Idioma: ${l}. Distribuye el trabajo en días con sesiones concretas (hora sugerida, tarea y duración en minutos). Incluye descansos y un consejo anti-estrés por día. Sé realista, no sobrecargues.`;
+  const o = opts ?? {};
+  const specs: string[] = [];
+  if (o.subject) specs.push(`materia objetivo: ${o.subject}`);
+  if (o.examDate) specs.push(`fecha del parcial: ${o.examDate}`);
+  if (typeof o.daysUntil === "number") specs.push(`días disponibles hasta el parcial: ${o.daysUntil}`);
+  if (o.hoursPerDay) specs.push(`tiempo disponible por día: ~${o.hoursPerDay} h`);
+  if (o.intensity) specs.push(`intensidad deseada: ${o.intensity}`);
+  if (o.weakAreas?.length) specs.push(`temas débiles a PRIORIZAR: ${o.weakAreas.join(", ")}`);
+  const specLine = specs.length ? `\nPARÁMETROS DEL PLAN: ${specs.join("; ")}.` : "";
+
+  const uniandes = o.subject
+    ? `\nContexto Uniandes: adapta el plan al estilo exigente de la Universidad de los Andes para "${o.subject}" (p. ej. en Programación: práctica de código con restricciones; en Cálculo/Física: ejercicios a mano, sin calculadora; teoría + mucha práctica tipo parcial).`
+    : "";
+
+  return `Eres un asesor académico experto. Crea un plan de estudio ESPECIALIZADO, realista y personalizado.
+Información del estudiante:
+"${input}"${profileContext(profile)}${specLine}${uniandes}
+Idioma: ${l}.
+Reglas del plan:
+- Si hay fecha de parcial y días disponibles, distribuye el contenido hasta ESE día, dejando el último día para repaso general y simulacro.
+- Prioriza los temas débiles al inicio (cuando hay más energía) y mézclalos con repaso espaciado.
+- Respeta el tiempo por día indicado; NO sobrecargues. Divide en sesiones concretas (hora sugerida, tarea, duración en minutos) con descansos.
+- Cada día: un enfoque claro ("focus"), sus sesiones y UN consejo anti-estrés.
+- Las tareas deben ser accionables y específicas de la materia, no genéricas.
+Sé realista y motivador.`;
 }
 
 export const STUDY_PLAN_SHAPE =

@@ -2,28 +2,79 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Wand2, Loader2, RotateCcw, Clock3, Lightbulb, Download } from "lucide-react";
+import { Wand2, Loader2, RotateCcw, Clock3, Lightbulb, Download, Sparkles } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { downloadMarkdown } from "@/lib/export";
 import { ErrorBanner } from "../ui/ErrorBanner";
+import { cn } from "@/lib/utils";
 import type { StudyPlan } from "@/lib/types";
 
+type Intensity = "ligero" | "equilibrado" | "intensivo";
+
 export function StudyPlanGenerator() {
-  const { t, locale } = useApp();
+  const { t, locale, profile, examEvents } = useApp();
   const { loading, error, data, run, reset, setError } = useAIRequest<StudyPlan>();
+
   const [input, setInput] = useState("");
+  const [subject, setSubject] = useState("");
+  const [intensity, setIntensity] = useState<Intensity>("equilibrado");
+  const [hoursPerDay, setHoursPerDay] = useState(2);
+  const [examDate, setExamDate] = useState("");
+
+  // Materias sugeridas: las críticas del perfil + presets típicos de Uniandes.
+  const presetSubjects = Array.from(
+    new Set([
+      ...(profile.subjects ?? []),
+      "Programación (Python)",
+      "Cálculo",
+      "Física",
+      "Álgebra lineal",
+      "Estructuras de datos",
+    ])
+  ).slice(0, 8);
+
+  // Próximos parciales del calendario (para fijar la fecha objetivo).
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const upcomingExams = examEvents.filter((e) => e.date >= todayStr).slice(0, 6);
+
+  function daysUntil(d: string): number | undefined {
+    if (!d) return undefined;
+    const diff = Math.round((new Date(d + "T00:00:00").getTime() - new Date(todayStr + "T00:00:00").getTime()) / 864e5);
+    return diff >= 0 ? diff : undefined;
+  }
 
   async function generate() {
-    if (!input.trim()) return;
-    await run("/api/study-plan", { input, locale });
+    if (!input.trim() && !subject) return;
+    const effectiveInput = input.trim() || `Quiero prepararme para ${subject}.`;
+    await run("/api/study-plan", {
+      input: effectiveInput,
+      locale,
+      profile: profile.completed ? profile : undefined,
+      options: {
+        subject: subject || undefined,
+        examDate: examDate || undefined,
+        daysUntil: daysUntil(examDate),
+        hoursPerDay,
+        intensity,
+      },
+    });
   }
+
+  const intensities: { v: Intensity; l: string }[] = [
+    { v: "ligero", l: t.studyPlan.intensityLight },
+    { v: "equilibrado", l: t.studyPlan.intensityBalanced },
+    { v: "intensivo", l: t.studyPlan.intensityIntense },
+  ];
 
   return (
     <div className="glass rounded-3xl p-6">
       <div className="mb-4 flex items-center gap-2">
         <Wand2 className="h-5 w-5 text-accent" />
         <h3 className="font-semibold">{t.studyPlan.title}</h3>
+        <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
+          {t.studyPlan.personalized}
+        </span>
       </div>
 
       {error && (
@@ -33,26 +84,120 @@ export function StudyPlanGenerator() {
       )}
 
       {!data ? (
-        <>
+        <div className="space-y-4">
+          {/* Materia */}
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-muted">{t.studyPlan.subjectLabel}</label>
+            <div className="flex flex-wrap gap-2">
+              {presetSubjects.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSubject(subject === s ? "" : s)}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-medium transition",
+                    subject === s
+                      ? "bg-gradient-to-r from-brand to-brand-2 text-white"
+                      : "glass text-muted hover:text-foreground"
+                  )}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Objetivo / contexto libre */}
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t.studyPlan.placeholder}
-            rows={3}
+            rows={2}
             className="glass w-full resize-none rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/50"
           />
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Intensidad */}
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-muted">{t.studyPlan.intensity}</label>
+              <div className="glass inline-flex w-full rounded-xl p-0.5">
+                {intensities.map((it) => (
+                  <button
+                    key={it.v}
+                    onClick={() => setIntensity(it.v)}
+                    className={cn(
+                      "flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition",
+                      intensity === it.v ? "bg-gradient-to-r from-brand to-brand-2 text-white" : "text-muted hover:text-foreground"
+                    )}
+                  >
+                    {it.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Horas por día */}
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-muted">
+                {t.studyPlan.hoursPerDay}: <span className="text-foreground">{hoursPerDay} h</span>
+              </label>
+              <input
+                type="range"
+                min={1}
+                max={8}
+                step={1}
+                value={hoursPerDay}
+                onChange={(e) => setHoursPerDay(Number(e.target.value))}
+                className="mt-2.5 w-full accent-[var(--brand)]"
+              />
+            </div>
+          </div>
+
+          {/* Fecha de parcial objetivo */}
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-muted">{t.studyPlan.targetExam}</label>
+            {upcomingExams.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {upcomingExams.map((e) => (
+                  <button
+                    key={e.id}
+                    onClick={() => {
+                      setExamDate(e.date);
+                      if (!subject) setSubject(e.subject);
+                    }}
+                    className={cn(
+                      "rounded-full px-3 py-1.5 text-xs transition",
+                      examDate === e.date ? "bg-accent/20 text-accent ring-1 ring-accent/40" : "glass text-muted hover:text-foreground"
+                    )}
+                  >
+                    {e.subject} · {daysUntil(e.date)}d
+                  </button>
+                ))}
+              </div>
+            )}
+            <input
+              type="date"
+              value={examDate}
+              min={todayStr}
+              onChange={(e) => setExamDate(e.target.value)}
+              className="glass w-full rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand/50 [color-scheme:dark]"
+            />
+          </div>
+
           <button
             onClick={generate}
-            disabled={!input.trim() || loading}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-accent px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-40"
+            disabled={(!input.trim() && !subject) || loading}
+            className="shine flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-brand-2 px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-40"
           >
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wand2 className="h-5 w-5" />}
             {loading ? t.studyPlan.generating : t.studyPlan.generate}
           </button>
-        </>
+        </div>
       ) : (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <p className="mb-4 text-sm text-foreground/85">{data.summary}</p>
+          <p className="mb-4 flex items-start gap-2 text-sm text-foreground/85">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+            {data.summary}
+          </p>
           <div className="space-y-3">
             {data.days?.map((day, i) => (
               <motion.div
