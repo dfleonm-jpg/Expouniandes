@@ -105,7 +105,7 @@ type AppContextType = {
   profile: StudentProfile;
   setProfile: (patch: Partial<StudentProfile>) => void;
   mastery: MasteryState;
-  trackMastery: (entries: { label: string; performance: number }[]) => void;
+  trackMastery: (subject: string, entries: { topic: string; performance: number }[]) => void;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -292,11 +292,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  // Registra desempeño por tema y actualiza el perfil de dominio adaptativo.
-  const trackMastery = useCallback((entries: { label: string; performance: number }[]) => {
+  // Registra desempeño por (materia, tema) y actualiza el dominio adaptativo.
+  const trackMastery = useCallback((subject: string, entries: { topic: string; performance: number }[]) => {
     if (!entries.length) return;
     setMastery((prev) => {
-      const next = recordMany(prev, entries);
+      const next = recordMany(
+        prev,
+        entries.map((e) => ({ subject, topic: e.topic, performance: e.performance }))
+      );
       try {
         localStorage.setItem("sereno:mastery", JSON.stringify(next));
       } catch {}

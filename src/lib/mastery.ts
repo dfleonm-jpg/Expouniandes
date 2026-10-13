@@ -1,16 +1,15 @@
 // ============================================================
-// Motor de dominio adaptativo de Sereno.
+// Motor de dominio adaptativo de Sereno — POR MATERIA y por tema.
 //
-// Mantiene un "perfil de dominio" por tema (0..100) que se actualiza
-// con cada actividad del estudiante (quiz, parcial, práctica de código/
-// cálculo, parcial abierto). Usa una media móvil exponencial (EMA) para
-// que el valor refleje el NIVEL ACTUAL y no el histórico completo: si el
-// estudiante mejora, su dominio sube; si falla, baja.
+// Mantiene un "perfil de dominio" por tema (0..100) agrupado por MATERIA
+// (ej. Cálculo diferencial, Redes/IP, Estructuras de datos). Se actualiza
+// con cada actividad del estudiante usando una media móvil exponencial
+// (EMA), de modo que refleja el NIVEL ACTUAL por materia y en general.
 //
 // Es 100% local y determinista (sin IA): rápido, confiable y auditable.
 // ============================================================
 
-import type { MasteryState, MasteryTopic } from "./types";
+import type { MasteryState, MasteryTopic, MasteryLevel, SubjectMastery } from "./types";
 
 export const EMPTY_MASTERY: MasteryState = { topics: {} };
 
@@ -18,52 +17,61 @@ export const EMPTY_MASTERY: MasteryState = { topics: {} };
 // más rápido a los cambios recientes (bueno para "se actualiza conforme avanza").
 const ALPHA = 0.45;
 
-/** Normaliza un nombre de tema para usarlo como clave estable. */
-export function topicKey(label: string): string {
+/** Normaliza un texto para usarlo como clave estable (sin tildes/mayúsculas). */
+export function normKey(label: string): string {
   return label
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // quita tildes
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, " ");
 }
 
-function levelFor(score: number): MasteryTopic["level"] {
+/** Clave compuesta materia::tema (un mismo tema en distintas materias no se mezcla). */
+function compositeKey(subject: string, topic: string): string {
+  return `${normKey(subject)}::${normKey(topic)}`;
+}
+
+function levelFor(score: number): MasteryLevel {
   if (score >= 85) return "dominado";
   if (score >= 65) return "competente";
   if (score >= 40) return "en progreso";
   return "principiante";
 }
 
+export type MasteryEntry = { subject: string; topic: string; performance: number };
+
 /**
- * Registra una observación de desempeño (0..100) en un tema y devuelve el
- * nuevo estado. No muta el estado recibido.
+ * Registra una observación de desempeño (0..100) en un (materia, tema) y
+ * devuelve el nuevo estado. No muta el estado recibido.
  */
-export function recordMastery(state: MasteryState, label: string, performance: number): MasteryState {
-  const key = topicKey(label);
-  if (!key) return state;
+export function recordMastery(state: MasteryState, subject: string, topic: string, performance: number): MasteryState {
+  const subj = (subject || "General").trim();
+  const top = (topic || subject || "General").trim();
+  const key = compositeKey(subj, top);
+  if (!key || key === "::") return state;
+
   const perf = Math.min(Math.max(performance, 0), 100);
   const prev = state.topics[key];
-
-  // Primera observación: arranca en la propia observación (con ligero sesgo
-  // al centro para no sobre-reaccionar a un único acierto/fallo).
   const score = prev ? prev.score * (1 - ALPHA) + perf * ALPHA : perf * 0.7 + 50 * 0.3;
   const rounded = Math.round(score);
 
-  const topic: MasteryTopic = {
+  const entry: MasteryTopic = {
     topic: key,
-    label: prev?.label || label.trim(),
+    label: prev?.label || top,
+    subject: prev?.subject || subj,
+    subjectKey: normKey(subj),
     score: rounded,
     attempts: (prev?.attempts ?? 0) + 1,
     lastUpdated: Date.now(),
     level: levelFor(rounded),
   };
-  return { topics: { ...state.topics, [key]: topic } };
+  return { topics: { ...state.topics, [key]: entry } };
 }
 
-/** Registra varias observaciones de una vez (p. ej. tras un parcial). */
-export function recordMany(state: MasteryState, entries: { label: string; performance: number }[]): MasteryState {
-  return entries.reduce((acc, e) => recordMastery(acc, e.label, e.performance), state);
+/** Registra varias observaciones de una vez (p. ej. tras un parcial de una materia). */
+export function recordMany(state: MasteryState, entries: MasteryEntry[]): MasteryState {
+  return entries.reduce((acc, e) => recordMastery(acc, e.subject, e.topic, e.performance), state);
 }
 
 /** Lista de temas ordenada por dominio ascendente (débiles primero). */
@@ -71,16 +79,31 @@ export function sortedTopics(state: MasteryState): MasteryTopic[] {
   return Object.values(state.topics).sort((a, b) => a.score - b.score);
 }
 
-/** Temas débiles (dominio < umbral), con al menos 1 intento. */
-export function weakTopics(state: MasteryState, threshold = 60): MasteryTopic[] {
-  return sortedTopics(state).filter((t) => t.score < threshold);
+/** Agrupa los temas por MATERIA, con el promedio de dominio de cada una. */
+export function subjectBreakdown(state: MasteryState): SubjectMastery[] {
+  const groups: Record<string, MasteryTopic[]> = {};
+  for (const t of Object.values(state.topics)) {
+    (groups[t.subjectKey] ??= []).push(t);
+  }
+  return Object.entries(groups)
+    .map(([subjectKey, topics]) => {
+      const sorted = [...topics].sort((a, b) => a.score - b.score);
+      const score = Math.round(sorted.reduce((a, t) => a + t.score, 0) / sorted.length);
+      return {
+        subject: sorted[0].subject,
+        subjectKey,
+        score,
+        level: levelFor(score),
+        attempts: sorted.reduce((a, t) => a + t.attempts, 0),
+        topics: sorted,
+      } as SubjectMastery;
+    })
+    .sort((a, b) => a.score - b.score); // materias más débiles primero
 }
 
-/** Temas fuertes (dominio >= umbral). */
-export function strongTopics(state: MasteryState, threshold = 75): MasteryTopic[] {
-  return sortedTopics(state)
-    .filter((t) => t.score >= threshold)
-    .reverse();
+/** Temas débiles (dominio < umbral). */
+export function weakTopics(state: MasteryState, threshold = 60): MasteryTopic[] {
+  return sortedTopics(state).filter((t) => t.score < threshold);
 }
 
 /** Dominio global promedio (0..100), o null si no hay datos. */
@@ -89,6 +112,8 @@ export function overallMastery(state: MasteryState): number | null {
   if (vals.length === 0) return null;
   return Math.round(vals.reduce((a, t) => a + t.score, 0) / vals.length);
 }
+
+export { levelFor };
 
 /** Convierte una nota 0..5 (Uniandes) a desempeño 0..100. */
 export const score5ToPerf = (s: number) => Math.min(Math.max((s / 5) * 100, 0), 100);

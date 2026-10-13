@@ -95,17 +95,31 @@ export type ExamAnalysis = {
 // ---- Sistema de dominio adaptativo (fortalezas/debilidades por tema) ----
 // Se actualiza con cada actividad (quiz, parcial, práctica) usando una media
 // móvil exponencial, de modo que refleja el nivel ACTUAL del estudiante.
+export type MasteryLevel = "principiante" | "en progreso" | "competente" | "dominado";
+
 export type MasteryTopic = {
-  topic: string;        // nombre del tema/materia (clave normalizada)
-  label: string;        // nombre legible original
+  topic: string;        // clave normalizada (materia::tema)
+  label: string;        // nombre legible del tema
+  subject: string;      // materia a la que pertenece (ej. "Cálculo diferencial")
+  subjectKey: string;   // clave normalizada de la materia
   score: number;        // dominio 0..100 (media móvil)
   attempts: number;     // nº de evaluaciones registradas
   lastUpdated: number;  // epoch ms
-  level: "principiante" | "en progreso" | "competente" | "dominado";
+  level: MasteryLevel;
 };
 
 export type MasteryState = {
   topics: Record<string, MasteryTopic>;
+};
+
+// Agrupación por materia (fortalezas/debilidades por materia + general).
+export type SubjectMastery = {
+  subject: string;      // nombre legible de la materia
+  subjectKey: string;
+  score: number;        // promedio de dominio de sus temas
+  level: MasteryLevel;
+  attempts: number;     // total de evaluaciones en la materia
+  topics: MasteryTopic[]; // temas de la materia, ordenados (débiles primero)
 };
 
 // ---- Parcial de respuesta abierta (IP/subnetting, estructuras, etc.) ----

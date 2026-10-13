@@ -52,8 +52,8 @@ export function CodePractice() {
     });
     if (res) {
       addStat("questionsAnswered", 1);
-      // Dominio de programación: usa el tema o "Programación (Python)" por defecto.
-      trackMastery([{ label: topic.trim() || "Programación (Python)", performance: (res.score / 5) * 100 }]);
+      // Dominio por materia de programación: tema = el seleccionado o general.
+      trackMastery("Programación (Python)", [{ topic: topic.trim() || "Fundamentos", performance: (res.score / 5) * 100 }]);
     }
   }
 

@@ -73,11 +73,15 @@ export function OpenExam() {
         score: Math.round((res.score5 / 5) * exam.questions.length),
         total: exam.questions.length,
       });
-      // Alimenta el dominio adaptativo: nota global + temas débiles/fuertes.
-      const entries = [{ label: exam.subject || subject, performance: (res.score5 / 5) * 100 }];
-      (res.weakTopics ?? []).forEach((wt) => entries.push({ label: wt, performance: 35 }));
-      (res.strongTopics ?? []).forEach((st) => entries.push({ label: st, performance: 85 }));
-      trackMastery(entries);
+      // Alimenta el dominio adaptativo por MATERIA y por tema de cada pregunta.
+      const subj = exam.subject || subject;
+      // Desempeño por tema según los puntos obtenidos en cada pregunta.
+      const byTopic = exam.questions.map((q) => {
+        const g = res.grades.find((x) => x.questionId === q.id);
+        const perf = g && g.max > 0 ? (g.awarded / g.max) * 100 : (res.score5 / 5) * 100;
+        return { topic: q.topic || subj, performance: perf };
+      });
+      trackMastery(subj, byTopic.length ? byTopic : [{ topic: subj, performance: (res.score5 / 5) * 100 }]);
     }
   }
 

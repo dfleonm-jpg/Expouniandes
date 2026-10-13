@@ -62,7 +62,7 @@ export function Exam() {
     const correct = questions.reduce((acc, q, i) => acc + (answers[i] === q.correctIndex ? 1 : 0), 0);
     addExamRecord({ topic: topic || t.exam.title, score: correct, total: questions.length });
     if (topic.trim()) {
-      trackMastery([{ label: topic.trim(), performance: (correct / Math.max(questions.length, 1)) * 100 }]);
+      trackMastery(topic.trim(), [{ topic: topic.trim(), performance: (correct / Math.max(questions.length, 1)) * 100 }]);
     }
   }, [addStat, addExamRecord, trackMastery, questions, answers, topic, t.exam.title]);
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart3,
   ListChecks,
@@ -20,21 +21,22 @@ import {
   Minus,
   AlertTriangle,
   Gauge,
+  ChevronDown,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { computeXP, levelInfo } from "@/lib/levels";
-import { sortedTopics, overallMastery } from "@/lib/mastery";
+import { subjectBreakdown, overallMastery } from "@/lib/mastery";
 import { cn } from "@/lib/utils";
-import type { ExamAnalysis } from "@/lib/types";
+import type { ExamAnalysis, MasteryLevel, SubjectMastery } from "@/lib/types";
 
 export function Progress() {
   const { t, locale, stats, streak, examHistory, mastery } = useApp();
   const lvl = levelInfo(computeXP(stats));
   const analysis = useAIRequest<ExamAnalysis>();
-  const masteryTopics = sortedTopics(mastery);
+  const subjects = subjectBreakdown(mastery); // materias (débiles primero)
   const overall = overallMastery(mastery);
 
   function analyzeExams() {
@@ -121,8 +123,8 @@ export function Progress() {
         </div>
       </motion.div>
 
-      {/* Perfil de dominio adaptativo (fortalezas y debilidades) */}
-      {masteryTopics.length > 0 && (
+      {/* Dominio por MATERIA (fortalezas y debilidades) + general */}
+      {subjects.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass mt-5 rounded-3xl p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-lg font-bold">
@@ -136,28 +138,10 @@ export function Progress() {
               </div>
             )}
           </div>
-          <p className="mb-4 text-xs text-muted">{t.ui.masteryDesc}</p>
+          <p className="mb-4 text-xs text-muted">{t.ui.masteryBySubject}</p>
           <div className="space-y-3">
-            {masteryTopics.map((m) => (
-              <div key={m.topic}>
-                <div className="mb-1 flex items-center justify-between gap-2 text-sm">
-                  <span className="truncate font-medium">{m.label}</span>
-                  <span className="flex items-center gap-2 shrink-0">
-                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase", levelBadge(m.score))}>
-                      {t.ui.masteryLevels[m.level]}
-                    </span>
-                    <span className="w-9 text-right tabular-nums text-muted">{m.score}%</span>
-                  </span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                  <motion.div
-                    className={cn("h-full rounded-full", barColor(m.score))}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${m.score}%` }}
-                    transition={{ duration: 0.7 }}
-                  />
-                </div>
-              </div>
+            {subjects.map((s) => (
+              <SubjectRow key={s.subjectKey} subject={s} t={t} />
             ))}
           </div>
         </motion.div>
@@ -392,6 +376,70 @@ function ExamAnalysisPanel({
         </div>
       )}
     </motion.div>
+  );
+}
+
+/** Fila de una MATERIA: promedio + barra, expandible para ver sus temas. */
+function SubjectRow({ subject, t }: { subject: SubjectMastery; t: ReturnType<typeof useApp>["t"] }) {
+  const [open, setOpen] = useState(false);
+  const multi = subject.topics.length > 1;
+  return (
+    <div className="rounded-2xl bg-white/[0.03] p-3">
+      <button
+        onClick={() => multi && setOpen((o) => !o)}
+        className={cn("w-full text-left", multi && "cursor-pointer")}
+        aria-expanded={multi ? open : undefined}
+      >
+        <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
+          <span className="flex min-w-0 items-center gap-1.5 font-semibold">
+            {multi && <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-muted transition-transform", open && "rotate-180")} />}
+            <span className="truncate">{subject.subject}</span>
+            <span className="shrink-0 text-[10px] font-normal text-muted">({subject.topics.length})</span>
+          </span>
+          <span className="flex shrink-0 items-center gap-2">
+            <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase", levelBadge(subject.score))}>
+              {t.ui.masteryLevels[subject.level]}
+            </span>
+            <span className="w-9 text-right tabular-nums text-muted">{subject.score}%</span>
+          </span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+          <motion.div
+            className={cn("h-full rounded-full", barColor(subject.score))}
+            initial={{ width: 0 }}
+            animate={{ width: `${subject.score}%` }}
+            transition={{ duration: 0.7 }}
+          />
+        </div>
+      </button>
+
+      {/* Temas de la materia */}
+      <AnimatePresence initial={false}>
+        {open && multi && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3 space-y-2 border-t border-white/5 pt-3">
+              {subject.topics.map((m) => (
+                <div key={m.topic}>
+                  <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+                    <span className="truncate text-foreground/80">{m.label}</span>
+                    <span className="w-8 shrink-0 text-right tabular-nums text-muted">{m.score}%</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div className={cn("h-full rounded-full", barColor(m.score))} style={{ width: `${m.score}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

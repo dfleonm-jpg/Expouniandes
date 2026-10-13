@@ -36,8 +36,8 @@ export function MathPractice() {
     });
     if (res) {
       addStat("questionsAnswered", 1);
-      // Actualiza el dominio del tema con la nota 0..5 (escala Uniandes).
-      if (topic.trim()) trackMastery([{ label: topic.trim(), performance: (res.score / 5) * 100 }]);
+      // Dominio por materia de cálculo: tema = el seleccionado.
+      if (topic.trim()) trackMastery("Cálculo", [{ topic: topic.trim(), performance: (res.score / 5) * 100 }]);
     }
   }
 

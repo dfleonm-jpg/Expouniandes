@@ -67,9 +67,9 @@ export function Quiz() {
       );
       addStat("quizzesTaken", 1);
       addStat("questionsAnswered", questions.length);
-      // Actualiza el dominio adaptativo del tema con el desempeño obtenido.
+      // Actualiza el dominio adaptativo (materia = tema del quiz).
       if (topic.trim()) {
-        trackMastery([{ label: topic.trim(), performance: (score / Math.max(questions.length, 1)) * 100 }]);
+        trackMastery(topic.trim(), [{ topic: topic.trim(), performance: (score / Math.max(questions.length, 1)) * 100 }]);
       }
       setPhase("results");
     }
