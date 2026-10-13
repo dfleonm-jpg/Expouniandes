@@ -85,7 +85,7 @@ export function Diagnostic() {
   })();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-2xl px-4 pb-nav">
       <SectionHeader icon={Compass} title={t.diagnostic.title} subtitle={t.diagnostic.subtitle} />
 
       <div className="mt-6">

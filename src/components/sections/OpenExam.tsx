@@ -91,7 +91,7 @@ export function OpenExam() {
   const answeredCount = exam ? exam.questions.filter((q) => (answers[q.id] ?? "").trim()).length : 0;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-3xl px-4 pb-nav">
       <SectionHeader icon={PenLine} title={t.openExam.title} subtitle={t.openExam.subtitle} />
 
       <AnimatePresence mode="wait">

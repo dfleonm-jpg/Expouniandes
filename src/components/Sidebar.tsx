@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   MessageSquare,
@@ -126,6 +127,15 @@ export function Sidebar({
 }) {
   const { t, streak } = useApp();
   const auth = useAuth();
+  const mobileNavRef = useRef<HTMLElement>(null);
+
+  // Desplaza la nav inferior móvil para que el ítem activo quede a la vista.
+  useEffect(() => {
+    const nav = mobileNavRef.current;
+    if (!nav) return;
+    const el = nav.querySelector<HTMLElement>('[data-active="true"]');
+    if (el) el.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [active]);
 
   return (
     <>
@@ -222,7 +232,7 @@ export function Sidebar({
       </aside>
 
       {/* Top bar móvil */}
-      <header className="sticky top-0 z-40 lg:hidden">
+      <header className="safe-top sticky top-0 z-40 lg:hidden">
         <div className="glass-strong mx-3 mt-3 flex items-center justify-between rounded-2xl px-3 py-2.5">
           <button onClick={() => onNavigate("home")} aria-label={t.brand} className="flex items-center gap-2.5">
             <SerenoLogo className="h-9 w-9" />
@@ -242,27 +252,40 @@ export function Sidebar({
         </div>
       </header>
 
-      {/* Nav inferior móvil (scrollable) */}
-      <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
-        <div className="glass-strong mx-3 mb-3 flex items-center gap-1 overflow-x-auto rounded-2xl px-2 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Nav inferior móvil (scrollable, respeta el home-indicator) */}
+      <div className="safe-bottom fixed inset-x-0 bottom-0 z-40 lg:hidden">
+        <nav
+          ref={mobileNavRef}
+          className="glass-strong mx-3 mb-2 flex items-center gap-1 overflow-x-auto rounded-2xl px-2 py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          aria-label={t.brand}
+        >
           {FLAT.map((item) => {
             const Icon = item.icon;
             const isActive = active === item.id;
             return (
               <button
                 key={item.id}
+                data-active={isActive ? "true" : undefined}
                 onClick={() => onNavigate(item.id)}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex min-w-[64px] flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium transition",
-                  isActive ? "text-brand" : "text-muted"
+                  "relative flex min-w-[60px] shrink-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-medium transition",
+                  isActive ? "text-white" : "text-muted active:scale-95"
                 )}
               >
-                <Icon className="h-5 w-5" />
-                {t.nav[item.key]}
+                {isActive && (
+                  <motion.span
+                    layoutId="mobile-nav-pill"
+                    className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand/80 to-brand-2/70 shadow-[0_0_16px_-4px_rgba(59,111,229,0.7)]"
+                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                  />
+                )}
+                <Icon className="relative z-10 h-5 w-5" />
+                <span className="relative z-10 max-w-[64px] truncate">{t.nav[item.key]}</span>
               </button>
             );
           })}
-        </div>
+        </nav>
       </div>
     </>
   );

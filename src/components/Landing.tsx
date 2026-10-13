@@ -114,7 +114,7 @@ export function Landing() {
             <UniandesMark className="h-4 w-4" />
             {L.badge}
           </span>
-          <h1 className="mx-auto mt-6 max-w-3xl text-balance text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
+          <h1 className="mx-auto mt-6 max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight [overflow-wrap:break-word] sm:text-6xl md:text-7xl">
             {L.heroTitle} <span className="text-gradient">{L.heroAccent}</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg text-muted sm:text-xl">{L.heroSubtitle}</p>
@@ -310,7 +310,7 @@ export function Landing() {
                 <UniandesLockup className="h-7 w-auto" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-10 text-sm">
+            <div className="grid grid-cols-2 gap-6 text-sm sm:gap-10">
               <div>
                 <p className="mb-3 font-semibold text-foreground/90">{L.footerProduct}</p>
                 <ul className="space-y-2 text-muted">

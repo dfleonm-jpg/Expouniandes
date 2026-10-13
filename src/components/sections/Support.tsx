@@ -55,7 +55,7 @@ export function Support() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-11rem)] max-w-3xl flex-col px-4 pb-24 lg:h-[calc(100dvh-6rem)] lg:pb-4">
+    <div className="mx-auto flex h-chat max-w-3xl flex-col px-4">
       <SectionHeader icon={HeartHandshake} title={t.support.title} subtitle={t.support.subtitle} />
 
       {/* Aviso responsable */}

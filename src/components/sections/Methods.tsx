@@ -68,7 +68,7 @@ export function Methods({ onNavigate }: { onNavigate: (s: Section) => void }) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-4xl px-4 pb-nav">
       <SectionHeader icon={BookMarked} title={t.methods.title} subtitle={t.methods.subtitle} />
 
       {/* Recomendador con IA */}

@@ -100,7 +100,7 @@ export function Planner() {
   const doneCount = tasks.filter((task) => task.done).length;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-5xl px-4 pb-nav">
       <SectionHeader icon={CalendarClock} title={t.planner.title} subtitle={t.planner.subtitle} />
 
       {/* Generador de plan con IA */}

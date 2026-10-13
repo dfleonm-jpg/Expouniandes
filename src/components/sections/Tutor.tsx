@@ -202,7 +202,7 @@ export function Tutor() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-11rem)] max-w-4xl flex-col px-4 pb-24 lg:h-[calc(100dvh-6rem)] lg:pb-4">
+    <div className="mx-auto flex h-chat max-w-4xl flex-col px-4">
       <div className="flex items-center justify-between gap-3">
         <SectionHeader icon={Brain} title={t.tutor.title} subtitle={t.tutor.subtitle} />
         <div className="flex shrink-0 items-center gap-2">

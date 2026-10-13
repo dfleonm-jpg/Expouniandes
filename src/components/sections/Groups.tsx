@@ -44,7 +44,7 @@ export function Groups() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-3xl px-4 pb-nav">
       <SectionHeader icon={Users} title={t.groups.title} subtitle={t.groups.subtitle} />
 
       <div className="mt-6 grid gap-5">

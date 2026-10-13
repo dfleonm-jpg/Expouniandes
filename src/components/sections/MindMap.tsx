@@ -110,7 +110,7 @@ export function MindMap() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-6xl px-4 pb-nav">
       <SectionHeader icon={Network} title={t.mindmap.title} subtitle={t.mindmap.subtitle} />
 
       <div className="mt-6 space-y-4">
@@ -197,10 +197,13 @@ export function MindMap() {
             >
               <svg
                 viewBox={`0 0 ${W} ${H}`}
-                width={W * zoom}
-                height={H * zoom}
-                className="mx-auto block"
-                style={{ minWidth: "100%" }}
+                className="mx-auto block h-auto"
+                style={{
+                  // Con zoom=1 se ajusta al ancho del contenedor (sin scroll
+                  // horizontal en móvil). Con zoom>1 crece para explorar.
+                  width: zoom <= 1 ? "100%" : `${W * zoom}px`,
+                  maxWidth: zoom <= 1 ? "100%" : "none",
+                }}
               >
                 <defs>
                   {COLORS.map((c, i) => (

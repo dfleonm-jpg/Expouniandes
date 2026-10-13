@@ -45,7 +45,7 @@ export function Search({ onNavigate }: { onNavigate: (s: Section) => void }) {
   const hasDocs = docs.length > 0;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-3xl px-4 pb-nav">
       <SectionHeader icon={SearchIcon} title={t.search.title} subtitle={t.search.subtitle} />
 
       {!hasDocs ? (

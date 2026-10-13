@@ -49,7 +49,7 @@ export function Flashcards() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-3xl px-4 pb-nav">
       <SectionHeader icon={Layers} title={t.flashcards.title} subtitle={t.flashcards.subtitle} />
 
       <div className="mt-6 space-y-4">

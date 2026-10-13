@@ -54,6 +54,44 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  overflow-wrap: break-word; /* evita desbordes por palabras largas */
+}
+
+/* ===========================================================
+   Safe-area (notch / home-indicator de iOS, PWA a pantalla completa)
+   =========================================================== */
+.safe-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+/* Separación que ya respeta el home-indicator para elementos fijos abajo. */
+.pb-safe { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--pb-safe, 0px)); }
+/* Alto de la barra de navegación inferior móvil (para que el contenido no
+   quede tapado). Se usa como variable para mantener todo consistente. */
+:root { --mobile-nav-h: 4.75rem; }
+
+/* Ancla elementos flotantes POR ENCIMA de la nav inferior móvil + safe-area.
+   En desktop (lg) la nav no existe, así que vuelve a una separación normal. */
+.above-nav {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--mobile-nav-h) + 0.5rem);
+}
+@media (min-width: 1024px) {
+  .above-nav { bottom: 1.5rem; }
+}
+
+/* Relleno inferior de las secciones para que su contenido no quede tapado por
+   la nav inferior móvil (+ safe-area). En desktop se reduce a un margen normal. */
+.pb-nav {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--mobile-nav-h) + 1rem);
+}
+@media (min-width: 1024px) {
+  .pb-nav { padding-bottom: 2.5rem; }
+}
+
+/* Alto disponible para pantallas tipo chat (resta nav + safe-area en móvil). */
+.h-chat {
+  height: calc(100dvh - 10.5rem - env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px));
+}
+@media (min-width: 1024px) {
+  .h-chat { height: calc(100dvh - 6rem); }
 }
 
 /* Fondo con aurora animada + rejilla sutil + viñeta (profundidad por capas) */

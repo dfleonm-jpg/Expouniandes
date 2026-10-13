@@ -157,7 +157,7 @@ export function Wellbeing() {
   const tips = TIPS[locale] ?? TIPS.es;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-4xl px-4 pb-nav">
       <SectionHeader icon={HeartPulse} title={t.wellbeing.title} subtitle={t.wellbeing.subtitle} />
 
       {/* Frase del día (IA) */}

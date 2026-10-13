@@ -45,7 +45,7 @@ export function MathPractice() {
   const rev = revReq.data;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-3xl px-4 pb-nav">
       <SectionHeader icon={Sigma} title={t.mathPractice.title} subtitle={t.mathPractice.subtitle} />
 
       <div className="mt-3 flex items-start gap-2 rounded-xl bg-accent/10 p-3 text-xs text-foreground/80 ring-1 ring-accent/20">

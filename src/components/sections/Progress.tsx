@@ -67,7 +67,7 @@ export function Progress() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-5xl px-4 pb-nav">
       <SectionHeader icon={BarChart3} title={t.progress.title} subtitle={t.progress.subtitle} />
 
       {/* Nivel + XP */}

@@ -53,7 +53,7 @@ export function Profile() {
   const name = user?.name ?? "Estudiante";
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-3xl px-4 pb-nav">
       <SectionHeader icon={UserCircle} title={t.profile.title} subtitle={t.profile.subtitle} />
 
       {/* Tarjeta de perfil */}

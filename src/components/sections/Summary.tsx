@@ -77,7 +77,7 @@ export function Summary() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-3xl px-4 pb-nav">
       <SectionHeader icon={FileText} title={t.summary.title} subtitle={t.summary.subtitle} />
 
       <div className="mt-6 space-y-4">

@@ -26,7 +26,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ notify }}>
       {children}
-      <div className="pointer-events-none fixed bottom-24 right-4 z-[100] flex flex-col gap-2 lg:bottom-6">
+      <div className="above-nav pointer-events-none fixed right-4 z-[100] flex flex-col gap-2">
         <AnimatePresence>
           {toasts.map((t) => {
             const Icon = icons[t.type];

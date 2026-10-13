@@ -61,7 +61,7 @@ export function CodePractice() {
   const rev = revReq.data;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-4xl px-4 pb-nav">
       <SectionHeader icon={Code2} title={t.codePractice.title} subtitle={t.codePractice.subtitle} />
 
       {/* Aviso integridad */}

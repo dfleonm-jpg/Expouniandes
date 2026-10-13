@@ -46,7 +46,7 @@ export function AccessibilityButton() {
       <button
         onClick={() => setOpen(true)}
         aria-label={t.ui.accessibility}
-        className="glass-strong fixed bottom-24 left-4 z-[90] flex h-12 w-12 items-center justify-center rounded-full text-accent shadow-xl transition hover:scale-105 lg:bottom-6 lg:left-auto lg:right-6"
+        className="above-nav glass-strong fixed left-4 z-[90] flex h-12 w-12 items-center justify-center rounded-full text-accent shadow-xl transition hover:scale-105 lg:left-auto lg:right-6"
       >
         <Accessibility className="h-6 w-6" />
       </button>

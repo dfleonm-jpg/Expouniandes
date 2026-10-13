@@ -28,7 +28,7 @@ export function Ranking() {
     i === 0 ? "from-amber-400 to-yellow-500" : i === 1 ? "from-slate-300 to-slate-400" : i === 2 ? "from-orange-500 to-amber-700" : "";
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-2xl px-4 pb-nav">
       <SectionHeader icon={Trophy} title={t.ranking.title} subtitle={t.ranking.subtitle} />
 
       <div className="mt-6">

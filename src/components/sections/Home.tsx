@@ -57,7 +57,7 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
 
         <motion.h1
           variants={item}
-          className="mx-auto max-w-3xl text-balance text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
+          className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight [overflow-wrap:break-word] sm:text-6xl md:text-7xl"
         >
           {t.hero.title}{" "}
           <span className="text-gradient">{t.hero.titleAccent}</span>

@@ -154,7 +154,7 @@ export function Exam() {
   const passed = score / Math.max(questions.length, 1) >= 0.6;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-3xl px-4 pb-nav">
       <SectionHeader icon={GraduationCap} title={t.exam.title} subtitle={t.exam.subtitle} />
 
       <div className="mt-6">

@@ -88,7 +88,7 @@ export function Quiz() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-24 lg:pb-8">
+    <div className="mx-auto max-w-3xl px-4 pb-nav">
       <SectionHeader icon={ListChecks} title={t.quiz.title} subtitle={t.quiz.subtitle} />
 
       <div className="mt-6">

@@ -121,7 +121,7 @@ export function PWAManager() {
             initial={{ y: -40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -40, opacity: 0 }}
-            className="fixed left-1/2 top-3 z-[300] -translate-x-1/2"
+            className="safe-top fixed left-1/2 top-3 z-[300] -translate-x-1/2"
           >
             <div className="flex items-center gap-2 rounded-full bg-danger/90 px-4 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur">
               <WifiOff className="h-3.5 w-3.5" />
@@ -134,7 +134,7 @@ export function PWAManager() {
             initial={{ y: -40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -40, opacity: 0 }}
-            className="fixed left-1/2 top-3 z-[300] -translate-x-1/2"
+            className="safe-top fixed left-1/2 top-3 z-[300] -translate-x-1/2"
           >
             <div className="flex items-center gap-2 rounded-full bg-calm/90 px-4 py-1.5 text-xs font-medium text-black shadow-lg backdrop-blur">
               <Wifi className="h-3.5 w-3.5" />
@@ -151,7 +151,7 @@ export function PWAManager() {
             initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 60, opacity: 0 }}
-            className="fixed bottom-24 left-1/2 z-[300] -translate-x-1/2 lg:bottom-6"
+            className="above-nav fixed left-1/2 z-[300] -translate-x-1/2"
           >
             <button
               onClick={applyUpdate}
@@ -172,7 +172,7 @@ export function PWAManager() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", damping: 24, stiffness: 260 }}
-            className="fixed inset-x-3 bottom-24 z-[290] mx-auto max-w-sm lg:bottom-6"
+            className="above-nav fixed inset-x-3 z-[290] mx-auto max-w-sm"
           >
             <div className="glass-strong glow-border relative flex items-center gap-3 rounded-2xl p-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent">

@@ -25,7 +25,7 @@ export function XpToaster() {
   }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-20 z-[110] flex flex-col items-center gap-2">
+    <div className="safe-top pointer-events-none fixed inset-x-0 top-20 z-[110] flex flex-col items-center gap-2">
       <AnimatePresence>
         {pops.map((p) => (
           <motion.div

@@ -163,7 +163,7 @@ export function Calendar() {
   const selectedEvents = selectedDay ? eventsByDay[selectedDay] ?? [] : [];
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-28 lg:pb-10">
+    <div className="mx-auto max-w-4xl px-4 pb-nav">
       <div className="flex items-start justify-between gap-3">
         <SectionHeader icon={CalendarClock} title={t.calendar.title} subtitle={t.calendar.subtitle} />
         {upcoming.length > 0 && (
@@ -262,7 +262,7 @@ export function Calendar() {
                     if (!date) setDate(cell.date);
                   }}
                   className={cn(
-                    "relative flex aspect-square flex-col items-center justify-center rounded-lg text-xs transition",
+                    "relative flex aspect-square min-h-[40px] flex-col items-center justify-center rounded-lg text-xs transition active:scale-95",
                     isSelected ? "bg-brand/25 ring-1 ring-brand/50" : "hover:bg-white/5",
                     isToday && !isSelected && "ring-1 ring-accent/50",
                     isPast && "opacity-40"
