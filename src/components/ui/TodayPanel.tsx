@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Target, ArrowRight, Flame, Compass, History } from "lucide-react";
 import { useApp } from "@/lib/app-context";
@@ -13,15 +14,27 @@ import type { Section } from "../Sidebar";
  */
 export function TodayPanel({ onNavigate }: { onNavigate: (s: Section) => void }) {
   const { t, mastery, examEvents } = useApp();
-  const today = new Date().toISOString().slice(0, 10);
+  // La fecha de "hoy" se calcula en el cliente tras montar: `new Date()` es un
+  // valor dinámico y, con Cache Components (Next 16), no puede evaluarse durante
+  // el prerender. Lo leemos en un efecto para que el build no falle.
+  const [today, setToday] = useState("");
+  useEffect(() => {
+    setToday(new Date().toISOString().slice(0, 10));
+  }, []);
 
   const subjects = subjectBreakdown(mastery);
-  const upcoming = examEvents
-    .filter((e) => e.date >= today)
-    .sort((a, b) => a.date.localeCompare(b.date));
+  // Hasta que `today` esté listo (primer efecto en el cliente) no filtramos por
+  // fecha para no mostrar recomendaciones basadas en una fecha vacía.
+  const upcoming = today
+    ? examEvents.filter((e) => e.date >= today).sort((a, b) => a.date.localeCompare(b.date))
+    : [];
 
-  // Repaso espaciado: temas que ya tocaría repasar (vencidos).
-  const dueReview = dueForReview(mastery, 0).filter((r) => r.overdue);
+  // Repaso espaciado: temas que ya tocaría repasar (vencidos). Pasamos `now`
+  // derivado de `today` (solo disponible en el cliente) para no evaluar
+  // `Date.now()` durante el prerender (Cache Components, Next 16).
+  const dueReview = today
+    ? dueForReview(mastery, 0, new Date(today + "T00:00:00").getTime()).filter((r) => r.overdue)
+    : [];
 
   // Sin datos aún: invita al diagnóstico.
   if (subjects.length === 0 && upcoming.length === 0) {

@@ -6,22 +6,20 @@ import { Accessibility, X, Type, Eye, Zap, BookA, RotateCcw } from "lucide-react
 import { useApp } from "@/lib/app-context";
 import { cn } from "@/lib/utils";
 
-/** Botón flotante + panel de accesibilidad (dislexia, tamaño, contraste, movimiento). */
-export function AccessibilityButton() {
-  const { t, a11y, setA11y } = useApp();
-  const [open, setOpen] = useState(false);
-
-  const Toggle = ({
-    icon: Icon,
-    label,
-    value,
-    onClick,
-  }: {
-    icon: typeof Eye;
-    label: string;
-    value: boolean;
-    onClick: () => void;
-  }) => (
+/** Fila de interruptor del panel. Declarada fuera del componente para no
+ *  recrearla en cada render (evita perder estado y el aviso del compilador). */
+function Toggle({
+  icon: Icon,
+  label,
+  value,
+  onClick,
+}: {
+  icon: typeof Eye;
+  label: string;
+  value: boolean;
+  onClick: () => void;
+}) {
+  return (
     <button
       onClick={onClick}
       aria-pressed={value}
@@ -39,6 +37,12 @@ export function AccessibilityButton() {
       </span>
     </button>
   );
+}
+
+/** Botón flotante + panel de accesibilidad (dislexia, tamaño, contraste, movimiento). */
+export function AccessibilityButton() {
+  const { t, a11y, setA11y } = useApp();
+  const [open, setOpen] = useState(false);
 
   return (
     <>

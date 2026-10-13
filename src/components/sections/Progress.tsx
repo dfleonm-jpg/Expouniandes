@@ -30,7 +30,7 @@ import { ErrorBanner } from "../ui/ErrorBanner";
 import { computeXP, levelInfo } from "@/lib/levels";
 import { subjectBreakdown, overallMastery } from "@/lib/mastery";
 import { cn } from "@/lib/utils";
-import type { ExamAnalysis, MasteryLevel, SubjectMastery } from "@/lib/types";
+import type { ExamAnalysis, SubjectMastery } from "@/lib/types";
 
 export function Progress() {
   const { t, locale, stats, streak, examHistory, mastery } = useApp();
