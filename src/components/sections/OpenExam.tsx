@@ -63,7 +63,7 @@ export function OpenExam() {
       points: q.points,
       answer: answers[q.id] ?? "",
     }));
-    const res = await gradeReq.run("/api/open-exam-grade", { items, locale });
+    const res = await gradeReq.run("/api/open-exam-grade", { items, locale }, { timeoutMs: 90000 });
     if (res) {
       setPhase("results");
       addStat("quizzesTaken", 1);

@@ -29,14 +29,16 @@ export async function POST(req: Request) {
           .slice(0, 8)
           .map((x) => {
             const o = x as Record<string, unknown>;
+            // Payload acotado: la calificación es la petición más pesada de la
+            // app; mantenerla ligera evita cortes por timeout del proveedor.
             return {
-              id: typeof o.id === "string" ? o.id.slice(0, 60) : "",
-              topic: typeof o.topic === "string" ? o.topic.slice(0, 120) : "—",
-              prompt: typeof o.prompt === "string" ? o.prompt.slice(0, 4000) : "",
-              expectedAnswer: typeof o.expectedAnswer === "string" ? o.expectedAnswer.slice(0, 4000) : "",
-              rubric: typeof o.rubric === "string" ? o.rubric.slice(0, 2000) : "",
+              id: typeof o.id === "string" ? o.id.slice(0, 40) : "",
+              topic: typeof o.topic === "string" ? o.topic.slice(0, 80) : "—",
+              prompt: typeof o.prompt === "string" ? o.prompt.slice(0, 1200) : "",
+              expectedAnswer: typeof o.expectedAnswer === "string" ? o.expectedAnswer.slice(0, 1500) : "",
+              rubric: typeof o.rubric === "string" ? o.rubric.slice(0, 800) : "",
               points: Number(o.points) || 0,
-              answer: typeof o.answer === "string" ? o.answer.slice(0, 4000) : "",
+              answer: typeof o.answer === "string" ? o.answer.slice(0, 2500) : "",
             };
           })
       : [];
