@@ -22,7 +22,15 @@
 
 ## 🎯 Resumen en una frase
 
-Sereno es una **Single Page Application** construida en **Next.js 16** que combina una **capa de IA agnóstica** (Groq / Google Gemini) con un **backend serverless en Firebase** (login + base de datos), ofreciendo ~18 herramientas de estudio (tutor, quizzes, parciales, flashcards, mapas mentales, práctica de código/cálculo, bienestar, etc.) en 4 idiomas.
+Sereno es una **Single Page Application** construida en **Next.js 16** que combina una **capa de IA agnóstica** (Groq / Google Gemini, con failover) con un **backend serverless en Firebase** (login + base de datos), ofreciendo ~19 herramientas de estudio (tutor con niveles, quizzes, parciales de opción múltiple y **de respuesta abierta calificados por IA**, flashcards, mapas mentales, práctica de código/cálculo, **planes de estudio especializados y automáticos**, bienestar, etc.) en 4 idiomas.
+
+## 🧠 Capacidades inteligentes destacadas
+
+- **Dominio adaptativo**: perfil de fortalezas/debilidades por tema que se actualiza con cada actividad (media móvil exponencial) y clasifica cada tema en principiante → en progreso → competente → dominado.
+- **Parcial abierto**: la IA genera y **califica** preguntas de respuesta escrita (subnetting/IP, estructuras, cálculo, código) con rúbrica y solución modelo.
+- **Planes especializados y automáticos**: por materia/intensidad/fecha de parcial, priorizando automáticamente las debilidades detectadas.
+- **Análisis de errores de parciales** y **detector de sobrecarga académica**.
+- **Seguridad**: rate limiting, validación/saneo de entradas, claves de IA solo en servidor y reglas de Firestore endurecidas.
 
 ## 🧩 Las piezas en 30 segundos
 
