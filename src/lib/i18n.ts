@@ -308,6 +308,15 @@ export const translations = {
       resetEnterEmail: "Escribe tu correo arriba y te enviamos el enlace.",
       editProfile: "Editar mi perfil de estudio",
     },
+    pwa: {
+      installTitle: "Instala Sereno",
+      installDesc: "Acceso directo, pantalla completa y uso offline.",
+      install: "Instalar",
+      dismiss: "Ahora no",
+      offline: "Sin conexión",
+      backOnline: "¡De vuelta en línea!",
+      updateReady: "Nueva versión disponible — actualizar",
+    },
     ui: {
       copy: "Copiar",
       copied: "¡Copiado al portapapeles!",
@@ -972,6 +981,15 @@ export const translations = {
       resetSent: "We sent you an email to reset your password.",
       resetEnterEmail: "Type your email above and we'll send the link.",
       editProfile: "Edit my study profile",
+    },
+    pwa: {
+      installTitle: "Install Sereno",
+      installDesc: "Quick access, full screen and offline use.",
+      install: "Install",
+      dismiss: "Not now",
+      offline: "No connection",
+      backOnline: "Back online!",
+      updateReady: "New version available — update",
     },
     ui: {
       copy: "Copy",
@@ -1638,6 +1656,15 @@ export const translations = {
       resetEnterEmail: "Digite seu e-mail acima e enviaremos o link.",
       editProfile: "Editar meu perfil de estudo",
     },
+    pwa: {
+      installTitle: "Instale o Sereno",
+      installDesc: "Acesso rápido, tela cheia e uso offline.",
+      install: "Instalar",
+      dismiss: "Agora não",
+      offline: "Sem conexão",
+      backOnline: "De volta online!",
+      updateReady: "Nova versão disponível — atualizar",
+    },
     ui: {
       copy: "Copiar",
       copied: "Copiado!",
@@ -2302,6 +2329,15 @@ export const translations = {
       resetSent: "Nous vous avons envoyé un e-mail pour réinitialiser votre mot de passe.",
       resetEnterEmail: "Saisissez votre e-mail ci-dessus et nous enverrons le lien.",
       editProfile: "Modifier mon profil d'étude",
+    },
+    pwa: {
+      installTitle: "Installer Sereno",
+      installDesc: "Accès rapide, plein écran et usage hors ligne.",
+      install: "Installer",
+      dismiss: "Pas maintenant",
+      offline: "Hors ligne",
+      backOnline: "De retour en ligne !",
+      updateReady: "Nouvelle version disponible — mettre à jour",
     },
     ui: {
       copy: "Copier",

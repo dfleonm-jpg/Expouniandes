@@ -6,6 +6,7 @@ import { AppProvider } from "@/lib/app-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { ToastProvider } from "@/components/ui/Toast";
 import { XpToaster } from "@/components/ui/XpToaster";
+import { PWAManager } from "@/components/ui/PWAManager";
 import { AccessibilityButton } from "@/components/ui/AccessibilityButton";
 
 const geistSans = Geist({
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <ToastProvider>
               {children}
               <XpToaster />
+              <PWAManager />
               <AccessibilityButton />
             </ToastProvider>
           </AppProvider>
