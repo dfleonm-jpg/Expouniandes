@@ -51,7 +51,8 @@ export type ExamRecord = {
 
 type Streak = { count: number; lastDay: string };
 
-export type ExamEvent = { id: string; subject: string; date: string }; // date = YYYY-MM-DD
+export type EventType = "exam" | "quiz" | "assignment" | "project";
+export type ExamEvent = { id: string; subject: string; date: string; type?: EventType }; // date = YYYY-MM-DD
 
 export type StudentProfile = {
   career: string; // carrera
@@ -97,7 +98,7 @@ type AppContextType = {
   examHistory: ExamRecord[];
   addExamRecord: (rec: Omit<ExamRecord, "id" | "date">) => void;
   examEvents: ExamEvent[];
-  addExamEvent: (subject: string, date: string) => void;
+  addExamEvent: (subject: string, date: string, type?: EventType) => void;
   removeExamEvent: (id: string) => void;
   a11y: A11y;
   setA11y: (patch: Partial<A11y>) => void;
@@ -249,9 +250,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const addExamEvent = useCallback((subject: string, date: string) => {
+  const addExamEvent = useCallback((subject: string, date: string, type: EventType = "exam") => {
     setExamEvents((prev) => {
-      const next = [...prev, { id: crypto.randomUUID(), subject, date }].sort((a, b) =>
+      const next = [...prev, { id: crypto.randomUUID(), subject, date, type }].sort((a, b) =>
         a.date.localeCompare(b.date)
       );
       try {
