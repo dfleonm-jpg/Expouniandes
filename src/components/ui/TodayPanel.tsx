@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Target, ArrowRight, Flame, Compass } from "lucide-react";
+import { Target, ArrowRight, Flame, Compass, History } from "lucide-react";
 import { useApp } from "@/lib/app-context";
-import { subjectBreakdown } from "@/lib/mastery";
+import { subjectBreakdown, dueForReview } from "@/lib/mastery";
 import type { Section } from "../Sidebar";
 
 /**
@@ -19,6 +19,9 @@ export function TodayPanel({ onNavigate }: { onNavigate: (s: Section) => void })
   const upcoming = examEvents
     .filter((e) => e.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date));
+
+  // Repaso espaciado: temas que ya tocaría repasar (vencidos).
+  const dueReview = dueForReview(mastery, 0).filter((r) => r.overdue);
 
   // Sin datos aún: invita al diagnóstico.
   if (subjects.length === 0 && upcoming.length === 0) {
@@ -46,6 +49,31 @@ export function TodayPanel({ onNavigate }: { onNavigate: (s: Section) => void })
   let text: string;
   let cta: string;
   let target: Section;
+
+  // Prioridad 0: repaso espaciado vencido (salvo que haya un parcial inminente).
+  if (dueReview.length > 0 && !soonExam) {
+    const r = dueReview[0];
+    const key = r.subjectKey;
+    const tgt: Section = /program|python|codig|code/.test(key)
+      ? "codePractice"
+      : /calcul|fisic|math|algebra/.test(key)
+        ? "mathPractice"
+        : "quiz";
+    return (
+      <Shell icon={History} tag={t.today.reviewTag} title={t.today.title}>
+        <Recommendation
+          text={t.today.recReview.replace("{t}", r.label).replace("{s}", r.subject)}
+          cta={t.today.ctaReview}
+          onClick={() => onNavigate(tgt)}
+        />
+        {dueReview.length > 1 && (
+          <p className="mt-3 text-xs text-muted">
+            {t.today.reviewMore.replace("{n}", String(dueReview.length - 1))}
+          </p>
+        )}
+      </Shell>
+    );
+  }
 
   if (soonExam) {
     const d = Math.round((new Date(soonExam.date + "T00:00:00").getTime() - new Date(today + "T00:00:00").getTime()) / 864e5);

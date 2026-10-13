@@ -106,6 +106,35 @@ export function weakTopics(state: MasteryState, threshold = 60): MasteryTopic[] 
   return sortedTopics(state).filter((t) => t.score < threshold);
 }
 
+// ---- Repaso espaciado ----
+// Estima cuándo conviene repasar un tema: cuanto MÁS alto el dominio, más
+// se puede espaciar (recuerdas mejor); cuanto más bajo, antes hay que repasar.
+// Intervalo base por nivel (en días) escalado por el nº de repasos (attempts).
+function reviewIntervalDays(topic: MasteryTopic): number {
+  const base = topic.score >= 85 ? 7 : topic.score >= 65 ? 4 : topic.score >= 40 ? 2 : 1;
+  // A más intentos, el recuerdo se consolida → intervalos un poco mayores.
+  const factor = Math.min(1 + (topic.attempts - 1) * 0.3, 2.5);
+  return Math.round(base * factor);
+}
+
+export type ReviewItem = MasteryTopic & { dueInDays: number; overdue: boolean };
+
+/**
+ * Temas que tocaría repasar: aquellos cuyo intervalo de repaso ya venció
+ * (o está por vencer en `withinDays`). Ordenados por los más urgentes.
+ */
+export function dueForReview(state: MasteryState, withinDays = 0, now = Date.now()): ReviewItem[] {
+  return Object.values(state.topics)
+    .map((t) => {
+      const elapsedDays = (now - t.lastUpdated) / 864e5;
+      const interval = reviewIntervalDays(t);
+      const dueInDays = Math.ceil(interval - elapsedDays);
+      return { ...t, dueInDays, overdue: dueInDays <= 0 };
+    })
+    .filter((r) => r.dueInDays <= withinDays)
+    .sort((a, b) => a.dueInDays - b.dueInDays || a.score - b.score);
+}
+
 /** Dominio global promedio (0..100), o null si no hay datos. */
 export function overallMastery(state: MasteryState): number | null {
   const vals = Object.values(state.topics);
