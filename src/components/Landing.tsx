@@ -99,7 +99,7 @@ export function Landing() {
             </div>
             <button
               onClick={() => setAuthOpen(true)}
-              className="shine rounded-full bg-gradient-to-r from-brand to-brand-2 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+              className="shine rounded-full bg-gradient-to-r from-brand via-brand-2 to-accent px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
             >
               {L.signIn}
             </button>
@@ -121,7 +121,7 @@ export function Landing() {
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <button
               onClick={() => setAuthOpen(true)}
-              className="shine group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-brand-2 px-7 py-3.5 font-semibold text-white shadow-lg shadow-brand/30 transition hover:shadow-xl hover:shadow-brand/40"
+              className="shine group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-brand via-brand-2 to-accent px-7 py-3.5 font-semibold text-white shadow-lg shadow-brand/30 transition hover:shadow-xl hover:shadow-accent/30"
             >
               {L.ctaStart}
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
@@ -288,7 +288,7 @@ export function Landing() {
           <p className="relative mx-auto mt-3 max-w-md text-muted">{L.finalCtaText}</p>
           <button
             onClick={() => setAuthOpen(true)}
-            className="shine group relative mt-7 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-brand-2 px-8 py-4 font-semibold text-white shadow-lg shadow-brand/30 transition hover:shadow-xl hover:shadow-brand/40"
+            className="shine group relative mt-7 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-brand via-brand-2 to-accent px-8 py-4 font-semibold text-white shadow-lg shadow-brand/30 transition hover:shadow-xl hover:shadow-accent/30"
           >
             {L.ctaStart}
             <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />

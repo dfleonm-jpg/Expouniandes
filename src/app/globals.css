@@ -6,21 +6,24 @@
    =========================================================== */
 
 :root {
-  /* Base: azul-pizarra profundo (profesional, serio, tipo Linear/Stripe) */
-  --background: #060910;
-  --surface: #0c1119;
-  --surface-2: #121826;
-  --foreground: #eef1f6;
-  --muted: #8b94a7;
-  --border: rgba(255, 255, 255, 0.07);
+  /* Base: noche cálida con tinte índigo — profunda pero acogedora, no fría.
+     Un pelín más clara y con matiz violeta/azul para sentirse "sereno". */
+  --background: #0c0e1a;
+  --surface: #141627;
+  --surface-2: #1b1e33;
+  --foreground: #f3f0ec;   /* blanco cálido (no clínico) */
+  --muted: #9a9bb5;        /* lavanda-gris suave */
+  --border: rgba(255, 255, 255, 0.08);
 
-  /* Marca: azul profesional + cian sobrio como acento (estilo Linear/Stripe) */
-  --brand: #3b6fe5;        /* azul profesional */
-  --brand-2: #5b8def;      /* azul claro */
-  --accent: #38bdf8;       /* cian cielo */
-  --calm: #34d399;         /* esmeralda (positivo) */
-  --warn: #f5b445;         /* ámbar / dorado Uniandes */
-  --danger: #f26d6d;       /* rojo coral */
+  /* Marca: índigo-violeta suave + melocotón/coral cálido como acento.
+     Paleta más orgánica y humana, menos "neón corporativo". */
+  --brand: #7c6cf0;        /* índigo-violeta sereno */
+  --brand-2: #a78bfa;      /* lavanda */
+  --accent: #ff9e7d;       /* melocotón cálido (acento humano) */
+  --accent-2: #f6c177;     /* ámbar miel */
+  --calm: #6fd6a6;         /* verde salvia (positivo, natural) */
+  --warn: #f6c177;         /* miel / dorado cálido */
+  --danger: #f58a8a;       /* coral suave */
 }
 
 @theme inline {
@@ -32,11 +35,13 @@
   --color-brand: var(--brand);
   --color-brand-2: var(--brand-2);
   --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
   --color-calm: var(--calm);
   --color-warn: var(--warn);
   --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
 }
 
 * {
@@ -55,6 +60,22 @@ body {
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
   overflow-wrap: break-word; /* evita desbordes por palabras largas */
+  letter-spacing: -0.01em;    /* un pelín más apretado = más amable */
+}
+
+/* Titulares con la fuente display cálida (Fraunces): da un aire editorial y
+   humano a los grandes títulos sin tocar cada componente. Las clases de
+   Tailwind para tamaño/peso siguen mandando; solo cambiamos familia y tracking. */
+h1, h2, h3,
+.font-display {
+  font-family: var(--font-display), var(--font-sans), Georgia, serif;
+  letter-spacing: -0.02em;
+}
+/* Variante opcional en cursiva suave para acentos "humanos". */
+.font-display-italic {
+  font-family: var(--font-display), var(--font-sans), Georgia, serif;
+  font-style: italic;
+  font-optical-sizing: auto;
 }
 
 /* ===========================================================
@@ -94,110 +115,154 @@ body {
   .h-chat { height: calc(100dvh - 6rem); }
 }
 
-/* Fondo con aurora animada + rejilla sutil + viñeta (profundidad por capas) */
+/* Fondo con aurora animada orgánica + viñeta cálida (profundidad por capas).
+   Mezcla índigo + melocotón + salvia para una atmósfera serena y natural. */
 .aurora-bg {
   position: fixed;
   inset: 0;
   z-index: -1;
   overflow: hidden;
   background:
-    radial-gradient(1200px 700px at 50% -10%, rgba(59, 111, 229, 0.12), transparent 60%),
-    radial-gradient(1000px 600px at 100% 110%, rgba(56, 189, 248, 0.07), transparent 60%),
+    radial-gradient(1300px 760px at 50% -12%, rgba(124, 108, 240, 0.18), transparent 62%),
+    radial-gradient(1000px 620px at 100% 110%, rgba(255, 158, 125, 0.10), transparent 60%),
+    radial-gradient(900px 600px at 0% 100%, rgba(111, 214, 166, 0.08), transparent 60%),
     var(--background);
 }
-/* Rejilla técnica muy sutil que da textura y "producto" */
+/* Trama de puntos muy suave (menos "rejilla técnica", más textura orgánica) */
 .aurora-bg::before {
   content: "";
   position: absolute;
   inset: -2px;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse 90% 70% at 50% 25%, #000 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 25%, #000 40%, transparent 100%);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1.4px);
+  background-size: 30px 30px;
+  mask-image: radial-gradient(ellipse 95% 75% at 50% 25%, #000 35%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 95% 75% at 50% 25%, #000 35%, transparent 100%);
 }
-/* Dos orbes de aurora que flotan lentamente */
+/* Orbe principal índigo-violeta que respira y deriva lentamente */
 .aurora-bg::after {
   content: "";
   position: absolute;
-  width: 55vw;
-  height: 55vw;
-  top: -18%;
-  left: -8%;
+  width: 58vw;
+  height: 58vw;
+  top: -20%;
+  left: -10%;
   border-radius: 50%;
-  filter: blur(130px);
-  opacity: 0.5;
+  filter: blur(140px);
+  opacity: 0.55;
   background: radial-gradient(circle, var(--brand) 0%, transparent 70%);
-  animation: float 20s ease-in-out infinite;
+  animation: drift 26s ease-in-out infinite;
 }
 
-/* Orbe secundario (elemento aparte para no chocar con la rejilla) */
+/* Orbe secundario lavanda (abajo-derecha) */
 .aurora-orb {
   position: fixed;
   z-index: -1;
-  width: 50vw;
-  height: 50vw;
-  bottom: -22%;
-  right: -10%;
+  width: 52vw;
+  height: 52vw;
+  bottom: -24%;
+  right: -12%;
   border-radius: 50%;
-  filter: blur(140px);
-  opacity: 0.42;
-  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-  animation: float 24s ease-in-out infinite;
-  animation-delay: -10s;
+  filter: blur(150px);
+  opacity: 0.45;
+  background: radial-gradient(circle, var(--brand-2) 0%, transparent 70%);
+  animation: drift 32s ease-in-out infinite;
+  animation-delay: -12s;
   pointer-events: none;
 }
 
+/* Orbe cálido melocotón (centro-derecha) — el toque "humano" de la atmósfera */
+.aurora-orb-warm {
+  position: fixed;
+  z-index: -1;
+  width: 40vw;
+  height: 40vw;
+  top: 30%;
+  right: 2%;
+  border-radius: 50%;
+  filter: blur(160px);
+  opacity: 0.28;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  animation: drift 38s ease-in-out infinite;
+  animation-delay: -6s;
+  pointer-events: none;
+}
+
+/* Grano/ruido fino sobre todo: rompe los degradados y da calidez de "papel". */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* Deriva orgánica: menos robótica, con rotación sutil y escala suave. */
+@keyframes drift {
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+  25%  { transform: translate(5%, 7%) scale(1.08) rotate(2deg); }
+  50%  { transform: translate(-4%, 10%) scale(1.03) rotate(-1deg); }
+  75%  { transform: translate(-6%, -4%) scale(0.95) rotate(1.5deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+/* Alias por compatibilidad con cualquier uso de la animación anterior. */
 @keyframes float {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(6%, 9%) scale(1.12); }
-  66% { transform: translate(-6%, -5%) scale(0.94); }
+  33% { transform: translate(6%, 9%) scale(1.1); }
+  66% { transform: translate(-5%, -4%) scale(0.95); }
 }
 
-/* Glass — con realce interior superior para dar relieve/volumen */
+/* Glass — tinte cálido y sombras más difusas/suaves (menos duro, más mullido) */
 .glass {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
   border: 1px solid var(--border);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 8px 30px -12px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.07),
+    0 10px 36px -14px rgba(10, 8, 25, 0.6);
 }
 .glass-strong {
-  background: rgba(18, 18, 28, 0.72);
-  backdrop-filter: blur(26px) saturate(165%);
-  -webkit-backdrop-filter: blur(26px) saturate(165%);
+  background: rgba(27, 24, 48, 0.72);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
   border: 1px solid var(--border);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.07), 0 20px 60px -20px rgba(0, 0, 0, 0.65);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    0 24px 70px -24px rgba(10, 8, 25, 0.7);
 }
 
-/* Texto con degradado (animado, suave) */
+/* Texto con degradado cálido (índigo → melocotón → ámbar), animado suave */
 .text-gradient {
-  background: linear-gradient(120deg, var(--brand) 0%, var(--accent) 50%, var(--brand) 100%);
-  background-size: 200% auto;
+  background: linear-gradient(115deg, var(--brand) 0%, var(--accent) 48%, var(--accent-2) 72%, var(--brand) 100%);
+  background-size: 220% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: gradient-pan 6s linear infinite;
+  animation: gradient-pan 8s linear infinite;
 }
 @keyframes gradient-pan {
-  to { background-position: 200% center; }
+  to { background-position: 220% center; }
 }
 
-/* Tarjeta que se eleva al pasar el cursor (micro-interacción premium) */
+/* Tarjeta que se eleva con suavidad al pasar el cursor (más orgánico) */
 .hover-lift {
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s, border-color 0.3s;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s, border-color 0.4s;
   will-change: transform;
 }
 .hover-lift:hover {
-  transform: translateY(-4px);
-  border-color: rgba(59, 111, 229, 0.35);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 18px 50px -16px rgba(59, 111, 229, 0.35);
+  transform: translateY(-5px);
+  border-color: rgba(124, 108, 240, 0.4);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+    0 24px 60px -20px rgba(124, 108, 240, 0.4),
+    0 8px 24px -12px rgba(255, 158, 125, 0.22);
 }
 
 /* Halo detrás de un elemento (para iconos/CTA destacados) */
 .glow-ring {
-  box-shadow: 0 0 0 1px rgba(59, 111, 229, 0.25), 0 10px 40px -8px rgba(59, 111, 229, 0.5);
+  box-shadow: 0 0 0 1px rgba(124, 108, 240, 0.3), 0 12px 44px -8px rgba(124, 108, 240, 0.55);
 }
 
 /* Reflejo que recorre un botón al pasar el cursor */
@@ -226,14 +291,14 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Chip de "pill" con brillo de borde para badges */
+/* Chip de "pill" con brillo de borde cálido para badges */
 .pill-glow {
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-  border: 1px solid rgba(59, 111, 229, 0.3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 20px -6px rgba(59, 111, 229, 0.5);
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+  border: 1px solid rgba(124, 108, 240, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 0 24px -6px rgba(124, 108, 240, 0.5);
 }
 
-/* Borde con brillo */
+/* Borde con brillo (índigo → melocotón) */
 .glow-border {
   position: relative;
 }
@@ -243,25 +308,25 @@ body {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, var(--brand), var(--accent));
+  background: linear-gradient(135deg, var(--brand), var(--accent) 60%, var(--accent-2));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: 0.5;
+  opacity: 0.55;
   pointer-events: none;
 }
 
-/* Scrollbar */
+/* Scrollbar (degradado cálido) */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(59, 111, 229, 0.5), rgba(56, 189, 248, 0.4));
+  background: linear-gradient(180deg, rgba(124, 108, 240, 0.55), rgba(255, 158, 125, 0.45));
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(59, 111, 229, 0.75), rgba(56, 189, 248, 0.6));
+  background: linear-gradient(180deg, rgba(124, 108, 240, 0.8), rgba(255, 158, 125, 0.65));
   background-clip: content-box;
 }
 
@@ -306,26 +371,26 @@ body {
 .prose-sereno ul { list-style: disc; }
 .prose-sereno ol { list-style: decimal; }
 .prose-sereno li { margin: 0.25rem 0; }
-.prose-sereno a { color: var(--accent); text-decoration: underline; }
-.prose-sereno strong { color: var(--warn); font-weight: 700; }
+.prose-sereno a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.prose-sereno strong { color: var(--accent-2); font-weight: 700; }
 .prose-sereno em { color: var(--accent); font-style: normal; font-weight: 600; }
 
 /* Código en línea (resalta IPs, máscaras, comandos, valores) */
 .prose-sereno code {
-  background: rgba(56, 189, 248, 0.12);
-  color: #7defd8;
+  background: rgba(255, 158, 125, 0.13);
+  color: #ffc7ad;
   padding: 0.12rem 0.4rem;
-  border-radius: 0.4rem;
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 158, 125, 0.28);
   font-family: var(--font-mono), monospace;
   font-size: 0.84em;
   font-weight: 600;
   white-space: nowrap;
 }
 .prose-sereno pre {
-  background: #0b0b12;
-  border: 1px solid rgba(59, 111, 229, 0.3);
-  border-radius: 0.9rem;
+  background: #11131f;
+  border: 1px solid rgba(124, 108, 240, 0.28);
+  border-radius: 1rem;
   padding: 1rem 1.1rem;
   overflow-x: auto;
   margin: 0.7rem 0;
@@ -357,10 +422,11 @@ body {
 .prose-sereno .hljs-type,
 .prose-sereno .hljs-symbol { color: #22d3ee; }                     /* cian */
 .prose-sereno blockquote {
-  border-left: 3px solid var(--brand);
-  padding-left: 0.85rem;
+  border-left: 3px solid var(--accent);
+  padding: 0.1rem 0 0.1rem 0.85rem;
   margin: 0.6rem 0;
   color: var(--muted);
+  font-style: italic;
 }
 .prose-sereno table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.82rem; }
 .prose-sereno th, .prose-sereno td { border: 1px solid var(--border); padding: 0.4rem 0.6rem; text-align: left; }
@@ -371,9 +437,9 @@ body {
 
 /* Fórmula EN LÍNEA: resalte sutil para que destaque dentro del texto */
 .prose-sereno :not(.katex-display) > .katex {
-  background: rgba(59, 111, 229, 0.1);
+  background: rgba(124, 108, 240, 0.1);
   padding: 0.05em 0.3em;
-  border-radius: 0.3rem;
+  border-radius: 0.35rem;
 }
 
 /* Fórmula EN BLOQUE: panel destacado (ideal para ecuaciones diferenciales) */
@@ -382,10 +448,10 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
   padding: 0.9rem 1rem;
-  background: linear-gradient(135deg, rgba(59, 111, 229, 0.12), rgba(56, 189, 248, 0.08));
-  border: 1px solid rgba(59, 111, 229, 0.3);
+  background: linear-gradient(135deg, rgba(124, 108, 240, 0.12), rgba(255, 158, 125, 0.07));
+  border: 1px solid rgba(124, 108, 240, 0.28);
   border-left: 3px solid var(--brand);
-  border-radius: 0.8rem;
+  border-radius: 0.9rem;
 }
 .prose-sereno .katex-display > .katex { text-align: center; }
 
@@ -398,9 +464,9 @@ body {
 .prose-sereno .katex .mclose,
 .prose-sereno .katex .mpunct { color: #f4f4f8; }
 /* Operadores y símbolos clave con color para "especificidad" */
-.prose-sereno .katex .mbin { color: #f78c6c; }   /* +, −, ×  en naranja */
-.prose-sereno .katex .mrel { color: #22d3ee; }   /* =, <, >  en cian */
-.prose-sereno .katex .mop { color: #c792ea; }    /* ∫, ∑, lim en morado */
+.prose-sereno .katex .mbin { color: var(--accent); }     /* +, −, ×  melocotón */
+.prose-sereno .katex .mrel { color: var(--calm); }       /* =, <, >  salvia */
+.prose-sereno .katex .mop { color: var(--brand-2); }     /* ∫, ∑, lim lavanda */
 
 /* ====================== ACCESIBILIDAD ====================== */
 

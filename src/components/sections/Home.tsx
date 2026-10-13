@@ -51,7 +51,7 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
         </motion.div>
 
         {userName && greeting && (
-          <motion.p variants={item} className="mb-3 text-lg font-medium text-accent">
+          <motion.p variants={item} className="font-display-italic mb-3 text-xl font-medium text-accent">
             {greeting}, {userName} 👋
           </motion.p>
         )}
@@ -74,7 +74,7 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
         <motion.div variants={item} className="mt-9 flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => onNavigate("tutor")}
-            className="shine group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-accent px-6 py-3 font-semibold text-white shadow-lg shadow-brand/30 transition hover:shadow-xl hover:shadow-brand/40"
+            className="shine group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-brand via-brand-2 to-accent px-6 py-3 font-semibold text-white shadow-lg shadow-brand/30 transition hover:shadow-xl hover:shadow-accent/30"
           >
             {t.hero.cta}
             <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
