@@ -6,6 +6,7 @@ import { Wand2, Loader2, RotateCcw, Clock3, Lightbulb, Download, Sparkles } from
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { downloadMarkdown } from "@/lib/export";
+import { subjectBreakdown, normKey } from "@/lib/mastery";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { cn } from "@/lib/utils";
 import type { StudyPlan } from "@/lib/types";
@@ -44,16 +45,24 @@ export function StudyPlanGenerator() {
     return diff >= 0 ? diff : undefined;
   }
 
-  // Temas débiles del motor de dominio (dominio < 60), para priorizarlos.
-  const weakLabels = Object.values(mastery.topics)
-    .filter((m) => m.score < 60)
-    .sort((a, b) => a.score - b.score)
-    .map((m) => m.label)
-    .slice(0, 6);
+  // Devuelve los temas débiles (dominio < 60) a priorizar. Si se pasa una
+  // materia, prioriza SOLO los temas débiles de esa materia; si no, los de todas.
+  function weakLabelsFor(subj?: string): string[] {
+    const breakdown = subjectBreakdown(mastery);
+    const topics = subj
+      ? (breakdown.find((b) => b.subjectKey === normKey(subj))?.topics ?? [])
+      : breakdown.flatMap((b) => b.topics);
+    return topics
+      .filter((m) => m.score < 60)
+      .sort((a, b) => a.score - b.score)
+      .map((m) => m.label)
+      .slice(0, 6);
+  }
 
   async function generate() {
     if (!input.trim() && !subject) return;
     const effectiveInput = input.trim() || `Quiero prepararme para ${subject}.`;
+    const weak = weakLabelsFor(subject || undefined);
     await run("/api/study-plan", {
       input: effectiveInput,
       locale,
@@ -64,7 +73,7 @@ export function StudyPlanGenerator() {
         daysUntil: daysUntil(examDate),
         hoursPerDay,
         intensity,
-        weakAreas: weakLabels.length ? weakLabels : undefined,
+        weakAreas: weak.length ? weak : undefined,
       },
     });
   }
@@ -75,10 +84,11 @@ export function StudyPlanGenerator() {
     const nextExam = upcomingExams[0];
     if (!nextExam) return;
     const d = daysUntil(nextExam.date);
+    const weak = weakLabelsFor(nextExam.subject); // debilidades de ESA materia
     const auto =
       `Prepárame para el parcial de ${nextExam.subject}` +
       (d !== undefined ? ` en ${d} días` : "") +
-      (weakLabels.length ? `. Prioriza mis temas débiles: ${weakLabels.join(", ")}.` : ".");
+      (weak.length ? `. Prioriza mis temas débiles: ${weak.join(", ")}.` : ".");
     setSubject(nextExam.subject);
     setExamDate(nextExam.date);
     await run("/api/study-plan", {
@@ -91,7 +101,7 @@ export function StudyPlanGenerator() {
         daysUntil: d,
         hoursPerDay,
         intensity,
-        weakAreas: weakLabels.length ? weakLabels : undefined,
+        weakAreas: weak.length ? weak : undefined,
       },
     });
   }

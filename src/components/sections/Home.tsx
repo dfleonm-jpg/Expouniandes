@@ -6,6 +6,7 @@ import { Sparkles, MessageSquare, ListChecks, GraduationCap, Layers, FileText, C
 import { useApp } from "@/lib/app-context";
 import { UniandesMark } from "../ui/UniandesMark";
 import { ImpactPanel } from "../ui/ImpactPanel";
+import { TodayPanel } from "../ui/TodayPanel";
 import type { Section } from "../Sidebar";
 
 const container = {
@@ -86,6 +87,11 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
           </button>
         </motion.div>
       </motion.div>
+
+      {/* Qué estudiar hoy (recomendación inteligente) */}
+      <div className="mx-auto max-w-3xl">
+        <TodayPanel onNavigate={onNavigate} />
+      </div>
 
       {/* Features */}
       <div className="mt-24 text-center">
