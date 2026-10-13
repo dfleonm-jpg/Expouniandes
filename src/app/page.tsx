@@ -10,6 +10,7 @@ import { Home } from "@/components/sections/Home";
 import { Tutor } from "@/components/sections/Tutor";
 import { Quiz } from "@/components/sections/Quiz";
 import { Exam } from "@/components/sections/Exam";
+import { OpenExam } from "@/components/sections/OpenExam";
 import { Search } from "@/components/sections/Search";
 import { Flashcards } from "@/components/sections/Flashcards";
 import { Summary } from "@/components/sections/Summary";
@@ -66,7 +67,7 @@ const SHORTCUTS: Record<string, Section> = {
 
 // Secciones válidas para leer/validar el hash de la URL (#tutor, #quiz, ...).
 const VALID_SECTIONS: Section[] = [
-  "home", "tutor", "quiz", "exam", "search", "flashcards", "summary", "mindmap",
+  "home", "tutor", "quiz", "exam", "openExam", "search", "flashcards", "summary", "mindmap",
   "methods", "codePractice", "mathPractice", "planner", "calendar", "groups",
   "wellbeing", "support", "diagnostic", "progress", "ranking", "profile",
 ];
@@ -127,7 +128,7 @@ export default function Page() {
   }, []);
 
   // Secciones con estado que NO debe perderse al navegar (se mantienen montadas).
-  const stateful: Section[] = ["tutor", "quiz", "exam", "flashcards", "support", "codePractice", "mathPractice"];
+  const stateful: Section[] = ["tutor", "quiz", "exam", "openExam", "flashcards", "support", "codePractice", "mathPractice"];
 
   // Mientras Firebase resuelve si hay sesión, evita parpadeo.
   if (auth.enabled && auth.loading) {
@@ -160,6 +161,9 @@ export default function Page() {
         </Keep>
         <Keep active={section === "exam"}>
           <Exam />
+        </Keep>
+        <Keep active={section === "openExam"}>
+          <OpenExam />
         </Keep>
         <Keep active={section === "flashcards"}>
           <Flashcards />

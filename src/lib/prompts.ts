@@ -289,3 +289,53 @@ Sé específico y motivador. Todo en ${l}.`;
 
 export const EXAM_ANALYSIS_SHAPE =
   '{"overview":string,"weakTopics":[{"topic":string,"accuracy":number,"advice":string}],"strongTopics":[string],"trend":string,"patterns":[string],"nextSteps":[string]}';
+
+/** Genera un parcial de RESPUESTA ABIERTA (sin opción múltiple) tipo Uniandes. */
+export function openExamPrompt(subject: string, count: number, difficulty: string, locale?: string, profile?: ProfileInput) {
+  const l = lang(locale);
+  return `Eres profesor universitario (estilo Universidad de los Andes). Crea un PARCIAL de respuesta ABIERTA sobre: "${subject}".${profileContext(profile)}
+Nº de preguntas: ${count}. Dificultad: ${difficulty}. Idioma: ${l}.
+Las preguntas deben resolverse ESCRIBIENDO la respuesta (no opción múltiple), como en un parcial real. Varía el tipo:
+- Para redes/IP: subnetting, cálculo de máscara, rango de hosts, broadcast, VLSM (type "numeric" o "short").
+- Para estructuras de datos: complejidad Big-O, recorrido de árboles/grafos, diseño de una estructura, traza de un algoritmo (type "short", "long" o "code").
+- Para cálculo/física: derivadas, integrales, límites a mano (type "numeric" o "long"), SIEMPRE en LaTeX $...$ y $$...$$.
+- Para programación: escribir una función o explicar qué imprime un código (type "code" o "short").
+Cada pregunta define: "topic" (subtema concreto), "prompt" (enunciado claro en markdown/LaTeX, con datos exactos), "type", "expectedAnswer" (la respuesta/solución de referencia correcta y detallada), "rubric" (criterios para calificar: qué debe tener una respuesta correcta y errores comunes), "points" (entero, suma total = 100).
+Sé riguroso y realista. Todo en ${l}.`;
+}
+
+export const OPEN_EXAM_SHAPE =
+  '{"title":string,"subject":string,"questions":[{"id":string,"topic":string,"prompt":string,"type":"numeric|short|long|code","expectedAnswer":string,"rubric":string,"points":number}]}';
+
+/** Califica las respuestas abiertas del estudiante contra la rúbrica. */
+export function openExamGradePrompt(
+  items: { id: string; topic: string; prompt: string; expectedAnswer: string; rubric: string; points: number; answer: string }[],
+  locale?: string
+) {
+  const l = lang(locale);
+  const blocks = items
+    .map(
+      (q, i) => `### Pregunta ${i + 1} (id: ${q.id}, tema: ${q.topic}, ${q.points} pts)
+ENUNCIADO: ${q.prompt}
+RESPUESTA DE REFERENCIA: ${q.expectedAnswer}
+RÚBRICA: ${q.rubric}
+RESPUESTA DEL ESTUDIANTE: """${(q.answer || "(en blanco)").slice(0, 4000)}"""`
+    )
+    .join("\n\n");
+  return `Eres un profesor universitario justo y riguroso (estilo Uniandes) calificando un parcial de respuesta abierta.
+Idioma: ${l}. Para CADA pregunta, compara la respuesta del estudiante con la referencia y la rúbrica, y otorga puntaje parcial cuando corresponda (no todo o nada si hay avance correcto).
+${blocks}
+
+Responde SOLO JSON con:
+- "grades": lista con un objeto por pregunta: { "questionId": string, "awarded": number (0..puntos de la pregunta), "max": number, "correct": boolean (¿correcto en lo esencial?), "feedback": string (qué estuvo bien/mal, específico), "modelAnswer": string (la solución correcta explicada, con LaTeX si aplica) }
+- "totalAwarded": number (suma de awarded)
+- "totalMax": number (suma de max)
+- "score5": number (nota 0.0..5.0 escala Uniandes = totalAwarded/totalMax*5, 1 decimal)
+- "overview": string (veredicto general, cálido y honesto)
+- "weakTopics": lista de strings (temas donde falló)
+- "strongTopics": lista de strings (temas donde acertó)
+Sé justo, específico y motivador. Todo en ${l}.`;
+}
+
+export const OPEN_EXAM_GRADE_SHAPE =
+  '{"grades":[{"questionId":string,"awarded":number,"max":number,"correct":boolean,"feedback":string,"modelAnswer":string}],"totalAwarded":number,"totalMax":number,"score5":number,"overview":string,"weakTopics":[string],"strongTopics":[string]}';

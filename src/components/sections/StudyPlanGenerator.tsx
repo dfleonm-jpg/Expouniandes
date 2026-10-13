@@ -13,7 +13,7 @@ import type { StudyPlan } from "@/lib/types";
 type Intensity = "ligero" | "equilibrado" | "intensivo";
 
 export function StudyPlanGenerator() {
-  const { t, locale, profile, examEvents } = useApp();
+  const { t, locale, profile, examEvents, mastery } = useApp();
   const { loading, error, data, run, reset, setError } = useAIRequest<StudyPlan>();
 
   const [input, setInput] = useState("");
@@ -44,6 +44,13 @@ export function StudyPlanGenerator() {
     return diff >= 0 ? diff : undefined;
   }
 
+  // Temas débiles del motor de dominio (dominio < 60), para priorizarlos.
+  const weakLabels = Object.values(mastery.topics)
+    .filter((m) => m.score < 60)
+    .sort((a, b) => a.score - b.score)
+    .map((m) => m.label)
+    .slice(0, 6);
+
   async function generate() {
     if (!input.trim() && !subject) return;
     const effectiveInput = input.trim() || `Quiero prepararme para ${subject}.`;
@@ -57,6 +64,34 @@ export function StudyPlanGenerator() {
         daysUntil: daysUntil(examDate),
         hoursPerDay,
         intensity,
+        weakAreas: weakLabels.length ? weakLabels : undefined,
+      },
+    });
+  }
+
+  // Plan AUTOMÁTICO: usa el parcial más próximo del calendario y prioriza
+  // automáticamente los temas débiles detectados, sin que el usuario escriba.
+  async function generateAuto() {
+    const nextExam = upcomingExams[0];
+    if (!nextExam) return;
+    const d = daysUntil(nextExam.date);
+    const auto =
+      `Prepárame para el parcial de ${nextExam.subject}` +
+      (d !== undefined ? ` en ${d} días` : "") +
+      (weakLabels.length ? `. Prioriza mis temas débiles: ${weakLabels.join(", ")}.` : ".");
+    setSubject(nextExam.subject);
+    setExamDate(nextExam.date);
+    await run("/api/study-plan", {
+      input: auto,
+      locale,
+      profile: profile.completed ? profile : undefined,
+      options: {
+        subject: nextExam.subject,
+        examDate: nextExam.date,
+        daysUntil: d,
+        hoursPerDay,
+        intensity,
+        weakAreas: weakLabels.length ? weakLabels : undefined,
       },
     });
   }
@@ -85,6 +120,26 @@ export function StudyPlanGenerator() {
 
       {!data ? (
         <div className="space-y-4">
+          {/* Plan automático desde el próximo parcial + debilidades */}
+          {upcomingExams.length > 0 && (
+            <button
+              onClick={generateAuto}
+              disabled={loading}
+              className="shine flex w-full items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-brand/10 px-4 py-3 text-left transition hover:bg-brand/15 disabled:opacity-50"
+            >
+              <span className="flex items-center gap-2.5">
+                <Sparkles className="h-5 w-5 shrink-0 text-accent" />
+                <span>
+                  <span className="block text-sm font-semibold">{t.studyPlan.autoTitle}</span>
+                  <span className="block text-xs text-muted">
+                    {t.studyPlan.autoDesc.replace("{s}", upcomingExams[0].subject)}
+                  </span>
+                </span>
+              </span>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 shrink-0 text-brand" />}
+            </button>
+          )}
+
           {/* Materia */}
           <div>
             <label className="mb-1.5 block text-xs font-medium text-muted">{t.studyPlan.subjectLabel}</label>

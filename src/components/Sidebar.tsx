@@ -5,6 +5,7 @@ import {
   MessageSquare,
   ListChecks,
   GraduationCap,
+  PenLine,
   Search,
   Layers,
   FileText,
@@ -36,6 +37,7 @@ export type Section =
   | "tutor"
   | "quiz"
   | "exam"
+  | "openExam"
   | "search"
   | "flashcards"
   | "summary"
@@ -74,6 +76,7 @@ const GROUPS: { group: GroupKey; items: Item[] }[] = [
     items: [
       { id: "quiz", icon: ListChecks, key: "quiz" },
       { id: "exam", icon: GraduationCap, key: "exam" },
+      { id: "openExam", icon: PenLine, key: "openExam" },
       { id: "flashcards", icon: Layers, key: "flashcards" },
     ],
   },
