@@ -33,6 +33,7 @@ export function Tutor() {
   const [chatId, setChatId] = useState<string>("");
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [level, setLevel] = useState<"basico" | "intermedio" | "avanzado">("intermedio");
   const scrollRef = useRef<HTMLDivElement>(null);
   const atBottomRef = useRef(true);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -181,7 +182,7 @@ export function Tutor() {
 
     const result = await stream(
       "/api/chat",
-      { messages: newMessages, locale, context, profile: profile.completed ? profile : undefined },
+      { messages: newMessages, locale, context, profile: profile.completed ? profile : undefined, level },
       (acc) => {
         setMessages((m) => m.map((msg) => (msg.id === modelId ? { ...msg, text: acc } : msg)));
       }
@@ -428,13 +429,33 @@ export function Tutor() {
         )}
       </div>
 
+      {/* Selector de nivel de explicación */}
+      <div className="mt-3 flex items-center gap-2">
+        <span className="text-xs text-muted">{t.ui.explainLevel}:</span>
+        <div className="glass inline-flex rounded-xl p-0.5">
+          {(["basico", "intermedio", "avanzado"] as const).map((lv) => (
+            <button
+              key={lv}
+              onClick={() => setLevel(lv)}
+              aria-pressed={level === lv}
+              className={cn(
+                "rounded-lg px-2.5 py-1 text-xs font-medium transition",
+                level === lv ? "bg-gradient-to-r from-brand to-brand-2 text-white" : "text-muted hover:text-foreground"
+              )}
+            >
+              {t.ui.levels[lv]}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Input */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           send(input);
         }}
-        className="glass-strong mt-4 flex items-end gap-2 rounded-2xl p-2"
+        className="glass-strong mt-3 flex items-end gap-2 rounded-2xl p-2"
       >
         <button
           type="button"

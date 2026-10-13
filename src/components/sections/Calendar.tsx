@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarClock, Plus, Trash2, CalendarDays, CalendarPlus } from "lucide-react";
+import { CalendarClock, Plus, Trash2, CalendarDays, CalendarPlus, ShieldCheck, Gauge, Flame } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useToast } from "../ui/Toast";
 import { downloadICS } from "@/lib/export";
@@ -10,7 +10,7 @@ import { SectionHeader } from "../ui/SectionHeader";
 import { cn } from "@/lib/utils";
 
 export function Calendar() {
-  const { t, examEvents, addExamEvent, removeExamEvent } = useApp();
+  const { t, examEvents, addExamEvent, removeExamEvent, profile } = useApp();
   const { notify } = useToast();
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
@@ -45,6 +45,35 @@ export function Calendar() {
 
   const upcoming = examEvents.filter((e) => daysUntil(e.date) >= 0);
 
+  // ---- Detector de sobrecarga académica (cálculo local, instantáneo) ----
+  // Combina: nº de parciales en los próximos 14 días, cuántos se agrupan en
+  // una misma semana, cercanía, y el nivel de estrés declarado en el perfil.
+  const overload = (() => {
+    if (!today) return null;
+    const next14 = upcoming.filter((e) => daysUntil(e.date) <= 14);
+    if (next14.length === 0) return null;
+
+    const next7 = next14.filter((e) => daysUntil(e.date) <= 7);
+    const next3 = next14.filter((e) => daysUntil(e.date) <= 3);
+
+    // Semana más cargada (máximo de parciales en cualquier ventana de 7 días).
+    let maxWeek = 0;
+    for (const base of next14) {
+      const start = daysUntil(base.date);
+      const inWindow = next14.filter((e) => {
+        const d = daysUntil(e.date);
+        return d >= start && d < start + 7;
+      }).length;
+      maxWeek = Math.max(maxWeek, inWindow);
+    }
+
+    const stressBoost = profile.stressLevel === "high" ? 2 : profile.stressLevel === "mid" ? 1 : 0;
+    const score = next7.length * 2 + next3.length * 2 + (maxWeek >= 3 ? 3 : maxWeek === 2 ? 1 : 0) + stressBoost;
+
+    const level: "calm" | "moderate" | "high" = score >= 7 ? "high" : score >= 4 ? "moderate" : "calm";
+    return { level, count14: next14.length, count7: next7.length, maxWeek };
+  })();
+
   function exportCalendar() {
     if (upcoming.length === 0) return;
     downloadICS(
@@ -69,8 +98,62 @@ export function Calendar() {
         )}
       </div>
 
+      {/* Detector de sobrecarga académica */}
+      {overload && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={cn(
+            "mt-6 flex items-start gap-3 rounded-3xl border p-5",
+            overload.level === "high"
+              ? "border-danger/30 bg-danger/10"
+              : overload.level === "moderate"
+                ? "border-warn/30 bg-warn/10"
+                : "border-calm/30 bg-calm/10"
+          )}
+        >
+          <div
+            className={cn(
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl",
+              overload.level === "high"
+                ? "bg-danger/20 text-danger"
+                : overload.level === "moderate"
+                  ? "bg-warn/20 text-warn"
+                  : "bg-calm/20 text-calm"
+            )}
+          >
+            {overload.level === "high" ? (
+              <Flame className="h-5 w-5" />
+            ) : overload.level === "moderate" ? (
+              <Gauge className="h-5 w-5" />
+            ) : (
+              <ShieldCheck className="h-5 w-5" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">
+              {overload.level === "high"
+                ? t.calendar.overloadHigh
+                : overload.level === "moderate"
+                  ? t.calendar.overloadMid
+                  : t.calendar.overloadLow}
+            </p>
+            <p className="mt-0.5 text-sm text-muted">
+              {t.calendar.overloadDetail
+                .replace("{n}", String(overload.count14))
+                .replace("{w}", String(overload.maxWeek))}
+            </p>
+            {overload.level !== "calm" && (
+              <p className="mt-2 text-xs text-foreground/80">
+                {overload.level === "high" ? t.calendar.overloadTipHigh : t.calendar.overloadTipMid}
+              </p>
+            )}
+          </div>
+        </motion.div>
+      )}
+
       {/* Formulario */}
-      <div className="glass mt-6 rounded-3xl p-5">
+      <div className="glass mt-5 rounded-3xl p-5">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
           <input
             value={subject}

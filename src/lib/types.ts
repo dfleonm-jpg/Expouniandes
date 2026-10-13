@@ -82,3 +82,12 @@ export type DiagnosticQuestion = {
   options: string[];
   correctIndex: number;
 };
+
+export type ExamAnalysis = {
+  overview: string;
+  weakTopics: { topic: string; accuracy: number; advice: string }[];
+  strongTopics: string[];
+  trend: string;
+  patterns: string[];
+  nextSteps: string[];
+};

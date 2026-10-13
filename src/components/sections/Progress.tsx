@@ -13,15 +13,32 @@ import {
   Award,
   GraduationCap,
   Lock,
+  Sparkles,
+  Loader2,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  AlertTriangle,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { useAIRequest } from "@/lib/useAI";
 import { SectionHeader } from "../ui/SectionHeader";
+import { ErrorBanner } from "../ui/ErrorBanner";
 import { computeXP, levelInfo } from "@/lib/levels";
 import { cn } from "@/lib/utils";
+import type { ExamAnalysis } from "@/lib/types";
 
 export function Progress() {
-  const { t, stats, streak, examHistory } = useApp();
+  const { t, locale, stats, streak, examHistory } = useApp();
   const lvl = levelInfo(computeXP(stats));
+  const analysis = useAIRequest<ExamAnalysis>();
+
+  function analyzeExams() {
+    analysis.run("/api/exam-analysis", {
+      records: examHistory.map((e) => ({ topic: e.topic, score: e.score, total: e.total, date: e.date })),
+      locale,
+    });
+  }
 
   const cards = [
     { icon: ListChecks, label: t.progress.quizzesTaken, value: stats.quizzesTaken, color: "from-cyan-500 to-blue-500" },
@@ -161,6 +178,38 @@ export function Progress() {
         ) : (
           <div className="space-y-2">
             {examHistory.length >= 2 && <GradeChart history={examHistory} label={t.ui.evolution} />}
+
+            {/* Análisis de errores con IA */}
+            {examHistory.length >= 2 && (
+              <div className="glass mb-3 rounded-2xl p-4">
+                {!analysis.data && !analysis.loading && (
+                  <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-2.5">
+                      <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                      <div>
+                        <p className="text-sm font-semibold">{t.ui.analyzeTitle}</p>
+                        <p className="text-xs text-muted">{t.ui.analyzeDesc}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={analyzeExams}
+                      className="shine shrink-0 rounded-xl bg-gradient-to-r from-brand to-brand-2 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+                    >
+                      {t.ui.analyzeBtn}
+                    </button>
+                  </div>
+                )}
+                {analysis.loading && (
+                  <div className="flex items-center gap-2 text-sm text-muted">
+                    <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                    {t.ui.analyzing}
+                  </div>
+                )}
+                {analysis.error && <ErrorBanner message={analysis.error} onRetry={analyzeExams} />}
+                {analysis.data && <ExamAnalysisPanel data={analysis.data} t={t} onRefresh={analyzeExams} />}
+              </div>
+            )}
+
             {examHistory.slice(0, 10).map((e, i) => {
               const pct = Math.round((e.score / e.total) * 100);
               const grade = Math.round((e.score / e.total) * 10 * 10) / 10;
@@ -194,6 +243,109 @@ export function Progress() {
         )}
       </div>
     </div>
+  );
+}
+
+/** Panel con el análisis de errores de parciales generado por IA. */
+function ExamAnalysisPanel({
+  data,
+  t,
+  onRefresh,
+}: {
+  data: ExamAnalysis;
+  t: ReturnType<typeof useApp>["t"];
+  onRefresh: () => void;
+}) {
+  const TrendIcon = data.trend === "mejorando" ? TrendingUp : data.trend === "bajando" ? TrendingDown : Minus;
+  const trendColor =
+    data.trend === "mejorando" ? "text-calm" : data.trend === "bajando" ? "text-danger" : "text-muted";
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 text-left">
+      <div className="flex items-start justify-between gap-3">
+        <p className="flex items-start gap-2 text-sm text-foreground/90">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+          {data.overview}
+        </p>
+        <button onClick={onRefresh} className="shrink-0 text-xs text-muted transition hover:text-foreground">
+          {t.ui.analyzeBtn}
+        </button>
+      </div>
+
+      {/* Tendencia */}
+      <div className={cn("inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-xs font-medium", trendColor)}>
+        <TrendIcon className="h-3.5 w-3.5" />
+        {t.ui.trend}: {data.trend}
+      </div>
+
+      {/* Temas débiles */}
+      {data.weakTopics?.length > 0 && (
+        <div>
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+            <AlertTriangle className="h-3.5 w-3.5 text-warn" />
+            {t.ui.weakTopics}
+          </p>
+          <div className="space-y-2">
+            {data.weakTopics.map((w, i) => (
+              <div key={i} className="rounded-xl bg-white/[0.03] p-3">
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium">{w.topic}</span>
+                  <span className={cn("text-xs font-bold tabular-nums", w.accuracy >= 60 ? "text-calm" : "text-danger")}>
+                    {Math.round(w.accuracy)}%
+                  </span>
+                </div>
+                <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={cn("h-full rounded-full", w.accuracy >= 60 ? "bg-calm" : "bg-danger")}
+                    style={{ width: `${Math.min(Math.max(w.accuracy, 0), 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted">{w.advice}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Temas fuertes */}
+      {data.strongTopics?.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted">{t.ui.strongTopics}:</span>
+          {data.strongTopics.map((s, i) => (
+            <span key={i} className="rounded-full bg-calm/15 px-2.5 py-0.5 text-xs text-calm">{s}</span>
+          ))}
+        </div>
+      )}
+
+      {/* Patrones */}
+      {data.patterns?.length > 0 && (
+        <ul className="space-y-1 text-sm text-foreground/85">
+          {data.patterns.map((p, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-accent" />
+              {p}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Próximos pasos */}
+      {data.nextSteps?.length > 0 && (
+        <div className="rounded-xl bg-brand/10 p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand">{t.ui.nextSteps}</p>
+          <ol className="space-y-1.5">
+            {data.nextSteps.map((s, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-foreground/85">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand/30 text-[10px] font-bold text-white">
+                  {i + 1}
+                </span>
+                {s}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </motion.div>
   );
 }
 
@@ -232,8 +384,8 @@ function GradeChart({
         ))}
         <defs>
           <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#22d3ee" />
+            <stop offset="0%" stopColor="#3b6fe5" />
+            <stop offset="100%" stopColor="#38bdf8" />
           </linearGradient>
         </defs>
       </svg>

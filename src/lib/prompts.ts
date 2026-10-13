@@ -35,11 +35,23 @@ const MATH_RULE =
 const FORMAT_RULE =
   "Formatea para máxima claridad: usa `código en línea` para valores técnicos concretos (direcciones IP como `192.168.1.0/24`, máscaras como `255.255.255.0`, comandos, puertos, variables); usa bloques de código con su lenguaje (```bash, ```python) para comandos o cálculos de varias líneas; resalta términos clave en **negrita**. En explicaciones de redes/subnetting muestra el paso a paso con los valores exactos. En ecuaciones diferenciales muestra la ecuación en bloque $$...$$ y luego los pasos de solución.";
 
-export function tutorSystem(locale?: string, profile?: ProfileInput) {
+export type ExplainLevel = "basico" | "intermedio" | "avanzado";
+
+const LEVEL_RULE: Record<ExplainLevel, string> = {
+  basico:
+    "NIVEL DE EXPLICACIÓN: BÁSICO. Explica desde cero, con lenguaje sencillo, analogías cotidianas y pasos muy pequeños. Evita tecnicismos; si usas uno, defínelo. Asume que el estudiante ve el tema por primera vez.",
+  intermedio:
+    "NIVEL DE EXPLICACIÓN: INTERMEDIO. Equilibra claridad y rigor. Usa la terminología correcta explicándola brevemente, con ejemplos aplicados. Asume que el estudiante conoce lo básico.",
+  avanzado:
+    "NIVEL DE EXPLICACIÓN: AVANZADO. Sé riguroso y conciso, con terminología técnica precisa, formalismo, demostraciones o complejidad cuando aplique. Asume buen dominio previo del tema.",
+};
+
+export function tutorSystem(locale?: string, profile?: ProfileInput, level?: ExplainLevel) {
   const l = lang(locale);
+  const levelRule = level ? `\n- ${LEVEL_RULE[level]}` : "";
   return `Eres Sereno, un tutor académico con IA, empático y motivador, creado para ayudar a estudiantes universitarios a estudiar y a reducir su estrés académico.${profileContext(profile)}
 Reglas:
-- Responde SIEMPRE en ${l}.
+- Responde SIEMPRE en ${l}.${levelRule}
 - Explica de forma clara, estructurada y con ejemplos. Usa listas y pasos cuando ayude.
 - Sé cálido y alentador; reconoce el esfuerzo del estudiante.
 - Si detectas estrés o ansiedad, ofrece una técnica breve (respiración, descansos, dividir tareas) además de responder.
@@ -221,3 +233,28 @@ export function diagnosticPlanPrompt(weakAreas: string[], strongAreas: string[],
   return `Un estudiante hizo un diagnóstico. Áreas débiles: ${weakAreas.join(", ") || "ninguna"}. Áreas fuertes: ${strongAreas.join(", ") || "varias"}.
 Idioma: ${l}. Dale un plan de mejora motivador y concreto: por cada área débil, 1-2 acciones específicas y qué sección de la app usar (Tutor, Práctica de código, Práctica de cálculo, Flashcards, etc.). Sé cálido, breve y alentador. Responde en ${l} en markdown.`;
 }
+
+/** Análisis de errores de parciales: detecta patrones a partir del historial. */
+export function examAnalysisPrompt(
+  records: { topic: string; score: number; total: number; date: string }[],
+  locale?: string
+) {
+  const l = lang(locale);
+  const rows = records
+    .map((r) => `- ${r.topic}: ${r.score}/${r.total} (${Math.round((r.score / Math.max(r.total, 1)) * 100)}%) · ${r.date.slice(0, 10)}`)
+    .join("\n");
+  return `Eres un asesor académico. Analiza el historial de parciales/quizzes de un estudiante universitario y detecta PATRONES de error accionables.
+HISTORIAL (tema: aciertos/total · fecha):
+${rows}
+Idioma: ${l}. Responde SOLO JSON con:
+- "overview": string (1-2 frases con el panorama general, cálido y honesto)
+- "weakTopics": lista de { "topic": string, "accuracy": number (0-100), "advice": string (qué hacer concretamente) } ordenada de más débil a menos
+- "strongTopics": lista de strings (temas donde va bien)
+- "trend": string ("mejorando" | "estable" | "bajando") según la evolución de las fechas
+- "patterns": lista de strings (patrones detectados, ej. "fallas más en temas de cálculo", "bajas en parciales largos")
+- "nextSteps": lista de strings (3-4 pasos priorizados, mencionando qué sección de Sereno usar: Tutor, Práctica de código, Práctica de cálculo, Flashcards, Parcial)
+Sé específico y motivador. Todo en ${l}.`;
+}
+
+export const EXAM_ANALYSIS_SHAPE =
+  '{"overview":string,"weakTopics":[{"topic":string,"accuracy":number,"advice":string}],"strongTopics":[string],"trend":string,"patterns":[string],"nextSteps":[string]}';
