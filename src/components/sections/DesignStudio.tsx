@@ -15,6 +15,7 @@ import {
   Lightbulb,
   Target,
   Check,
+  Pencil,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
@@ -23,12 +24,15 @@ import { ErrorBanner } from "../ui/ErrorBanner";
 import { cn } from "@/lib/utils";
 import type { DesignFeedback } from "@/lib/types";
 
-// Paleta de pinceles (alineada con la identidad azul de Sereno + colores de estudio).
+// Color de fondo del lienzo (claro, tipo papel, para que se vea bien dibujar).
+const CANVAS_BG = "#f8fafc";
+
+// Paleta de pinceles pensada para dibujar sobre fondo claro.
 const COLORS = [
-  "#eef1f6", "#060910", "#3b6fe5", "#38bdf8", "#2dd4bf",
+  "#0f172a", "#334155", "#3b6fe5", "#0ea5e9", "#14b8a6",
   "#f59e0b", "#ef4444", "#a855f7", "#ec4899", "#22c55e",
 ];
-const SIZES = [2, 4, 8, 16, 28];
+const SIZES = [2, 4, 8, 14, 24];
 
 export function DesignStudio() {
   const { t, locale, addStat } = useApp();
@@ -37,15 +41,25 @@ export function DesignStudio() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const drawingRef = useRef(false);
-  const undoStack = useRef<ImageData[]>([]);
+  const lastRef = useRef<{ x: number; y: number } | null>(null);
+  const undoStack = useRef<string[]>([]);
 
-  const [color, setColor] = useState("#eef1f6");
+  // Refs para leer los valores actuales dentro de los handlers de puntero.
+  const colorRef = useRef("#0f172a");
+  const sizeRef = useRef(4);
+  const erasingRef = useRef(false);
+
+  const [color, setColor] = useState("#0f172a");
   const [size, setSize] = useState(4);
   const [erasing, setErasing] = useState(false);
   const [discipline, setDiscipline] = useState("Diseño gráfico");
   const [brief, setBrief] = useState("");
   const [intent, setIntent] = useState("");
   const [hasDrawn, setHasDrawn] = useState(false);
+
+  useEffect(() => { colorRef.current = color; }, [color]);
+  useEffect(() => { sizeRef.current = size; }, [size]);
+  useEffect(() => { erasingRef.current = erasing; }, [erasing]);
 
   const DISCIPLINES = [
     t.designStudio.discGraphic,
@@ -55,121 +69,156 @@ export function DesignStudio() {
     t.designStudio.discComp,
   ];
 
-  // Prepara el lienzo (fondo del "surface" de Sereno) y el contexto 2D.
-  // Solo configura cuando el contenedor tiene ancho real (> 0); así funciona
-  // aunque la sección se monte oculta (display:none) y se muestre después.
-  const setup = useCallback(() => {
+  // (Re)dimensiona el lienzo al tamaño real del contenedor, preservando el
+  // dibujo. El buffer interno = tamaño CSS * devicePixelRatio para nitidez,
+  // y el contexto se escala para trabajar siempre en coordenadas CSS.
+  const resize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
     if (!parent) return;
-    const w = parent.clientWidth;
-    // Si todavía está oculto (ancho 0), no hay nada que dibujar aún.
-    if (w <= 0) return;
+    const cssW = Math.floor(parent.clientWidth);
+    if (cssW <= 0) return; // aún oculto
+    const cssH = Math.max(260, Math.min(Math.round(cssW * 0.6), 440));
     const ratio = window.devicePixelRatio || 1;
-    const h = Math.min(Math.round(w * 0.62), 460);
-    // Evita reescalar (y borrar el dibujo) si el tamaño no cambió.
-    if (canvas.dataset.w === String(w) && canvas.dataset.h === String(h) && ctxRef.current) return;
-    canvas.dataset.w = String(w);
-    canvas.dataset.h = String(h);
-    canvas.width = w * ratio;
-    canvas.height = h * ratio;
-    canvas.style.width = `${w}px`;
-    canvas.style.height = `${h}px`;
+
+    // Si ya está al tamaño correcto, no re-inicializar (evita borrar).
+    const targetW = Math.round(cssW * ratio);
+    const targetH = Math.round(cssH * ratio);
+    if (canvas.width === targetW && canvas.height === targetH && ctxRef.current) return;
+
+    // Guarda el contenido actual para re-pintarlo tras el resize.
+    let prev: HTMLCanvasElement | null = null;
+    if (ctxRef.current && canvas.width > 0 && canvas.height > 0) {
+      prev = document.createElement("canvas");
+      prev.width = canvas.width;
+      prev.height = canvas.height;
+      prev.getContext("2d")?.drawImage(canvas, 0, 0);
+    }
+
+    canvas.width = targetW;
+    canvas.height = targetH;
+    canvas.style.width = `${cssW}px`;
+    canvas.style.height = `${cssH}px`;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.scale(ratio, ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0); // coordenadas en CSS px
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.fillStyle = "#0c1119";
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = CANVAS_BG;
+    ctx.fillRect(0, 0, cssW, cssH);
+    if (prev) ctx.drawImage(prev, 0, 0, prev.width, prev.height, 0, 0, cssW, cssH);
     ctxRef.current = ctx;
   }, []);
 
   useEffect(() => {
-    setup();
-    window.addEventListener("resize", setup);
-    // ResizeObserver: se dispara cuando el contenedor pasa de oculto (ancho 0)
-    // a visible (ancho real), que es justo cuando el usuario entra a la sección.
+    resize();
     const canvas = canvasRef.current;
     const parent = canvas?.parentElement;
     let ro: ResizeObserver | undefined;
     if (parent && typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(() => setup());
+      ro = new ResizeObserver(() => resize());
       ro.observe(parent);
     }
+    window.addEventListener("resize", resize);
     return () => {
-      window.removeEventListener("resize", setup);
+      window.removeEventListener("resize", resize);
       ro?.disconnect();
     };
-  }, [setup]);
+  }, [resize]);
 
+  // Posición del puntero en coordenadas CSS del lienzo (coinciden con el ctx).
   function pointerPos(e: React.PointerEvent<HTMLCanvasElement>) {
-    const rect = e.currentTarget.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const canvas = e.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    // Escala por si el rect visual difiere del tamaño CSS declarado.
+    const scaleX = (canvas.clientWidth || rect.width) / rect.width;
+    const scaleY = (canvas.clientHeight || rect.height) / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
   }
 
-  function pushUndo() {
+  function snapshot() {
     const canvas = canvasRef.current;
-    const ctx = ctxRef.current;
-    if (!canvas || !ctx) return;
+    if (!canvas) return;
     try {
-      undoStack.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-      if (undoStack.current.length > 25) undoStack.current.shift();
+      undoStack.current.push(canvas.toDataURL("image/png"));
+      if (undoStack.current.length > 20) undoStack.current.shift();
     } catch {
-      /* getImageData puede fallar en contextos raros; se ignora */
+      /* ignore */
     }
+  }
+
+  function dot(ctx: CanvasRenderingContext2D, x: number, y: number) {
+    const s = erasingRef.current ? sizeRef.current * 2.5 : sizeRef.current;
+    ctx.fillStyle = erasingRef.current ? CANVAS_BG : colorRef.current;
+    ctx.beginPath();
+    ctx.arc(x, y, s / 2, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   function startDraw(e: React.PointerEvent<HTMLCanvasElement>) {
     const ctx = ctxRef.current;
     if (!ctx) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    pushUndo();
+    e.preventDefault();
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* noop */ }
+    snapshot();
     drawingRef.current = true;
-    const { x, y } = pointerPos(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    // Un punto al tocar (para clics sueltos).
-    ctx.lineTo(x + 0.01, y + 0.01);
-    applyStroke(ctx);
+    const p = pointerPos(e);
+    lastRef.current = p;
+    dot(ctx, p.x, p.y); // punto al tocar (clics sueltos)
+    if (!hasDrawn) setHasDrawn(true);
   }
 
   function moveDraw(e: React.PointerEvent<HTMLCanvasElement>) {
     if (!drawingRef.current) return;
     const ctx = ctxRef.current;
-    if (!ctx) return;
-    const { x, y } = pointerPos(e);
-    ctx.lineTo(x, y);
-    applyStroke(ctx);
-  }
-
-  function applyStroke(ctx: CanvasRenderingContext2D) {
-    ctx.lineWidth = erasing ? size * 2.5 : size;
-    ctx.strokeStyle = erasing ? "#0c1119" : color;
+    const last = lastRef.current;
+    if (!ctx || !last) return;
+    e.preventDefault();
+    const p = pointerPos(e);
+    ctx.strokeStyle = erasingRef.current ? CANVAS_BG : colorRef.current;
+    ctx.lineWidth = erasingRef.current ? sizeRef.current * 2.5 : sizeRef.current;
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
     ctx.stroke();
+    lastRef.current = p;
   }
 
   function endDraw() {
-    if (drawingRef.current) {
-      drawingRef.current = false;
-      setHasDrawn(true);
-    }
+    drawingRef.current = false;
+    lastRef.current = null;
   }
 
   function undo() {
+    const canvas = canvasRef.current;
     const ctx = ctxRef.current;
     const prev = undoStack.current.pop();
-    if (ctx && prev) ctx.putImageData(prev, 0, 0);
+    if (!canvas || !ctx) return;
+    if (!prev) {
+      clearCanvas(false);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      ctx.fillStyle = CANVAS_BG;
+      ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+      ctx.drawImage(img, 0, 0, canvas.clientWidth, canvas.clientHeight);
+    };
+    img.src = prev;
   }
 
-  function clearCanvas() {
+  function clearCanvas(takeSnapshot = true) {
     const canvas = canvasRef.current;
     const ctx = ctxRef.current;
     if (!canvas || !ctx) return;
-    pushUndo();
-    ctx.fillStyle = "#0c1119";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (takeSnapshot) snapshot();
+    ctx.fillStyle = CANVAS_BG;
+    ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
     setHasDrawn(false);
   }
 
@@ -185,7 +234,6 @@ export function DesignStudio() {
   async function askFeedback() {
     const canvas = canvasRef.current;
     if (!canvas || !hasDrawn) return;
-    // Exporta en JPEG (más liviano que PNG para enviarlo a la IA).
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     const res = await fbReq.run(
       "/api/design-feedback",
@@ -220,7 +268,7 @@ export function DesignStudio() {
                   aria-label={c}
                   className={cn(
                     "h-6 w-6 rounded-full ring-2 transition",
-                    color === c && !erasing ? "ring-white scale-110" : "ring-white/20 hover:scale-105"
+                    color === c && !erasing ? "ring-brand scale-110" : "ring-white/20 hover:scale-105"
                   )}
                   style={{ backgroundColor: c }}
                 />
@@ -231,11 +279,11 @@ export function DesignStudio() {
               {SIZES.map((s) => (
                 <button
                   key={s}
-                  onClick={() => setSize(s)}
+                  onClick={() => { setSize(s); setErasing(false); }}
                   aria-label={`${s}px`}
                   className={cn(
                     "flex h-7 w-7 items-center justify-center rounded-lg transition",
-                    size === s ? "bg-brand/30 ring-1 ring-brand/50" : "hover:bg-white/5"
+                    size === s && !erasing ? "bg-brand/30 ring-1 ring-brand/50" : "hover:bg-white/5"
                   )}
                 >
                   <span className="rounded-full bg-foreground" style={{ width: Math.min(s, 18), height: Math.min(s, 18) }} />
@@ -252,7 +300,7 @@ export function DesignStudio() {
             <button onClick={undo} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-white/5">
               <Undo2 className="h-4 w-4" /> {t.designStudio.undo}
             </button>
-            <button onClick={clearCanvas} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-white/5">
+            <button onClick={() => clearCanvas()} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-white/5">
               <Trash2 className="h-4 w-4" /> {t.designStudio.clear}
             </button>
             <button onClick={download} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-white/5">
@@ -260,21 +308,24 @@ export function DesignStudio() {
             </button>
           </div>
 
-          {/* Lienzo */}
-          <div className="glass relative overflow-hidden rounded-2xl p-1">
+          {/* Lienzo: el contenedor NO tiene padding para que el canvas ocupe
+              exactamente su ancho (coordenadas del puntero precisas). */}
+          <div className="glass relative overflow-hidden rounded-2xl">
             <canvas
               ref={canvasRef}
               onPointerDown={startDraw}
               onPointerMove={moveDraw}
               onPointerUp={endDraw}
+              onPointerCancel={endDraw}
               onPointerLeave={endDraw}
-              className="block w-full min-h-[260px] cursor-crosshair rounded-xl touch-none bg-[#0c1119]"
+              className="block w-full cursor-crosshair touch-none select-none"
+              style={{ height: 300, touchAction: "none" }}
             />
             {/* Pista visual de dónde dibujar (se oculta al empezar a trazar) */}
             {!hasDrawn && (
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
-                <Palette className="h-8 w-8 text-muted/50" />
-                <p className="text-sm font-medium text-muted/70">{t.designStudio.canvasHint}</p>
+                <Pencil className="h-8 w-8 text-slate-400" />
+                <p className="text-sm font-medium text-slate-500">{t.designStudio.canvasHint}</p>
               </div>
             )}
           </div>
