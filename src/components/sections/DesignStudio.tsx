@@ -16,8 +16,11 @@ import {
   Target,
   Check,
   Pencil,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { useToast } from "../ui/Toast";
 import { useAIRequest } from "@/lib/useAI";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
@@ -26,6 +29,8 @@ import type { DesignFeedback } from "@/lib/types";
 
 // Color de fondo del lienzo (claro, tipo papel, para que se vea bien dibujar).
 const CANVAS_BG = "#f8fafc";
+const CANVAS_H = 320; // alto CSS fijo del lienzo (coincide con el buffer)
+const MAX_UPLOAD = 25 * 1024 * 1024; // 25 MB
 
 // Paleta de pinceles pensada para dibujar sobre fondo claro.
 const COLORS = [
@@ -36,6 +41,7 @@ const SIZES = [2, 4, 8, 14, 24];
 
 export function DesignStudio() {
   const { t, locale, addStat } = useApp();
+  const { notify } = useToast();
   const fbReq = useAIRequest<DesignFeedback>();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -43,8 +49,10 @@ export function DesignStudio() {
   const drawingRef = useRef(false);
   const lastRef = useRef<{ x: number; y: number } | null>(null);
   const undoStack = useRef<string[]>([]);
+  const bgImageRef = useRef<HTMLImageElement | null>(null); // diseño cargado (fondo)
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Refs para leer los valores actuales dentro de los handlers de puntero.
+  // Refs para leer valores actuales dentro de los handlers de puntero.
   const colorRef = useRef("#0f172a");
   const sizeRef = useRef(4);
   const erasingRef = useRef(false);
@@ -55,7 +63,8 @@ export function DesignStudio() {
   const [discipline, setDiscipline] = useState("Diseño gráfico");
   const [brief, setBrief] = useState("");
   const [intent, setIntent] = useState("");
-  const [hasDrawn, setHasDrawn] = useState(false);
+  const [hasContent, setHasContent] = useState(false); // dibujó o cargó algo
+  const [uploadName, setUploadName] = useState<string | null>(null);
 
   useEffect(() => { colorRef.current = color; }, [color]);
   useEffect(() => { sizeRef.current = size; }, [size]);
@@ -69,9 +78,20 @@ export function DesignStudio() {
     t.designStudio.discComp,
   ];
 
-  // (Re)dimensiona el lienzo al tamaño real del contenedor, preservando el
-  // dibujo. El buffer interno = tamaño CSS * devicePixelRatio para nitidez,
-  // y el contexto se escala para trabajar siempre en coordenadas CSS.
+  // Pinta el fondo: color papel + la imagen cargada (si hay), encajada "contain".
+  function paintBackground(ctx: CanvasRenderingContext2D, cssW: number, cssH: number) {
+    ctx.fillStyle = CANVAS_BG;
+    ctx.fillRect(0, 0, cssW, cssH);
+    const img = bgImageRef.current;
+    if (img && img.width && img.height) {
+      const scale = Math.min(cssW / img.width, cssH / img.height);
+      const dw = img.width * scale;
+      const dh = img.height * scale;
+      ctx.drawImage(img, (cssW - dw) / 2, (cssH - dh) / 2, dw, dh);
+    }
+  }
+
+  // (Re)dimensiona el lienzo al ancho real del contenedor, preservando trazos.
   const resize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -79,15 +99,14 @@ export function DesignStudio() {
     if (!parent) return;
     const cssW = Math.floor(parent.clientWidth);
     if (cssW <= 0) return; // aún oculto
-    const cssH = Math.max(260, Math.min(Math.round(cssW * 0.6), 440));
+    const cssH = CANVAS_H;
     const ratio = window.devicePixelRatio || 1;
 
-    // Si ya está al tamaño correcto, no re-inicializar (evita borrar).
     const targetW = Math.round(cssW * ratio);
     const targetH = Math.round(cssH * ratio);
     if (canvas.width === targetW && canvas.height === targetH && ctxRef.current) return;
 
-    // Guarda el contenido actual para re-pintarlo tras el resize.
+    // Guarda lo dibujado para re-pintarlo tras el resize.
     let prev: HTMLCanvasElement | null = null;
     if (ctxRef.current && canvas.width > 0 && canvas.height > 0) {
       prev = document.createElement("canvas");
@@ -103,12 +122,17 @@ export function DesignStudio() {
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0); // coordenadas en CSS px
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.fillStyle = CANVAS_BG;
-    ctx.fillRect(0, 0, cssW, cssH);
-    if (prev) ctx.drawImage(prev, 0, 0, prev.width, prev.height, 0, 0, cssW, cssH);
+    if (prev) {
+      // Conserva exactamente lo que había (incluye el fondo/imagen ya pintados).
+      ctx.fillStyle = CANVAS_BG;
+      ctx.fillRect(0, 0, cssW, cssH);
+      ctx.drawImage(prev, 0, 0, prev.width, prev.height, 0, 0, cssW, cssH);
+    } else {
+      paintBackground(ctx, cssW, cssH);
+    }
     ctxRef.current = ctx;
   }, []);
 
@@ -128,11 +152,10 @@ export function DesignStudio() {
     };
   }, [resize]);
 
-  // Posición del puntero en coordenadas CSS del lienzo (coinciden con el ctx).
+  // Posición del puntero en coordenadas CSS del lienzo.
   function pointerPos(e: React.PointerEvent<HTMLCanvasElement>) {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
-    // Escala por si el rect visual difiere del tamaño CSS declarado.
     const scaleX = (canvas.clientWidth || rect.width) / rect.width;
     const scaleY = (canvas.clientHeight || rect.height) / rect.height;
     return {
@@ -169,8 +192,8 @@ export function DesignStudio() {
     drawingRef.current = true;
     const p = pointerPos(e);
     lastRef.current = p;
-    dot(ctx, p.x, p.y); // punto al tocar (clics sueltos)
-    if (!hasDrawn) setHasDrawn(true);
+    dot(ctx, p.x, p.y);
+    if (!hasContent) setHasContent(true);
   }
 
   function moveDraw(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -194,13 +217,21 @@ export function DesignStudio() {
     lastRef.current = null;
   }
 
+  function redrawAll() {
+    const canvas = canvasRef.current;
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
+    paintBackground(ctx, canvas.clientWidth, canvas.clientHeight);
+  }
+
   function undo() {
     const canvas = canvasRef.current;
     const ctx = ctxRef.current;
     const prev = undoStack.current.pop();
     if (!canvas || !ctx) return;
     if (!prev) {
-      clearCanvas(false);
+      redrawAll();
+      setHasContent(!!bgImageRef.current);
       return;
     }
     const img = new Image();
@@ -212,28 +243,72 @@ export function DesignStudio() {
     img.src = prev;
   }
 
-  function clearCanvas(takeSnapshot = true) {
+  function clearCanvas() {
     const canvas = canvasRef.current;
     const ctx = ctxRef.current;
     if (!canvas || !ctx) return;
-    if (takeSnapshot) snapshot();
-    ctx.fillStyle = CANVAS_BG;
-    ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-    setHasDrawn(false);
+    snapshot();
+    redrawAll(); // deja el fondo/imagen cargada, borra solo los trazos
+    setHasContent(!!bgImageRef.current);
+  }
+
+  function removeUpload() {
+    bgImageRef.current = null;
+    setUploadName(null);
+    const canvas = canvasRef.current;
+    const ctx = ctxRef.current;
+    if (canvas && ctx) {
+      ctx.fillStyle = CANVAS_BG;
+      ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+    }
+    undoStack.current = [];
+    setHasContent(false);
+  }
+
+  function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      notify("error", t.designStudio.uploadOnlyImages);
+      return;
+    }
+    if (file.size > MAX_UPLOAD) {
+      notify("error", t.designStudio.uploadTooLarge);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        bgImageRef.current = img;
+        setUploadName(file.name);
+        undoStack.current = [];
+        const canvas = canvasRef.current;
+        const ctx = ctxRef.current;
+        if (canvas && ctx) paintBackground(ctx, canvas.clientWidth, canvas.clientHeight);
+        setHasContent(true);
+        notify("success", t.designStudio.uploadDone);
+      };
+      img.onerror = () => notify("error", t.designStudio.uploadFailed);
+      img.src = reader.result as string;
+    };
+    reader.onerror = () => notify("error", t.designStudio.uploadFailed);
+    reader.readAsDataURL(file);
   }
 
   function download() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const link = document.createElement("a");
-    link.download = "sereno-boceto.png";
+    link.download = "sereno-diseno.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
   }
 
   async function askFeedback() {
     const canvas = canvasRef.current;
-    if (!canvas || !hasDrawn) return;
+    if (!canvas || !hasContent) return;
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     const res = await fbReq.run(
       "/api/design-feedback",
@@ -259,7 +334,7 @@ export function DesignStudio() {
         {/* Lienzo + herramientas */}
         <div className="space-y-3">
           {/* Barra de herramientas */}
-          <div className="glass flex flex-wrap items-center gap-3 rounded-2xl p-3">
+          <div className="glass flex flex-wrap items-center gap-2.5 rounded-2xl p-3">
             <div className="flex flex-wrap items-center gap-1.5">
               {COLORS.map((c) => (
                 <button
@@ -300,16 +375,42 @@ export function DesignStudio() {
             <button onClick={undo} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-white/5">
               <Undo2 className="h-4 w-4" /> {t.designStudio.undo}
             </button>
-            <button onClick={() => clearCanvas()} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-white/5">
+            <button onClick={clearCanvas} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-white/5">
               <Trash2 className="h-4 w-4" /> {t.designStudio.clear}
             </button>
             <button onClick={download} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-white/5">
               <Download className="h-4 w-4" /> {t.designStudio.download}
             </button>
+            <div className="h-5 w-px bg-white/10" />
+            {/* Subir diseño (Illustrator, Photoshop, foto, etc.) */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1 rounded-lg bg-brand/15 px-2.5 py-1 text-xs font-medium text-brand ring-1 ring-brand/30 transition hover:bg-brand/25"
+            >
+              <ImagePlus className="h-4 w-4" /> {t.designStudio.upload}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.png,.jpg,.jpeg,.webp,.gif,.svg"
+              onChange={handleUpload}
+              className="hidden"
+            />
           </div>
 
-          {/* Lienzo: el contenedor NO tiene padding para que el canvas ocupe
-              exactamente su ancho (coordenadas del puntero precisas). */}
+          {/* Chip del archivo cargado */}
+          {uploadName && (
+            <div className="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-1.5 text-xs text-foreground/80 ring-1 ring-white/10">
+              <ImagePlus className="h-3.5 w-3.5 text-brand" />
+              <span className="flex-1 truncate">{uploadName}</span>
+              <span className="text-muted">{t.designStudio.uploadHint}</span>
+              <button onClick={removeUpload} aria-label={t.designStudio.uploadRemove} className="text-muted transition hover:text-danger">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Lienzo (sin padding: el canvas ocupa el ancho exacto). */}
           <div className="glass relative overflow-hidden rounded-2xl">
             <canvas
               ref={canvasRef}
@@ -319,13 +420,13 @@ export function DesignStudio() {
               onPointerCancel={endDraw}
               onPointerLeave={endDraw}
               className="block w-full cursor-crosshair touch-none select-none"
-              style={{ height: 300, touchAction: "none" }}
+              style={{ height: CANVAS_H, touchAction: "none" }}
             />
-            {/* Pista visual de dónde dibujar (se oculta al empezar a trazar) */}
-            {!hasDrawn && (
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
+            {!hasContent && (
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-center">
                 <Pencil className="h-8 w-8 text-slate-400" />
                 <p className="text-sm font-medium text-slate-500">{t.designStudio.canvasHint}</p>
+                <p className="text-xs text-slate-400">{t.designStudio.canvasHint2}</p>
               </div>
             )}
           </div>
@@ -369,13 +470,13 @@ export function DesignStudio() {
 
             <button
               onClick={askFeedback}
-              disabled={!hasDrawn || fbReq.loading}
+              disabled={!hasContent || fbReq.loading}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-accent px-4 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-40"
             >
               {fbReq.loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wand2 className="h-5 w-5" />}
               {fbReq.loading ? t.designStudio.analyzing : t.designStudio.getFeedback}
             </button>
-            {!hasDrawn && <p className="mt-2 text-center text-xs text-muted">{t.designStudio.drawFirst}</p>}
+            {!hasContent && <p className="mt-2 text-center text-xs text-muted">{t.designStudio.drawFirst}</p>}
           </div>
 
           {/* Tips de diseño siempre visibles */}
