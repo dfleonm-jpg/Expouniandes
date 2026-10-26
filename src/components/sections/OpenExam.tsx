@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PenLine, Loader2, Trophy, RotateCcw, Check, X, Sparkles } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
+import { subjectsForCareer } from "@/lib/subjects";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { RichText } from "../ui/RichText";
@@ -24,16 +25,10 @@ export function OpenExam() {
   const [difficulty, setDifficulty] = useState<"facil" | "media" | "dificil">("media");
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
+  // Presets según la carrera del estudiante (todas las áreas, no solo Ing.).
   const presets = Array.from(
-    new Set([
-      ...(profile.subjects ?? []),
-      "Redes y subnetting (IP)",
-      "Estructuras de datos",
-      "Programación (Python)",
-      "Cálculo",
-      "Física",
-    ])
-  ).slice(0, 8);
+    new Set([...(profile.subjects ?? []), ...subjectsForCareer(profile.career)])
+  ).slice(0, 10);
 
   const exam = examReq.data;
   const result = gradeReq.data;

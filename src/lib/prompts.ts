@@ -293,15 +293,19 @@ export const EXAM_ANALYSIS_SHAPE =
 /** Genera un parcial de RESPUESTA ABIERTA (sin opción múltiple) tipo Uniandes. */
 export function openExamPrompt(subject: string, count: number, difficulty: string, locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
-  return `Eres profesor universitario (estilo Universidad de los Andes). Crea un PARCIAL de respuesta ABIERTA sobre: "${subject}".${profileContext(profile)}
+  return `Eres profesor universitario. Crea un PARCIAL de respuesta ABIERTA sobre: "${subject}".${profileContext(profile)}
 Nº de preguntas: ${count}. Dificultad: ${difficulty}. Idioma: ${l}.
-Las preguntas deben resolverse ESCRIBIENDO la respuesta (no opción múltiple), como en un parcial real. Varía el tipo:
-- Para redes/IP: subnetting, cálculo de máscara, rango de hosts, broadcast, VLSM (type "numeric" o "short").
-- Para estructuras de datos: complejidad Big-O, recorrido de árboles/grafos, diseño de una estructura, traza de un algoritmo (type "short", "long" o "code").
-- Para cálculo/física: derivadas, integrales, límites a mano (type "numeric" o "long"), SIEMPRE en LaTeX $...$ y $$...$$.
-- Para programación: escribir una función o explicar qué imprime un código (type "code" o "short").
-Cada pregunta define: "topic" (subtema concreto), "prompt" (enunciado claro en markdown/LaTeX, con datos exactos), "type", "expectedAnswer" (la respuesta/solución de referencia correcta y detallada), "rubric" (criterios para calificar: qué debe tener una respuesta correcta y errores comunes), "points" (entero, suma total = 100).
-Sé riguroso y realista. Todo en ${l}.`;
+Las preguntas se resuelven ESCRIBIENDO la respuesta (no opción múltiple), como en un parcial real. ADAPTA el tipo y el formato a la MATERIA (no asumas que es de ingeniería):
+- Ciencias exactas (cálculo, física, química): problemas a mano con LaTeX $...$ y $$...$$ (type "numeric" o "long").
+- Programación / redes / estructuras de datos: escribir/trazar código, Big-O, subnetting (type "code", "short" o "numeric").
+- Diseño / arte / arquitectura: análisis de una pieza, justificación de decisiones de composición/color/tipografía, crítica, propuesta conceptual (type "long" o "short").
+- Derecho: análisis de caso, aplicación de una norma a un supuesto, argumentación jurídica (type "long").
+- Medicina / salud / biología: casos clínicos, explicación de procesos, diagnóstico razonado (type "short" o "long").
+- Humanidades / sociales / comunicación / economía: ensayo breve, análisis crítico, comparación de teorías, interpretación (type "long").
+- Idiomas / redacción: comprensión, redacción, análisis de texto (type "short" o "long").
+Usa el tipo que mejor evalúe cada tema. Solo usa LaTeX cuando la materia realmente tenga matemáticas.
+Cada pregunta define: "topic" (subtema concreto), "prompt" (enunciado claro en markdown, con los datos/contexto necesarios), "type" ("numeric" | "short" | "long" | "code"), "expectedAnswer" (respuesta/solución de referencia o, para preguntas abiertas de ensayo, los puntos clave que una buena respuesta debe incluir), "rubric" (criterios para calificar y errores comunes), "points" (entero, suma total = 100).
+Sé riguroso y realista para la materia. Todo en ${l}.`;
 }
 
 export const OPEN_EXAM_SHAPE =

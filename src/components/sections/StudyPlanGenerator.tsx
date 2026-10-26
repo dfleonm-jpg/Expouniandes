@@ -7,6 +7,7 @@ import { useApp } from "@/lib/app-context";
 import { useAIRequest } from "@/lib/useAI";
 import { downloadMarkdown } from "@/lib/export";
 import { subjectBreakdown, normKey } from "@/lib/mastery";
+import { subjectsForCareer } from "@/lib/subjects";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { cn } from "@/lib/utils";
 import type { StudyPlan } from "@/lib/types";
@@ -23,17 +24,11 @@ export function StudyPlanGenerator() {
   const [hoursPerDay, setHoursPerDay] = useState(2);
   const [examDate, setExamDate] = useState("");
 
-  // Materias sugeridas: las críticas del perfil + presets típicos de Uniandes.
+  // Materias sugeridas: las del perfil + presets según la CARRERA del estudiante
+  // (Diseño, Derecho, Medicina, etc.), no solo Ingeniería.
   const presetSubjects = Array.from(
-    new Set([
-      ...(profile.subjects ?? []),
-      "Programación (Python)",
-      "Cálculo",
-      "Física",
-      "Álgebra lineal",
-      "Estructuras de datos",
-    ])
-  ).slice(0, 8);
+    new Set([...(profile.subjects ?? []), ...subjectsForCareer(profile.career)])
+  ).slice(0, 10);
 
   // Próximos parciales del calendario (para fijar la fecha objetivo).
   const todayStr = new Date().toISOString().slice(0, 10);

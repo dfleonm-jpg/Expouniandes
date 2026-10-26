@@ -6,6 +6,7 @@ import { ArrowRight, ArrowLeft, GraduationCap, BookOpen, Brain, Plus, X, Check }
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/lib/auth-context";
 import { useModalA11y } from "@/lib/useModalA11y";
+import { subjectsForCareer } from "@/lib/subjects";
 import { SerenoLogo } from "./SerenoLogo";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,9 @@ export function Onboarding() {
   const [subjectInput, setSubjectInput] = useState("");
   const [studyStyle, setStudyStyle] = useState(profile.studyStyle);
   const [stressLevel, setStressLevel] = useState(profile.stressLevel);
+
+  // Sugerencias de materias según la carrera escrita (todas las áreas).
+  const suggestedSubjects = subjectsForCareer(career);
 
   // Al abrirse (incluido al reabrirlo desde "Editar mi perfil"), precarga el
   // formulario con lo que ya tenga el perfil y vuelve al primer paso.
@@ -159,6 +163,26 @@ export function Onboarding() {
                       <Plus className="h-4 w-4" />
                     </button>
                   </div>
+                  {/* Sugerencias de materias según la carrera escrita */}
+                  {suggestedSubjects.length > 0 && (
+                    <div className="mt-3">
+                      <p className="mb-1.5 text-xs text-muted">{t.ui.obSuggested}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {suggestedSubjects
+                          .filter((s) => !subjects.includes(s))
+                          .slice(0, 8)
+                          .map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => setSubjects((p) => [...p, s])}
+                              className="glass rounded-full px-3 py-1.5 text-xs text-muted transition hover:text-foreground"
+                            >
+                              + {s}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {subjects.map((s) => (
                       <span key={s} className="glass flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm">

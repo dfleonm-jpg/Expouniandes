@@ -17,16 +17,38 @@ export async function extractText(
   file: File,
   onProgress?: (p: ExtractProgress) => void
 ): Promise<string> {
-  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  const name = file.name.toLowerCase();
+  const isPdf = file.type === "application/pdf" || name.endsWith(".pdf");
+  const isImage =
+    file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif|bmp)$/.test(name);
 
-  if (!isPdf) {
-    onProgress?.({ stage: "reading" });
-    const text = await file.text();
-    onProgress?.({ stage: "done" });
-    return text;
+  if (isImage) return extractImage(file, onProgress);
+  if (isPdf) return extractPdf(file, onProgress);
+
+  // Texto plano (.txt, .md, etc.)
+  onProgress?.({ stage: "reading" });
+  const text = await file.text();
+  onProgress?.({ stage: "done" });
+  return text;
+}
+
+/** OCR de una imagen (foto de apuntes, brief de diseño, diagrama, etc.). */
+async function extractImage(file: File, onProgress?: (p: ExtractProgress) => void): Promise<string> {
+  onProgress?.({ stage: "ocr", page: 1, totalPages: 1 });
+  const { createWorker } = await import("tesseract.js");
+  const worker = await createWorker(["spa", "eng"]);
+  try {
+    const url = URL.createObjectURL(file);
+    try {
+      const { data } = await worker.recognize(url);
+      onProgress?.({ stage: "done" });
+      return data.text.trim();
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  } finally {
+    await worker.terminate();
   }
-
-  return extractPdf(file, onProgress);
 }
 
 async function extractPdf(file: File, onProgress?: (p: ExtractProgress) => void): Promise<string> {

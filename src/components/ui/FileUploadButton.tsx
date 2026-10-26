@@ -6,7 +6,7 @@ import { useApp } from "@/lib/app-context";
 import { useToast } from "./Toast";
 import { extractText, type ExtractProgress } from "@/lib/extract-text";
 
-const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_BYTES = 25 * 1024 * 1024; // 25 MB (apuntes, PDFs grandes, imágenes)
 
 export function FileUploadButton({
   onExtracted,
@@ -78,7 +78,7 @@ export function FileUploadButton({
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.txt,.md,application/pdf,text/plain"
+        accept=".pdf,.txt,.md,.png,.jpg,.jpeg,.webp,application/pdf,text/plain,text/markdown,image/png,image/jpeg,image/webp"
         onChange={handle}
         className="hidden"
       />
