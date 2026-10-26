@@ -135,6 +135,46 @@ export function dueForReview(state: MasteryState, withinDays = 0, now = Date.now
     .sort((a, b) => a.dueInDays - b.dueInDays || a.score - b.score);
 }
 
+// ---- Retos por materia ----
+// Genera desafíos concretos a partir del dominio actual: subir una materia al
+// siguiente nivel, dominar un tema débil, o mantener la constancia.
+export type Challenge = {
+  id: string;
+  subject: string;
+  subjectKey: string;
+  kind: "levelUp" | "fixWeak" | "polish";
+  current: number; // dominio actual del objetivo
+  target: number;  // meta a alcanzar
+  progress: number; // 0..1
+};
+
+const NEXT_THRESHOLD = (score: number) => (score < 40 ? 40 : score < 65 ? 65 : score < 85 ? 85 : 100);
+
+/** Hasta `max` retos sugeridos, priorizando materias débiles. */
+export function subjectChallenges(state: MasteryState, max = 4): Challenge[] {
+  const subjects = subjectBreakdown(state); // débiles primero
+  const out: Challenge[] = [];
+  for (const s of subjects) {
+    if (out.length >= max) break;
+    if (s.score >= 100) continue;
+    const target = NEXT_THRESHOLD(s.score);
+    const kind: Challenge["kind"] = s.score < 50 ? "fixWeak" : s.score < 85 ? "levelUp" : "polish";
+    // Progreso dentro del tramo actual hacia el siguiente umbral.
+    const floor = target === 40 ? 0 : target === 65 ? 40 : target === 85 ? 65 : 85;
+    const progress = Math.min(Math.max((s.score - floor) / (target - floor), 0), 1);
+    out.push({
+      id: `ch-${s.subjectKey}`,
+      subject: s.subject,
+      subjectKey: s.subjectKey,
+      kind,
+      current: s.score,
+      target,
+      progress,
+    });
+  }
+  return out;
+}
+
 /** Dominio global promedio (0..100), o null si no hay datos. */
 export function overallMastery(state: MasteryState): number | null {
   const vals = Object.values(state.topics);
