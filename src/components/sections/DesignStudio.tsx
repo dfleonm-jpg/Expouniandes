@@ -56,16 +56,20 @@ export function DesignStudio() {
   ];
 
   // Prepara el lienzo (fondo del "surface" de Sereno) y el contexto 2D.
+  // Solo configura cuando el contenedor tiene ancho real (> 0); así funciona
+  // aunque la sección se monte oculta (display:none) y se muestre después.
   const setup = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
     if (!parent) return;
-    const ratio = window.devicePixelRatio || 1;
     const w = parent.clientWidth;
+    // Si todavía está oculto (ancho 0), no hay nada que dibujar aún.
+    if (w <= 0) return;
+    const ratio = window.devicePixelRatio || 1;
     const h = Math.min(Math.round(w * 0.62), 460);
-    // Evita reescalar si el tamaño no cambió (preserva el dibujo).
-    if (canvas.dataset.w === String(w) && canvas.dataset.h === String(h)) return;
+    // Evita reescalar (y borrar el dibujo) si el tamaño no cambió.
+    if (canvas.dataset.w === String(w) && canvas.dataset.h === String(h) && ctxRef.current) return;
     canvas.dataset.w = String(w);
     canvas.dataset.h = String(h);
     canvas.width = w * ratio;
@@ -85,7 +89,19 @@ export function DesignStudio() {
   useEffect(() => {
     setup();
     window.addEventListener("resize", setup);
-    return () => window.removeEventListener("resize", setup);
+    // ResizeObserver: se dispara cuando el contenedor pasa de oculto (ancho 0)
+    // a visible (ancho real), que es justo cuando el usuario entra a la sección.
+    const canvas = canvasRef.current;
+    const parent = canvas?.parentElement;
+    let ro: ResizeObserver | undefined;
+    if (parent && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => setup());
+      ro.observe(parent);
+    }
+    return () => {
+      window.removeEventListener("resize", setup);
+      ro?.disconnect();
+    };
   }, [setup]);
 
   function pointerPos(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -245,15 +261,22 @@ export function DesignStudio() {
           </div>
 
           {/* Lienzo */}
-          <div className="glass overflow-hidden rounded-2xl p-1">
+          <div className="glass relative overflow-hidden rounded-2xl p-1">
             <canvas
               ref={canvasRef}
               onPointerDown={startDraw}
               onPointerMove={moveDraw}
               onPointerUp={endDraw}
               onPointerLeave={endDraw}
-              className="block w-full cursor-crosshair rounded-xl touch-none"
+              className="block w-full min-h-[260px] cursor-crosshair rounded-xl touch-none bg-[#0c1119]"
             />
+            {/* Pista visual de dónde dibujar (se oculta al empezar a trazar) */}
+            {!hasDrawn && (
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
+                <Palette className="h-8 w-8 text-muted/50" />
+                <p className="text-sm font-medium text-muted/70">{t.designStudio.canvasHint}</p>
+              </div>
+            )}
           </div>
         </div>
 

@@ -590,6 +590,7 @@ export const translations = {
       getFeedback: "Pedir retroalimentación",
       analyzing: "Analizando tu diseño...",
       drawFirst: "Dibuja algo en el lienzo para activar la retro.",
+      canvasHint: "Dibuja aquí con el mouse o el dedo ✏️",
       tipsTitle: "Tips de diseño",
       tips: [
         "Jerarquía: guía el ojo con tamaño, peso y contraste.",
@@ -1339,6 +1340,7 @@ export const translations = {
       getFeedback: "Get feedback",
       analyzing: "Analyzing your design...",
       drawFirst: "Draw something on the canvas to enable feedback.",
+      canvasHint: "Draw here with your mouse or finger ✏️",
       tipsTitle: "Design tips",
       tips: [
         "Hierarchy: guide the eye with size, weight and contrast.",
@@ -2088,6 +2090,7 @@ export const translations = {
       getFeedback: "Pedir feedback",
       analyzing: "Analisando seu design...",
       drawFirst: "Desenhe algo no quadro para ativar o feedback.",
+      canvasHint: "Desenhe aqui com o mouse ou o dedo ✏️",
       tipsTitle: "Dicas de design",
       tips: [
         "Hierarquia: guie o olhar com tamanho, peso e contraste.",
@@ -2837,6 +2840,7 @@ export const translations = {
       getFeedback: "Demander un retour",
       analyzing: "Analyse de votre design...",
       drawFirst: "Dessinez quelque chose sur le canevas pour activer le retour.",
+      canvasHint: "Dessinez ici avec la souris ou le doigt ✏️",
       tipsTitle: "Conseils de design",
       tips: [
         "Hiérarchie : guidez l'œil avec la taille, le poids et le contraste.",
