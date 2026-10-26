@@ -167,16 +167,27 @@ Idioma: ${l}. Explica en 2-3 frases por qué ese método encaja con su caso y da
 
 // ===================== CIENCIAS E INGENIERÍA =====================
 
-/** Genera un ejercicio de programación en Python tipo parcial Uniandes. */
-export function codeExercisePrompt(topic: string, level: string, restrictions: string[], locale?: string, profile?: ProfileInput) {
+// Mapea el lenguaje a su etiqueta de bloque de código y ejemplo de firma.
+function langInfo(language?: string) {
+  const name = (language || "Python").trim();
+  const fence = name.toLowerCase().replace("c++", "cpp").replace("c#", "csharp").replace(/\s+/g, "");
+  return { name, fence };
+}
+
+/** Genera un ejercicio de programación tipo parcial en el lenguaje elegido. */
+export function codeExercisePrompt(topic: string, level: string, restrictions: string[], locale?: string, profile?: ProfileInput, language?: string) {
   const l = lang(locale);
+  const { name } = langInfo(language);
   const rules = restrictions.length ? restrictions.join(", ") : "ninguna restricción especial";
-  return `Eres profesor de Introducción a la Programación en Python (estilo Universidad de los Andes).
-Crea UN ejercicio de programación tipo parcial sobre: "${topic || "fundamentos de Python"}".${profileContext(profile)}
+  const sqlNote = /sql/i.test(name)
+    ? ' Para SQL, "functionSignature" puede ser una pista del esquema o el inicio de la consulta (ej. "SELECT ... FROM ...").'
+    : "";
+  return `Eres profesor de Programación en ${name} (nivel universitario, exigente y realista).
+Crea UN ejercicio de programación tipo parcial sobre: "${topic || `fundamentos de ${name}`}".${profileContext(profile)}
 Nivel: ${level}. Restricciones que el estudiante DEBE respetar: ${rules}.
-Idioma: ${l}.
-El enunciado debe pedir escribir una función en Python, ser claro y realista (como un punto de parcial). Incluye 2-3 ejemplos de entrada→salida esperada.
-Devuelve: "title" (corto), "statement" (enunciado en markdown con los ejemplos), "functionSignature" (la firma sugerida, ej. "def contar_pares(lista):"), y "hints" (2 pistas sin dar la solución). Todo en ${l}.`;
+Idioma de las explicaciones: ${l}. El código y los nombres técnicos van en ${name}.
+El enunciado debe pedir escribir código en ${name}, ser claro y realista (como un punto de parcial), e incluir 2-3 ejemplos de entrada→salida esperada.
+Devuelve: "title" (corto), "statement" (enunciado en markdown con los ejemplos y la sintaxis propia de ${name}), "functionSignature" (la firma/plantilla inicial idiomática de ${name}),${sqlNote} y "hints" (2 pistas sin dar la solución). Explica en ${l}.`;
 }
 
 export const CODE_EXERCISE_SHAPE =
@@ -187,16 +198,18 @@ export function codeReviewPrompt(
   statement: string,
   code: string,
   restrictions: string[],
-  locale?: string
+  locale?: string,
+  language?: string
 ) {
   const l = lang(locale);
+  const { name, fence } = langInfo(language);
   const rules = restrictions.length ? restrictions.join(", ") : "ninguna";
-  return `Eres un profesor de programación en Python, exigente pero motivador (estilo Uniandes).
+  return `Eres un profesor de programación en ${name}, exigente pero motivador. Evalúa con criterio propio de ${name} (idiomático, buenas prácticas y errores comunes del lenguaje).
 EJERCICIO:
 """${statement}"""
 RESTRICCIONES QUE EL ESTUDIANTE DEBÍA RESPETAR: ${rules}.
-CÓDIGO DEL ESTUDIANTE (Python):
-\`\`\`python
+CÓDIGO DEL ESTUDIANTE (${name}):
+\`\`\`${fence}
 ${code.slice(0, 8000)}
 \`\`\`
 Analízalo como si fuera un parcial. Idioma: ${l}. Responde SOLO JSON con:

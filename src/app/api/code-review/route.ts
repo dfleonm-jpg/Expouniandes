@@ -11,11 +11,12 @@ export async function POST(req: Request) {
   try {
     rl = enforceRateLimit(req, { ...RATE_PROFILES.ai, bucket: "code-review" });
 
-    const { statement, code, restrictions, locale } = await readJson<{
+    const { statement, code, restrictions, locale, language } = await readJson<{
       statement?: string;
       code?: string;
       restrictions?: string[];
       locale?: string;
+      language?: string;
     }>(req);
     const theCode = requireText(code, "Escribe tu código primero.", { max: 10000 });
 
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
       : [];
 
     const data = await generateJSON<CodeReview>(
-      codeReviewPrompt(clampText(statement, 2000), theCode, safeRestrictions, locale),
+      codeReviewPrompt(clampText(statement, 2000), theCode, safeRestrictions, locale, clampText(language, 30)),
       CODE_REVIEW_SHAPE
     );
     return json(data, 200, rl);

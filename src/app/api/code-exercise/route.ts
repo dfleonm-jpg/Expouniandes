@@ -11,12 +11,13 @@ export async function POST(req: Request) {
   try {
     rl = enforceRateLimit(req, { ...RATE_PROFILES.ai, bucket: "code-exercise" });
 
-    const { topic, level, restrictions, locale, profile } = await readJson<{
+    const { topic, level, restrictions, locale, profile, language } = await readJson<{
       topic?: string;
       level?: string;
       restrictions?: string[];
       locale?: string;
       profile?: ProfileInput;
+      language?: string;
     }>(req);
 
     const safeRestrictions = Array.isArray(restrictions)
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
       : [];
 
     const data = await generateJSON<CodeExercise>(
-      codeExercisePrompt(clampText(topic, 300), level ?? "básico", safeRestrictions, locale, profile),
+      codeExercisePrompt(clampText(topic, 300), level ?? "básico", safeRestrictions, locale, profile, clampText(language, 30)),
       CODE_EXERCISE_SHAPE
     );
     return json(data, 200, rl);

@@ -317,6 +317,14 @@ export const translations = {
       backOnline: "¡De vuelta en línea!",
       updateReady: "Nueva versión disponible — actualizar",
     },
+    audio: {
+      title: "Audio-resumen",
+      play: "Reproducir",
+      pause: "Pausar",
+      stop: "Detener",
+      playing: "Reproduciendo…",
+      paused: "En pausa",
+    },
     today: {
       tag: "Recomendado para ti",
       title: "¿Qué estudiar hoy?",
@@ -507,8 +515,9 @@ export const translations = {
     },
     codePractice: {
       title: "Práctica de código",
-      subtitle: "Resuelve ejercicios de Python como en un parcial. La IA revisa y te enseña.",
+      subtitle: "Resuelve ejercicios de programación como en un parcial. La IA revisa y te enseña.",
       integrity: "Practica para aprender. En parciales usa solo lo que tu profesor permita.",
+      languageLabel: "Lenguaje",
       topicLabel: "Tema (opcional)",
       topicPlaceholder: "Ej. ciclos, listas, condicionales, strings...",
       level: "Nivel",
@@ -1018,6 +1027,14 @@ export const translations = {
       backOnline: "Back online!",
       updateReady: "New version available — update",
     },
+    audio: {
+      title: "Audio summary",
+      play: "Play",
+      pause: "Pause",
+      stop: "Stop",
+      playing: "Playing…",
+      paused: "Paused",
+    },
     today: {
       tag: "Recommended for you",
       title: "What to study today?",
@@ -1208,8 +1225,9 @@ export const translations = {
     },
     codePractice: {
       title: "Code practice",
-      subtitle: "Solve Python exercises like in an exam. AI reviews and teaches you.",
+      subtitle: "Solve programming exercises like in an exam. AI reviews and teaches you.",
       integrity: "Practice to learn. In exams, use only what your professor allows.",
+      languageLabel: "Language",
       topicLabel: "Topic (optional)",
       topicPlaceholder: "e.g. loops, lists, conditionals, strings...",
       level: "Level",
@@ -1719,6 +1737,14 @@ export const translations = {
       backOnline: "De volta online!",
       updateReady: "Nova versão disponível — atualizar",
     },
+    audio: {
+      title: "Áudio-resumo",
+      play: "Reproduzir",
+      pause: "Pausar",
+      stop: "Parar",
+      playing: "Reproduzindo…",
+      paused: "Pausado",
+    },
     today: {
       tag: "Recomendado para você",
       title: "O que estudar hoje?",
@@ -1909,8 +1935,9 @@ export const translations = {
     },
     codePractice: {
       title: "Prática de código",
-      subtitle: "Resolva exercícios de Python como numa prova. A IA revisa e te ensina.",
+      subtitle: "Resolva exercícios de programação como numa prova. A IA revisa e te ensina.",
       integrity: "Pratique para aprender. Em provas, use só o que seu professor permitir.",
+      languageLabel: "Linguagem",
       topicLabel: "Tema (opcional)",
       topicPlaceholder: "Ex. laços, listas, condicionais, strings...",
       level: "Nível",
@@ -2420,6 +2447,14 @@ export const translations = {
       backOnline: "De retour en ligne !",
       updateReady: "Nouvelle version disponible — mettre à jour",
     },
+    audio: {
+      title: "Résumé audio",
+      play: "Lire",
+      pause: "Pause",
+      stop: "Arrêter",
+      playing: "Lecture…",
+      paused: "En pause",
+    },
     today: {
       tag: "Recommandé pour vous",
       title: "Quoi étudier aujourd'hui ?",
@@ -2610,8 +2645,9 @@ export const translations = {
     },
     codePractice: {
       title: "Pratique de code",
-      subtitle: "Résolvez des exercices Python comme à un examen. L'IA révise et vous enseigne.",
+      subtitle: "Résolvez des exercices de programmation comme à un examen. L'IA révise et vous enseigne.",
       integrity: "Pratiquez pour apprendre. Aux examens, n'utilisez que ce que votre professeur autorise.",
+      languageLabel: "Langage",
       topicLabel: "Sujet (optionnel)",
       topicPlaceholder: "Ex. boucles, listes, conditions, chaînes...",
       level: "Niveau",

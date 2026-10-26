@@ -16,11 +16,15 @@ export function CodePractice() {
   const exReq = useAIRequest<CodeExercise>();
   const revReq = useAIRequest<CodeReview>();
 
+  const [lang, setLang] = useState("Python");
   const [topic, setTopic] = useState("");
   const [level, setLevel] = useState("básico");
   const [restrictions, setRestrictions] = useState<string[]>([]);
   const [code, setCode] = useState("");
   const [showHints, setShowHints] = useState(false);
+
+  // Lenguajes relevantes para carreras de computación/ingeniería.
+  const LANGUAGES = ["Python", "JavaScript", "Java", "C", "C++", "C#", "SQL"];
 
   const RESTRICTIONS = [
     { key: "noWhile", label: t.codePractice.noWhile, rule: "no usar while" },
@@ -38,7 +42,7 @@ export function CodePractice() {
     revReq.reset();
     setCode("");
     setShowHints(false);
-    const res = await exReq.run("/api/code-exercise", { topic, level, restrictions, locale });
+    const res = await exReq.run("/api/code-exercise", { topic, level, restrictions, locale, language: lang });
     if (res?.functionSignature) setCode(res.functionSignature + "\n    ");
   }
 
@@ -49,11 +53,12 @@ export function CodePractice() {
       code,
       restrictions,
       locale,
+      language: lang,
     });
     if (res) {
       addStat("questionsAnswered", 1);
-      // Dominio por materia de programación: tema = el seleccionado o general.
-      trackMastery("Programación (Python)", [{ topic: topic.trim() || "Fundamentos", performance: (res.score / 5) * 100 }]);
+      // Dominio por materia: una materia por lenguaje de programación.
+      trackMastery(`Programación (${lang})`, [{ topic: topic.trim() || "Fundamentos", performance: (res.score / 5) * 100 }]);
     }
   }
 
@@ -76,6 +81,22 @@ export function CodePractice() {
         {/* Configuración (si no hay ejercicio) */}
         {!ex ? (
           <div className="glass rounded-3xl p-6">
+            <label className="mb-2 block text-sm font-medium text-foreground/80">{t.codePractice.languageLabel}</label>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {LANGUAGES.map((lg) => (
+                <button
+                  key={lg}
+                  onClick={() => setLang(lg)}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-semibold transition",
+                    lang === lg ? "bg-gradient-to-r from-brand to-brand-2 text-white" : "glass text-muted hover:text-foreground"
+                  )}
+                >
+                  {lg}
+                </button>
+              ))}
+            </div>
+
             <label className="mb-2 block text-sm font-medium text-foreground/80">{t.codePractice.topicLabel}</label>
             <input
               value={topic}

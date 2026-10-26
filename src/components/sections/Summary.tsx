@@ -11,7 +11,7 @@ import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import { FileUploadButton } from "../ui/FileUploadButton";
-import { SpeakButton } from "../ui/SpeakButton";
+import { AudioPlayer } from "../ui/AudioPlayer";
 import { RichText } from "../ui/RichText";
 import type { SummaryResult } from "@/lib/types";
 
@@ -52,9 +52,18 @@ export function Summary() {
     else startOver();
   }
 
-  // Texto para leer en voz alta: TL;DR + puntos clave.
+  // Texto completo del audio-resumen: título + TL;DR + puntos clave + conceptos.
   const speakText = data
-    ? `${data.tldr}. ${t.summary.keyPoints}: ${data.keyPoints?.join(". ")}`
+    ? [
+        data.title,
+        data.tldr,
+        `${t.summary.keyPoints}: ${data.keyPoints?.join(". ")}`,
+        data.concepts?.length
+          ? `${t.summary.concepts}: ${data.concepts.map((c) => `${c.term}: ${c.definition}`).join(". ")}`
+          : "",
+      ]
+        .filter(Boolean)
+        .join(". ")
     : "";
 
   function exportPdf() {
@@ -113,10 +122,9 @@ export function Summary() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-bold">{data.title}</h2>
               <div className="flex items-center gap-4">
-                <SpeakButton text={speakText} label="🔊" />
                 <button
                   onClick={exportPdf}
                   className="flex items-center gap-1.5 text-sm text-muted transition hover:text-foreground"
@@ -133,6 +141,9 @@ export function Summary() {
                 </button>
               </div>
             </div>
+
+            {/* Audio-resumen: escucha el resumen con voz */}
+            <AudioPlayer text={speakText} />
 
             {/* TL;DR */}
             <div className="glass glow-border rounded-2xl p-5">
