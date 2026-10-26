@@ -1,6 +1,7 @@
 // Prompts centralizados de Sereno. Mantener aquí para fácil edición.
 
 import { LANGUAGE_NAMES } from "./ai";
+import { lensPromptBlock } from "./subjects";
 
 export function lang(locale?: string) {
   return LANGUAGE_NAMES[locale ?? "es"] ?? "español";
@@ -64,9 +65,10 @@ Reglas:
 
 export function quizPrompt(topic: string, count: number, difficulty: string, locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
-  return `Genera un quiz de opción múltiple sobre: "${topic}".${profileContext(profile)}
+  return `Genera un quiz de opción múltiple sobre: "${topic}".${profileContext(profile)}${lensPromptBlock(topic || profile?.career)}
 Idioma: ${l}. Cantidad: ${count}. Dificultad: ${difficulty}.
-Cada pregunta: exactamente 4 opciones, una sola correcta (correctIndex = índice 0-3), y una explicación clara que enseñe el porqué.
+Las preguntas deben ser propias de la materia (usa su vocabulario y tipo de problema real; NO fuerces matemáticas si la materia no las tiene).
+Cada pregunta: exactamente 4 opciones, una sola correcta (correctIndex = índice 0-3), y una EXPLICACIÓN DETALLADA que: (1) diga por qué la correcta lo es, (2) explique por qué las otras opciones son incorrectas (el error típico que representan), y (3) dé un consejo o concepto clave para recordarlo. Habla el "idioma" de la materia según el enfoque indicado.
 ${MATH_RULE}
 ${FORMAT_RULE}
 Escribe TODO en ${l}.`;
@@ -293,7 +295,7 @@ export const EXAM_ANALYSIS_SHAPE =
 /** Genera un parcial de RESPUESTA ABIERTA (sin opción múltiple) tipo Uniandes. */
 export function openExamPrompt(subject: string, count: number, difficulty: string, locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
-  return `Eres profesor universitario. Crea un PARCIAL de respuesta ABIERTA sobre: "${subject}".${profileContext(profile)}
+  return `Eres profesor universitario. Crea un PARCIAL de respuesta ABIERTA sobre: "${subject}".${profileContext(profile)}${lensPromptBlock(subject || profile?.career)}
 Nº de preguntas: ${count}. Dificultad: ${difficulty}. Idioma: ${l}.
 Las preguntas se resuelven ESCRIBIENDO la respuesta (no opción múltiple), como en un parcial real. ADAPTA el tipo y el formato a la MATERIA (no asumas que es de ingeniería):
 - Ciencias exactas (cálculo, física, química): problemas a mano con LaTeX $...$ y $$...$$ (type "numeric" o "long").
