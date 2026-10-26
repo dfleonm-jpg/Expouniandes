@@ -24,6 +24,7 @@ import {
   Trophy,
   UserCircle,
   Flame,
+  Palette,
 } from "lucide-react";
 import { LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
@@ -46,6 +47,7 @@ export type Section =
   | "methods"
   | "codePractice"
   | "mathPractice"
+  | "designStudio"
   | "planner"
   | "calendar"
   | "groups"
@@ -86,6 +88,7 @@ const GROUPS: { group: GroupKey; items: Item[] }[] = [
     items: [
       { id: "codePractice", icon: Code2, key: "codePractice" },
       { id: "mathPractice", icon: Sigma, key: "mathPractice" },
+      { id: "designStudio", icon: Palette, key: "designStudio" },
     ],
   },
   {

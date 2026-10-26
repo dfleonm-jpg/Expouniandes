@@ -157,3 +157,17 @@ export type OpenExamResult = {
   weakTopics: string[];   // temas donde falló (para actualizar dominio)
   strongTopics: string[]; // temas donde acertó
 };
+
+// ---- Zona de práctica de diseño: retroalimentación de un dibujo/boceto ----
+export type DesignFeedback = {
+  score: number;              // 0.0..5.0 (escala Uniandes)
+  summary: string;            // veredicto general, cálido
+  reads: string;             // qué "lee"/ve la IA en la pieza (descripción)
+  strengths: string[];        // qué está bien logrado
+  improvements: {             // mejoras concretas por dimensión de diseño
+    aspect: string;           // ej. "Composición", "Color", "Tipografía"
+    advice: string;
+  }[];
+  nextChallenge: string;      // un reto concreto para la siguiente iteración
+  principles: string[];       // principios de diseño aplicables para repasar
+};

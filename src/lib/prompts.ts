@@ -358,3 +358,37 @@ Sé justo, específico y motivador. Todo en ${l}.`;
 
 export const OPEN_EXAM_GRADE_SHAPE =
   '{"grades":[{"questionId":string,"awarded":number,"max":number,"correct":boolean,"feedback":string,"modelAnswer":string}],"totalAwarded":number,"totalMax":number,"score5":number,"overview":string,"weakTopics":[string],"strongTopics":[string]}';
+
+// ===================== DISEÑO: RETRO A UN DIBUJO/BOCETO =====================
+
+/**
+ * Retroalimenta un dibujo/boceto del estudiante como un profesor de diseño.
+ * La imagen se envía aparte (visión); aquí va el prompt con el brief y, como
+ * respaldo para modelos sin visión, la descripción textual que dé el alumno.
+ */
+export function designFeedbackPrompt(opts: {
+  brief: string;      // qué se pidió / objetivo de la pieza
+  intent: string;     // qué quiso lograr el estudiante (su descripción)
+  discipline: string; // enfoque: diseño gráfico, UX/UI, ilustración, tipografía...
+  locale?: string;
+}) {
+  const l = lang(opts.locale);
+  const lens = lensPromptBlock(opts.discipline || "diseño");
+  return `Eres un profesor de DISEÑO exigente pero motivador (estilo Universidad de los Andes). Te adjunto el BOCETO/DIBUJO de un estudiante (imagen). Analízalo con criterio profesional de diseño.
+ENFOQUE/DISCIPLINA: ${opts.discipline || "diseño gráfico"}.
+OBJETIVO O BRIEF DE LA PIEZA: "${opts.brief || "ejercicio libre de composición"}".
+LO QUE EL ESTUDIANTE QUISO LOGRAR: "${opts.intent || "(no especificado)"}".${lens}
+Observa la imagen con atención: composición, jerarquía visual, uso del espacio, equilibrio, color, contraste, tipografía (si la hay), coherencia con el objetivo y ejecución. Si NO puedes ver la imagen, básate en la descripción del estudiante y acláralo con tacto en "reads".
+Idioma: ${l}. Responde SOLO JSON con:
+- "score": número 0.0 a 5.0 (nota estilo Uniandes, aprobar 3.0)
+- "summary": 1-2 frases de veredicto general, cálido y honesto
+- "reads": string — describe qué ves/lees en la pieza (elementos, composición, intención que transmite)
+- "strengths": lista de strings (qué está bien logrado, específico)
+- "improvements": lista de { "aspect": string (dimensión: "Composición", "Jerarquía", "Color", "Tipografía", "Espacio", "Contraste", "Concepto"...), "advice": string (mejora concreta y accionable) }
+- "nextChallenge": string (un reto concreto para la siguiente versión del boceto)
+- "principles": lista de strings (2-4 principios de diseño para repasar, ej. "regla de los tercios", "contraste tipográfico", "ley de proximidad")
+Sé específico, pedagógico y alentador; no reescribas la pieza, guía al estudiante. Todo en ${l}.`;
+}
+
+export const DESIGN_FEEDBACK_SHAPE =
+  '{"score":number,"summary":string,"reads":string,"strengths":[string],"improvements":[{"aspect":string,"advice":string}],"nextChallenge":string,"principles":[string]}';

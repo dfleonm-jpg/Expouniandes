@@ -278,6 +278,82 @@ export async function generateJSON<T>(prompt: string, shapeHint: string): Promis
 }
 
 // ---------------------------------------------------------------
+// GENERACIÓN DE JSON CON IMAGEN (visión) — para retroalimentar dibujos.
+//
+// Gemini "ve" la imagen de verdad; Groq (gpt-oss) es solo texto, así que
+// si toca el respaldo de Groq se usa únicamente la descripción textual
+// que acompaña a la imagen (el prompt ya lo contempla).
+// ---------------------------------------------------------------
+export async function generateJSONWithImage<T>(
+  prompt: string,
+  shapeHint: string,
+  image: { dataUrl: string }
+): Promise<T> {
+  const system = `Eres un asistente que responde EXCLUSIVAMENTE con JSON válido, sin texto adicional, sin markdown, sin bloques de código. La forma del JSON debe ser exactamente: ${shapeHint}`;
+
+  // Separa el data URL en mimeType + base64 (sin flag "s" para compatibilidad de target).
+  const url = image.dataUrl.trim();
+  const comma = url.indexOf(",");
+  const header = comma >= 0 ? url.slice(0, comma) : "";
+  const base64 = comma >= 0 ? url.slice(comma + 1) : "";
+  const mimeMatch = /^data:([^;]+)/.exec(header);
+  const mimeType = mimeMatch?.[1] || "image/png";
+
+  // Prioriza Gemini (tiene visión); si no hay Gemini, intenta Groq solo-texto.
+  const chain: Provider[] = [];
+  if (hasGemini()) chain.push("gemini");
+  if (hasGroq()) chain.push("groq");
+  if (chain.length === 0) getProvider();
+
+  let lastErr: unknown;
+  for (let i = 0; i < chain.length; i++) {
+    const provider = chain[i];
+    try {
+      if (provider === "gemini") {
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+        const response = await ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: prompt },
+                ...(base64 ? [{ inlineData: { mimeType, data: base64 } }] : []),
+              ],
+            },
+          ],
+          config: { systemInstruction: system, responseMimeType: "application/json" },
+        });
+        return safeParse<T>(response.text ?? "{}");
+      }
+      // Groq: sin visión. Solo texto (el prompt incluye la descripción del dibujo).
+      const res = await groqFetch({
+        model: GROQ_MODEL,
+        temperature: 0.7,
+        max_tokens: 4096,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: prompt },
+        ],
+      });
+      if (!res.ok) throw await groqError(res);
+      const data = await res.json();
+      return safeParse<T>(data.choices?.[0]?.message?.content ?? "{}");
+    } catch (err) {
+      lastErr = err;
+      const recoverable = err instanceof AIError ? err.recoverable : true;
+      if (recoverable && i < chain.length - 1) {
+        console.warn(`[ai:image] proveedor ${provider} falló; probando respaldo...`);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
+}
+
+// ---------------------------------------------------------------
 // GENERACIÓN DE TEXTO SIMPLE (con failover)
 // ---------------------------------------------------------------
 export async function generateText(prompt: string, system: string): Promise<string> {
