@@ -280,7 +280,7 @@ export function Sidebar({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={auth.user.photo} alt="" className="h-7 w-7 rounded-full" />
                 ) : (
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-brand to-accent text-xs font-bold text-white">
+                  <span className="metal-brand flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white">
                     {auth.user.name.charAt(0).toUpperCase()}
                   </span>
                 )}

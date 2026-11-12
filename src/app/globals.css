@@ -8,12 +8,12 @@
 :root {
   /* Base: casi-negro azulado tipo Linear/Vercel. Superficies sólidas y mate,
      poca saturación, un solo acento. Look "producto", no "demo de IA". */
-  --background: #08090c;
-  --surface: #0f1115;
-  --surface-2: #16181e;
-  --foreground: #f2f3f5;
-  --muted: #9096a1;
-  --border: rgba(255, 255, 255, 0.09);
+  --background: #0a0b0e;
+  --surface: #141619;    /* gris-acero frío */
+  --surface-2: #1b1e23;
+  --foreground: #f3f4f6;
+  --muted: #949aa6;
+  --border: rgba(255, 255, 255, 0.10);
 
   /* Marca: azul sobrio único. Acentos muy cercanos (nada de arcoíris). */
   --brand: #4f7cf0;        /* azul profesional */
@@ -190,19 +190,32 @@ h1, h2, h3,
   66% { transform: translate(-5%, -4%) scale(0.95); }
 }
 
-/* Card — superficie plana con borde hairline. Minimalista: sin sombras
-   llamativas ni brillos internos. */
+/* Card — superficie con acabado METÁLICO (acero cepillado):
+   degradado vertical sutil claro→oscuro que simula luz reflejada, borde con
+   highlight superior y sombra inferior fina. Minimalista pero con "material". */
 .glass {
-  background: var(--surface);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.015) 18%, rgba(0, 0, 0, 0.05) 100%),
+    var(--surface);
   border: 1px solid var(--border);
-  box-shadow: none;
+  border-top-color: rgba(255, 255, 255, 0.16);
+  border-bottom-color: rgba(0, 0, 0, 0.35);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.10),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.3);
 }
 .glass-strong {
-  background: rgba(15, 17, 21, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 16%, rgba(0, 0, 0, 0.08) 100%),
+    rgba(17, 19, 24, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border);
-  box-shadow: none;
+  border-top-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.4),
+    0 10px 30px -18px rgba(0, 0, 0, 0.8);
 }
 
 /* Texto destacado: degradado sobrio y estático (azul → azul-lavanda), sin
@@ -252,6 +265,18 @@ h1, h2, h3,
 }
 .shine:hover::after { transform: translateX(120%); }
 
+/* Toque METÁLICO global para los botones primarios de marca (los que usan el
+   degradado from-brand → to-accent de Tailwind): bisel superior brillante,
+   borde pulido y sombra inferior. Afecta a toda la app sin tocar cada archivo. */
+.from-brand.to-accent {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top-color: rgba(255, 255, 255, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.28),
+    0 4px 14px -6px rgba(79, 124, 240, 0.5);
+}
+
 /* Aparición al entrar (CSS puro, siempre termina visible) */
 .reveal {
   animation: reveal-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -261,11 +286,54 @@ h1, h2, h3,
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Chip de "pill" sobrio para badges (sin glow). */
+/* Chip de "pill" con acabado metálico sutil. */
 .pill-glow {
-  background: rgba(255, 255, 255, 0.04);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.02) 55%, rgba(0, 0, 0, 0.08));
   border: 1px solid var(--border);
-  box-shadow: none;
+  border-top-color: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* Acabado METÁLICO reutilizable (botones, chips, superficies destacadas).
+   Degradado acero + highlight superior + bisel inferior. */
+.metal {
+  background:
+    linear-gradient(180deg, #2a2e36 0%, #1c1f25 45%, #15171c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-top-color: rgba(255, 255, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.45);
+  position: relative;
+}
+/* Reflejo diagonal (brillo especular) sobre la superficie metálica. */
+.metal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.12) 50%, transparent 62%);
+  pointer-events: none;
+}
+
+/* Acento metálico "titanio azulado" para el CTA de marca. */
+.metal-brand {
+  background:
+    linear-gradient(180deg, #6e95f7 0%, #4f7cf0 48%, #3a62d8 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top-color: rgba(255, 255, 255, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.3),
+    0 4px 14px -6px rgba(79, 124, 240, 0.55);
+}
+
+/* Texto con brillo metálico (plata pulida). */
+.text-metal {
+  background: linear-gradient(180deg, #ffffff 0%, #c7ccd6 45%, #8d94a3 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Borde de acento discreto (sin degradado arcoíris). */

@@ -19,8 +19,8 @@ export function SectionHeader({
       transition={{ duration: 0.25 }}
       className="flex items-center gap-3"
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-brand">
-        <Icon className="h-5 w-5" />
+      <div className="metal flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg text-brand">
+        <Icon className="relative z-10 h-5 w-5" />
       </div>
       <div>
         <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
