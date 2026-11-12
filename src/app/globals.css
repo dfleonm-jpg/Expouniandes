@@ -130,31 +130,31 @@ h1, h2, h3,
   inset: 0;
   z-index: -1;
   overflow: hidden;
-  /* Fondo: foto del campus Uniandes (oscura) bajo una capa de oscurecimiento
-     para que el contenido siga legible y mantenga el look oscuro metálico. */
+  /* Fondo base: foto del campus Uniandes a pantalla completa. El oscurecimiento
+     para legibilidad va en el pseudo-elemento ::after (más abajo), así la foto
+     se ve claramente en toda la app sin perder contraste del contenido. */
   background:
-    radial-gradient(1200px 680px at 50% -18%, rgba(79, 124, 240, 0.08), transparent 60%),
-    linear-gradient(180deg, rgba(2, 3, 3, 0.82) 0%, rgba(2, 3, 3, 0.9) 55%, rgba(2, 3, 3, 0.96) 100%),
-    url("/campus-uniandes.png") center / cover no-repeat fixed,
+    url("/campus-uniandes.png") center center / cover no-repeat,
     var(--background);
+  background-attachment: fixed, fixed;
 }
 /* En móvil, background-attachment: fixed puede causar glitches/costo de render;
    usamos scroll normal (la capa es position:fixed, así que igual cubre todo). */
 @media (max-width: 768px) {
   .aurora-bg {
-    background-attachment: scroll, scroll, scroll;
+    background-attachment: scroll, scroll;
   }
 }
-
-/* Trama de puntos finísima, estática (textura discreta, no "rejilla técnica"). */
+/* Capa de LEGIBILIDAD sobre la foto: oscurecimiento suave + viñeta + un toque
+   azul arriba. Deja ver claramente el campus pero mantiene el texto legible. */
 .aurora-bg::before {
   content: "";
   position: absolute;
-  inset: -2px;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1.4px);
-  background-size: 32px 32px;
-  mask-image: radial-gradient(ellipse 95% 70% at 50% 0%, #000 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 95% 70% at 50% 0%, #000 40%, transparent 100%);
+  inset: 0;
+  background:
+    radial-gradient(1200px 680px at 50% -18%, rgba(79, 124, 240, 0.10), transparent 60%),
+    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 30%, rgba(2, 3, 3, 0.55) 100%),
+    linear-gradient(180deg, rgba(2, 3, 3, 0.45) 0%, rgba(2, 3, 3, 0.58) 60%, rgba(2, 3, 3, 0.72) 100%);
 }
 /* Línea de luz sutil en el borde superior (detalle tipo "producto"). */
 .aurora-bg::after {
@@ -164,7 +164,7 @@ h1, h2, h3,
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.10), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
 }
 
 /* Orbes desactivados: se mantienen los selectores para no tocar los componentes
@@ -206,7 +206,9 @@ h1, h2, h3,
 .glass {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.018) 22%, rgba(0, 0, 0, 0.18) 100%),
-    var(--surface);
+    rgba(9, 10, 12, 0.72); /* translúcido: deja ver el campus de fondo */
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
   border: 1px solid var(--border);
   border-top-color: rgba(255, 255, 255, 0.22);
   border-bottom-color: rgba(0, 0, 0, 0.55);
