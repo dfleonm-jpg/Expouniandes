@@ -186,13 +186,13 @@ export function Sidebar({
                         {isActive && (
                           <motion.span
                             layoutId="side-pill"
-                            className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand/30 to-accent/15 ring-1 ring-brand/25 shadow-[0_0_20px_-6px_rgba(139,92,246,0.6)]"
+                            className="absolute inset-0 rounded-lg bg-white/[0.07]"
                             transition={{ type: "spring", stiffness: 380, damping: 32 }}
                           >
-                            <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-brand to-accent" />
+                            <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-brand" />
                           </motion.span>
                         )}
-                        <Icon className={cn("relative z-10 h-[18px] w-[18px] shrink-0 transition-colors", isActive && "text-accent")} />
+                        <Icon className={cn("relative z-10 h-[18px] w-[18px] shrink-0 transition-colors", isActive && "text-brand")} />
                         <span className="relative z-10">{t.nav[item.key]}</span>
                       </button>
                     );
@@ -275,18 +275,18 @@ export function Sidebar({
                 onClick={() => onNavigate(item.id)}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "relative flex min-w-[60px] shrink-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-medium transition",
-                  isActive ? "text-white" : "text-muted active:scale-95"
+                  "relative flex min-w-[60px] shrink-0 flex-col items-center gap-1 rounded-lg px-1 py-2 text-[10px] font-medium transition",
+                  isActive ? "text-foreground" : "text-muted active:scale-95"
                 )}
               >
                 {isActive && (
                   <motion.span
                     layoutId="mobile-nav-pill"
-                    className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand/80 to-brand-2/70 shadow-[0_0_16px_-4px_rgba(59,111,229,0.7)]"
+                    className="absolute inset-0 rounded-lg bg-white/[0.08]"
                     transition={{ type: "spring", stiffness: 420, damping: 34 }}
                   />
                 )}
-                <Icon className="relative z-10 h-5 w-5" />
+                <Icon className={cn("relative z-10 h-5 w-5", isActive && "text-brand")} />
                 <span className="relative z-10 max-w-[64px] truncate">{t.nav[item.key]}</span>
               </button>
             );

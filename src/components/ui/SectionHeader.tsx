@@ -14,17 +14,17 @@ export function SectionHeader({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="flex items-center gap-4"
+      transition={{ duration: 0.25 }}
+      className="flex items-center gap-3"
     >
-      <div className="glow-ring flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-accent">
-        <Icon className="h-6 w-6 text-white" />
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-brand">
+        <Icon className="h-5 w-5" />
       </div>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
-        <p className="text-sm text-muted sm:text-base">{subtitle}</p>
+        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+        <p className="text-sm text-muted">{subtitle}</p>
       </div>
     </motion.div>
   );
