@@ -25,6 +25,7 @@ import {
   UserCircle,
   Flame,
   Palette,
+  Egg,
 } from "lucide-react";
 import { LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
@@ -56,6 +57,7 @@ export type Section =
   | "diagnostic"
   | "progress"
   | "ranking"
+  | "pet"
   | "profile";
 
 type NavKey = keyof ReturnType<typeof useApp>["t"]["nav"];
@@ -114,6 +116,7 @@ const GROUPS: { group: GroupKey; items: Item[] }[] = [
       { id: "diagnostic", icon: Compass, key: "diagnostic" },
       { id: "progress", icon: BarChart3, key: "progress" },
       { id: "ranking", icon: Trophy, key: "ranking" },
+      { id: "pet", icon: Egg, key: "pet" },
     ],
   },
 ];

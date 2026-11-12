@@ -6,22 +6,23 @@
    =========================================================== */
 
 :root {
-  /* Base: azul-pizarra profundo (profesional, serio, tipo Linear/Stripe). */
-  --background: #060910;
-  --surface: #0c1119;
-  --surface-2: #121826;
-  --foreground: #eef1f6;
-  --muted: #8b94a7;
-  --border: rgba(255, 255, 255, 0.07);
+  /* Base: casi-negro azulado tipo Linear/Vercel. Superficies sólidas y mate,
+     poca saturación, un solo acento. Look "producto", no "demo de IA". */
+  --background: #08090c;
+  --surface: #0f1115;
+  --surface-2: #16181e;
+  --foreground: #f2f3f5;
+  --muted: #9096a1;
+  --border: rgba(255, 255, 255, 0.09);
 
-  /* Marca: azul profesional + cian sobrio como acento. */
-  --brand: #3b6fe5;        /* azul profesional */
-  --brand-2: #5b8def;      /* azul claro */
-  --accent: #38bdf8;       /* cian cielo */
-  --accent-2: #2dd4bf;     /* teal */
-  --calm: #34d399;         /* esmeralda (positivo) */
-  --warn: #f5b445;         /* ámbar / dorado Uniandes */
-  --danger: #f26d6d;       /* rojo coral */
+  /* Marca: azul sobrio único. Acentos muy cercanos (nada de arcoíris). */
+  --brand: #4f7cf0;        /* azul profesional */
+  --brand-2: #6b93f5;      /* azul claro */
+  --accent: #6b93f5;       /* mismo azul (evita el cian saturado) */
+  --accent-2: #8aa8f7;     /* azul-lavanda suave */
+  --calm: #3ecf8e;         /* verde sobrio (positivo) */
+  --warn: #e8b339;         /* ámbar contenido */
+  --danger: #ef5f5f;       /* rojo coral */
 }
 
 @theme inline {
@@ -66,8 +67,10 @@ body {
    Tailwind para tamaño/peso siguen mandando; solo cambiamos familia y tracking. */
 h1, h2, h3,
 .font-display {
-  font-family: var(--font-display), var(--font-sans), Georgia, serif;
-  letter-spacing: -0.02em;
+  /* Sans para los títulos: aire de producto/software, no editorial. */
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.025em;
+  font-weight: 650;
 }
 /* Variante opcional en cursiva suave para acentos "humanos". */
 .font-display-italic {
@@ -120,69 +123,38 @@ h1, h2, h3,
   inset: 0;
   z-index: -1;
   overflow: hidden;
+  /* Fondo sólido con una viñeta/halo MUY sutil y estático arriba (tipo Linear).
+     Sin orbes de colores ni animación: look limpio y profesional. */
   background:
-    radial-gradient(1300px 760px at 50% -12%, rgba(59, 111, 229, 0.18), transparent 62%),
-    radial-gradient(1000px 620px at 100% 110%, rgba(56, 189, 248, 0.10), transparent 60%),
-    radial-gradient(900px 600px at 0% 100%, rgba(52, 211, 153, 0.08), transparent 60%),
+    radial-gradient(1200px 680px at 50% -18%, rgba(79, 124, 240, 0.08), transparent 60%),
     var(--background);
 }
-/* Trama de puntos muy suave (menos "rejilla técnica", más textura orgánica) */
+/* Trama de puntos finísima, estática (textura discreta, no "rejilla técnica"). */
 .aurora-bg::before {
   content: "";
   position: absolute;
   inset: -2px;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1.4px);
-  background-size: 30px 30px;
-  mask-image: radial-gradient(ellipse 95% 75% at 50% 25%, #000 35%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 95% 75% at 50% 25%, #000 35%, transparent 100%);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1.4px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 95% 70% at 50% 0%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 95% 70% at 50% 0%, #000 40%, transparent 100%);
 }
-/* Orbe principal índigo-violeta que respira y deriva lentamente */
+/* Línea de luz sutil en el borde superior (detalle tipo "producto"). */
 .aurora-bg::after {
   content: "";
   position: absolute;
-  width: 58vw;
-  height: 58vw;
-  top: -20%;
-  left: -10%;
-  border-radius: 50%;
-  filter: blur(140px);
-  opacity: 0.55;
-  background: radial-gradient(circle, var(--brand) 0%, transparent 70%);
-  animation: drift 26s ease-in-out infinite;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.10), transparent);
 }
 
-/* Orbe secundario lavanda (abajo-derecha) */
-.aurora-orb {
-  position: fixed;
-  z-index: -1;
-  width: 52vw;
-  height: 52vw;
-  bottom: -24%;
-  right: -12%;
-  border-radius: 50%;
-  filter: blur(150px);
-  opacity: 0.45;
-  background: radial-gradient(circle, var(--brand-2) 0%, transparent 70%);
-  animation: drift 32s ease-in-out infinite;
-  animation-delay: -12s;
-  pointer-events: none;
-}
-
-/* Orbe cálido melocotón (centro-derecha) — el toque "humano" de la atmósfera */
+/* Orbes desactivados: se mantienen los selectores para no tocar los componentes
+   que los renderizan, pero ya no pintan nada (el look nuevo es limpio). */
+.aurora-orb,
 .aurora-orb-warm {
-  position: fixed;
-  z-index: -1;
-  width: 40vw;
-  height: 40vw;
-  top: 30%;
-  right: 2%;
-  border-radius: 50%;
-  filter: blur(160px);
-  opacity: 0.28;
-  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-  animation: drift 38s ease-in-out infinite;
-  animation-delay: -6s;
-  pointer-events: none;
+  display: none;
 }
 
 /* Grano/ruido fino sobre todo: rompe los degradados y da calidez de "papel". */
@@ -191,7 +163,7 @@ h1, h2, h3,
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.18;
   mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
@@ -211,34 +183,35 @@ h1, h2, h3,
   66% { transform: translate(-5%, -4%) scale(0.95); }
 }
 
-/* Glass — tinte cálido y sombras más difusas/suaves (menos duro, más mullido) */
+/* Card — superficie sólida y mate, borde hairline nítido, sombra discreta
+   (estilo panel de software, no "vidrio brillante"). */
 .glass {
-  background: rgba(255, 255, 255, 0.045);
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  background: rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.07),
-    0 10px 36px -14px rgba(10, 8, 25, 0.6);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 8px 24px -16px rgba(0, 0, 0, 0.6);
 }
 .glass-strong {
-  background: rgba(27, 24, 48, 0.72);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  background: rgba(16, 18, 24, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-    0 24px 70px -24px rgba(10, 8, 25, 0.7);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 8px 40px -16px rgba(0, 0, 0, 0.7);
 }
 
-/* Texto con degradado cálido (índigo → melocotón → ámbar), animado suave */
+/* Texto destacado: degradado sobrio y estático (azul → azul-lavanda), sin
+   animación arcoíris. */
 .text-gradient {
-  background: linear-gradient(115deg, var(--brand) 0%, var(--accent) 48%, var(--accent-2) 72%, var(--brand) 100%);
-  background-size: 220% auto;
+  background: linear-gradient(100deg, var(--foreground) 0%, var(--brand-2) 70%, var(--brand) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: gradient-pan 8s linear infinite;
 }
 @keyframes gradient-pan {
   to { background-position: 220% center; }
@@ -250,17 +223,16 @@ h1, h2, h3,
   will-change: transform;
 }
 .hover-lift:hover {
-  transform: translateY(-5px);
-  border-color: rgba(59, 111, 229, 0.4);
+  transform: translateY(-3px);
+  border-color: rgba(79, 124, 240, 0.35);
   box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
-    0 24px 60px -20px rgba(59, 111, 229, 0.4),
-    0 8px 24px -12px rgba(56, 189, 248, 0.22);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+    0 16px 40px -22px rgba(0, 0, 0, 0.7);
 }
 
-/* Halo detrás de un elemento (para iconos/CTA destacados) */
+/* Halo detrás de un elemento (para iconos/CTA destacados) — discreto. */
 .glow-ring {
-  box-shadow: 0 0 0 1px rgba(59, 111, 229, 0.3), 0 12px 44px -8px rgba(59, 111, 229, 0.55);
+  box-shadow: 0 0 0 1px rgba(79, 124, 240, 0.25), 0 8px 28px -10px rgba(79, 124, 240, 0.35);
 }
 
 /* Reflejo que recorre un botón al pasar el cursor */
