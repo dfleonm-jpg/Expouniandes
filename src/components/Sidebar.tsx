@@ -26,6 +26,7 @@ import {
   Flame,
   Palette,
   Egg,
+  Newspaper,
   ChevronDown,
   Home,
   LayoutGrid,
@@ -56,6 +57,7 @@ export type Section =
   | "planner"
   | "calendar"
   | "groups"
+  | "blog"
   | "wellbeing"
   | "support"
   | "diagnostic"
@@ -104,6 +106,7 @@ const GROUPS: { group: GroupKey; items: Item[] }[] = [
       { id: "planner", icon: CalendarClock, key: "planner" },
       { id: "calendar", icon: CalendarDays, key: "calendar" },
       { id: "groups", icon: Users, key: "groups" },
+      { id: "blog", icon: Newspaper, key: "blog" },
     ],
   },
   {

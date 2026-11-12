@@ -72,6 +72,93 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ---- Blog (posts, comentarios y reacciones) ----
+    // Política: lectura solo para usuarios autenticados (la app exige login y
+    // así no se exponen nombres/fotos a cualquiera con el ID del proyecto).
+    // Escritura: solo el autor, con forma, tipos y longitudes validadas.
+    // Los totales de Like/Dislike/comentarios NO se almacenan: se calculan
+    // contando documentos, así no hay contadores que manipular.
+
+    // Campos de autoría compartidos por posts y comentarios.
+    function validAuthor(d) {
+      return d.authorUid is string
+        && d.authorName is string && d.authorName.size() >= 1 && d.authorName.size() <= 60
+        && (d.authorPhoto == null || (d.authorPhoto is string && d.authorPhoto.size() <= 2048));
+    }
+    function validPostBody(d) {
+      return d.title is string && d.title.size() >= 1 && d.title.size() <= 120
+        && d.content is string && d.content.size() >= 1 && d.content.size() <= 5000;
+    }
+    function validCommentBody(d) {
+      return d.content is string && d.content.size() >= 1 && d.content.size() <= 1000;
+    }
+
+    match /posts/{postId} {
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(
+             ['authorUid','authorName','authorPhoto','title','content','createdAt','updatedAt'])
+        && request.resource.data.keys().hasAll(
+             ['authorUid','authorName','authorPhoto','title','content','createdAt','updatedAt'])
+        && request.resource.data.authorUid == request.auth.uid
+        && validAuthor(request.resource.data)
+        && validPostBody(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      // Solo el autor edita, y únicamente título, contenido y updatedAt
+      // (no se puede cambiar autoría ni fecha de creación).
+      allow update: if signedIn()
+        && resource.data.authorUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['title','content','updatedAt'])
+        && validPostBody(request.resource.data)
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+
+      match /comments/{commentId} {
+        allow read: if signedIn();
+
+        allow create: if signedIn()
+          && exists(/databases/$(database)/documents/posts/$(postId))
+          && request.resource.data.keys().hasOnly(
+               ['authorUid','authorName','authorPhoto','content','createdAt','updatedAt'])
+          && request.resource.data.keys().hasAll(
+               ['authorUid','authorName','authorPhoto','content','createdAt','updatedAt'])
+          && request.resource.data.authorUid == request.auth.uid
+          && validAuthor(request.resource.data)
+          && validCommentBody(request.resource.data)
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+
+        allow update: if signedIn()
+          && resource.data.authorUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['content','updatedAt'])
+          && validCommentBody(request.resource.data)
+          && request.resource.data.updatedAt == request.time;
+
+        allow delete: if signedIn() && resource.data.authorUid == request.auth.uid;
+      }
+
+      // Una reacción por usuario: el ID del documento ES el uid.
+      match /reactions/{uid} {
+        allow read: if signedIn();
+
+        allow create, update: if isOwner(uid)
+          && exists(/databases/$(database)/documents/posts/$(postId))
+          && request.resource.data.keys().hasOnly(['uid','type','updatedAt'])
+          && request.resource.data.keys().hasAll(['uid','type','updatedAt'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.type in ['like', 'dislike']
+          && request.resource.data.updatedAt == request.time;
+
+        allow delete: if isOwner(uid);
+      }
+    }
+
     // ---- Métricas globales (lectura pública, solo incrementos) ----
     match /metrics/{doc} {
       allow read: if true;
