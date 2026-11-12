@@ -13,7 +13,7 @@ export const translations = {
   es: {
     brand: "Sereno",
     tagline: "Tu tutor con IA para estudiar sin estrés",
-    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Parcial", openExam: "Parcial abierto", search: "Buscar", flashcards: "Flashcards", summary: "Resúmenes", mindmap: "Mapas mentales", methods: "Métodos de estudio", codePractice: "Práctica de código", mathPractice: "Práctica de cálculo", designStudio: "Estudio de diseño", planner: "Planificador", calendar: "Calendario", groups: "Grupos", wellbeing: "Bienestar", support: "Apoyo", diagnostic: "Diagnóstico", progress: "Progreso", ranking: "Ranking", profile: "Mi perfil" },
+    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Parcial", openExam: "Parcial abierto", search: "Buscar", flashcards: "Flashcards", summary: "Resúmenes", mindmap: "Mapas mentales", methods: "Métodos de estudio", codePractice: "Práctica de código", mathPractice: "Práctica de cálculo", designStudio: "Estudio de diseño", planner: "Planificador", calendar: "Calendario", groups: "Grupos", blog: "Blog", wellbeing: "Bienestar", support: "Apoyo", diagnostic: "Diagnóstico", progress: "Progreso", ranking: "Ranking", profile: "Mi perfil" },
     navGroups: { home: "Inicio", learn: "Aprender", practice: "Practicar", science: "Ciencias e Ing.", organize: "Organizar", wellness: "Bienestar", you: "Tu avance" },
     landing: {
       badge: "Proyecto ExpoUniandes",
@@ -797,7 +797,7 @@ export const translations = {
   en: {
     brand: "Sereno",
     tagline: "Your AI tutor to study without stress",
-    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Exam", openExam: "Open exam", search: "Search", flashcards: "Flashcards", summary: "Summaries", mindmap: "Mind maps", methods: "Study methods", codePractice: "Code practice", mathPractice: "Calculus practice", designStudio: "Design studio", planner: "Planner", calendar: "Calendar", groups: "Groups", wellbeing: "Wellbeing", support: "Support", diagnostic: "Diagnostic", progress: "Progress", ranking: "Ranking", profile: "My profile" },
+    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Exam", openExam: "Open exam", search: "Search", flashcards: "Flashcards", summary: "Summaries", mindmap: "Mind maps", methods: "Study methods", codePractice: "Code practice", mathPractice: "Calculus practice", designStudio: "Design studio", planner: "Planner", calendar: "Calendar", groups: "Groups", blog: "Blog", wellbeing: "Wellbeing", support: "Support", diagnostic: "Diagnostic", progress: "Progress", ranking: "Ranking", profile: "My profile" },
     navGroups: { home: "Home", learn: "Learn", practice: "Practice", science: "Science & Eng.", organize: "Organize", wellness: "Wellbeing", you: "Your progress" },
     landing: {
       badge: "ExpoUniandes Project",
@@ -1581,7 +1581,7 @@ export const translations = {
   pt: {
     brand: "Sereno",
     tagline: "Seu tutor com IA para estudar sem estresse",
-    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Prova", openExam: "Prova aberta", search: "Buscar", flashcards: "Flashcards", summary: "Resumos", mindmap: "Mapas mentais", methods: "Métodos de estudo", codePractice: "Prática de código", mathPractice: "Prática de cálculo", designStudio: "Estúdio de design", planner: "Planejador", calendar: "Calendário", groups: "Grupos", wellbeing: "Bem-estar", support: "Apoio", diagnostic: "Diagnóstico", progress: "Progresso", ranking: "Ranking", profile: "Meu perfil" },
+    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Prova", openExam: "Prova aberta", search: "Buscar", flashcards: "Flashcards", summary: "Resumos", mindmap: "Mapas mentais", methods: "Métodos de estudo", codePractice: "Prática de código", mathPractice: "Prática de cálculo", designStudio: "Estúdio de design", planner: "Planejador", calendar: "Calendário", groups: "Grupos", blog: "Blog", wellbeing: "Bem-estar", support: "Apoio", diagnostic: "Diagnóstico", progress: "Progresso", ranking: "Ranking", profile: "Meu perfil" },
     navGroups: { home: "Início", learn: "Aprender", practice: "Praticar", science: "Ciências e Eng.", organize: "Organizar", wellness: "Bem-estar", you: "Seu progresso" },
     landing: {
       badge: "Projeto ExpoUniandes",
@@ -2365,7 +2365,7 @@ export const translations = {
   fr: {
     brand: "Sereno",
     tagline: "Votre tuteur IA pour étudier sans stress",
-    nav: { tutor: "Tuteur", quiz: "Quiz", exam: "Examen", openExam: "Examen ouvert", search: "Rechercher", flashcards: "Flashcards", summary: "Résumés", mindmap: "Cartes mentales", methods: "Méthodes d'étude", codePractice: "Pratique de code", mathPractice: "Pratique de calcul", designStudio: "Studio de design", planner: "Planning", calendar: "Calendrier", groups: "Groupes", wellbeing: "Bien-être", support: "Soutien", diagnostic: "Diagnostic", progress: "Progrès", ranking: "Classement", profile: "Mon profil" },
+    nav: { tutor: "Tuteur", quiz: "Quiz", exam: "Examen", openExam: "Examen ouvert", search: "Rechercher", flashcards: "Flashcards", summary: "Résumés", mindmap: "Cartes mentales", methods: "Méthodes d'étude", codePractice: "Pratique de code", mathPractice: "Pratique de calcul", designStudio: "Studio de design", planner: "Planning", calendar: "Calendrier", groups: "Groupes", blog: "Blog", wellbeing: "Bien-être", support: "Soutien", diagnostic: "Diagnostic", progress: "Progrès", ranking: "Classement", profile: "Mon profil" },
     navGroups: { home: "Accueil", learn: "Apprendre", practice: "Pratiquer", science: "Sciences & Ing.", organize: "Organiser", wellness: "Bien-être", you: "Votre progression" },
     landing: {
       badge: "Projet ExpoUniandes",

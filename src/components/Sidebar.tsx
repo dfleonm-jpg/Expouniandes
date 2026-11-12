@@ -25,6 +25,7 @@ import {
   UserCircle,
   Flame,
   Palette,
+  Newspaper,
 } from "lucide-react";
 import { LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
@@ -51,6 +52,7 @@ export type Section =
   | "planner"
   | "calendar"
   | "groups"
+  | "blog"
   | "wellbeing"
   | "support"
   | "diagnostic"
@@ -98,6 +100,7 @@ const GROUPS: { group: GroupKey; items: Item[] }[] = [
       { id: "planner", icon: CalendarClock, key: "planner" },
       { id: "calendar", icon: CalendarDays, key: "calendar" },
       { id: "groups", icon: Users, key: "groups" },
+      { id: "blog", icon: Newspaper, key: "blog" },
     ],
   },
   {
