@@ -20,6 +20,32 @@ export function cleanForSpeech(text: string): string {
     .trim();
 }
 
+// Nombres de voces de alta calidad / naturales por plataforma. Se prioriza
+// una voz "amigable" sobre la robótica por defecto del sistema.
+const PREFERRED_VOICES = [
+  // Google (Chrome/Android) y Microsoft (Edge) suelen sonar más naturales.
+  "Google español", "Google US English", "Google português", "Google français",
+  "Microsoft", "Natural", "Neural",
+  // Nombres de voces femeninas cálidas comunes por idioma.
+  "Mónica", "Paulina", "Sabina", "Helena", "Luciana", "Francisca",
+  "Samantha", "Ava", "Jenny", "Aria", "Amelie", "Camille", "Thomas",
+];
+
+/** Escoge la voz más agradable disponible para un idioma. */
+function pickFriendlyVoice(voices: SpeechSynthesisVoice[], lang: string): SpeechSynthesisVoice | null {
+  if (!voices.length) return null;
+  const byLang = voices.filter((v) => v.lang.toLowerCase().startsWith(lang));
+  const pool = byLang.length ? byLang : voices;
+  // 1) Coincidencia con la lista de voces preferidas (orden de prioridad).
+  for (const name of PREFERRED_VOICES) {
+    const hit = pool.find((v) => v.name.toLowerCase().includes(name.toLowerCase()));
+    if (hit) return hit;
+  }
+  // 2) Prefiere voces locales (mejor latencia y a menudo mejor calidad).
+  const local = pool.find((v) => v.localService);
+  return local ?? pool[0];
+}
+
 export type SpeechState = {
   supported: boolean;
   speaking: boolean;
@@ -47,7 +73,10 @@ export function useSpeech(locale: string) {
       const all = synth.getVoices();
       const lang = (LOCALE_TO_LANG[locale] ?? "es-ES").slice(0, 2);
       const matching = all.filter((v) => v.lang.startsWith(lang));
-      setState((s) => ({ ...s, supported: true, voices: matching.length ? matching : all }));
+      const list = matching.length ? matching : all;
+      setState((s) => ({ ...s, supported: true, voices: list }));
+      // Elige por defecto la voz más natural/amigable disponible para el idioma.
+      if (!voiceRef.current && list.length) voiceRef.current = pickFriendlyVoice(list, lang);
     };
     loadVoices();
     synth.addEventListener("voiceschanged", loadVoices);
@@ -81,7 +110,8 @@ export function useSpeech(locale: string) {
         }
         const u = new SpeechSynthesisUtterance(chunks[idx].trim());
         u.lang = lang;
-        u.rate = rate;
+        u.rate = rate * 0.96;  // un pelín más pausado = más natural
+        u.pitch = 1.08;        // tono ligeramente más cálido/amigable
         if (voiceRef.current) u.voice = voiceRef.current;
         u.onend = () => {
           idx++;

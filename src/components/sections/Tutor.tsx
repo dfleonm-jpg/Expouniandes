@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Globe, Mic, History, Plus, X, Headphones, Volume2 } from "lucide-react";
+import { Send, Brain, User, Sparkles, FileText, Trash2, Copy, Square, Globe, Mic, History, Plus, X, Headphones } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/lib/auth-context";
 import { useVoiceInput } from "@/lib/useVoiceInput";
@@ -13,6 +13,7 @@ import { useToast } from "../ui/Toast";
 import { SectionHeader } from "../ui/SectionHeader";
 import { FileUploadButton } from "../ui/FileUploadButton";
 import { SpeakButton } from "../ui/SpeakButton";
+import { VoiceCall, type CallStatus } from "../ui/VoiceCall";
 import { RichText } from "../ui/RichText";
 import { listChats, saveChat, deleteChat, titleFromMessages, type ChatSession } from "@/lib/chat-store";
 import { cn, hostOf } from "@/lib/utils";
@@ -42,19 +43,41 @@ export function Tutor() {
   // Modo conversación por voz (manos libres): hablas → se envía solo → la IA
   // responde y lee la respuesta en voz alta → vuelve a escuchar.
   const [voiceMode, setVoiceMode] = useState(false);
+  const [lastSpoken, setLastSpoken] = useState("");
   const voiceModeRef = useRef(false);
   useEffect(() => { voiceModeRef.current = voiceMode; }, [voiceMode]);
   const speech = useSpeech(locale);
   const sendRef = useRef<(text: string, speakReply?: boolean) => void>(() => {});
 
-  // Dictado: en modo manos libres envía automáticamente lo que dijiste.
+  // Dictado: en modo manos libres (llamada) envía automáticamente lo que dijiste.
   const voice = useVoiceInput(locale, (text) => {
     if (voiceModeRef.current) {
+      setLastSpoken(text);
       sendRef.current(text, true);
     } else {
       setInput((prev) => (prev ? prev + " " + text : text));
     }
   });
+
+  // Estado de la "llamada" para el orbe animado.
+  const callStatus: CallStatus = speech.speaking
+    ? "speaking"
+    : loading
+      ? "thinking"
+      : voice.listening
+        ? "listening"
+        : "idle";
+
+  function startCall() {
+    setVoiceMode(true);
+    setLastSpoken("");
+    if (!voice.listening) voice.toggle();
+  }
+  function endCall() {
+    setVoiceMode(false);
+    speech.stop();
+    if (voice.listening) voice.toggle();
+  }
 
   // Genera el id del chat solo en el cliente (evita el error de prerender).
   useEffect(() => {
@@ -247,26 +270,11 @@ export function Tutor() {
         <div className="flex shrink-0 items-center gap-2">
           {voice.supported && speech.supported && (
             <button
-              onClick={() => {
-                if (voiceMode) {
-                  setVoiceMode(false);
-                  speech.stop();
-                  if (voice.listening) voice.toggle();
-                } else {
-                  setVoiceMode(true);
-                  if (!voice.listening) voice.toggle();
-                }
-              }}
-              aria-pressed={voiceMode}
+              onClick={startCall}
               title={t.ui.voiceChat}
-              className={cn(
-                "flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition",
-                voiceMode
-                  ? "bg-brand/20 text-brand ring-1 ring-brand/40"
-                  : "text-muted hover:bg-white/5 hover:text-foreground"
-              )}
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-muted transition hover:bg-white/5 hover:text-foreground"
             >
-              <Headphones className={cn("h-4 w-4", voiceMode && "animate-pulse")} />
+              <Headphones className="h-4 w-4 text-brand" />
               <span className="hidden sm:inline">{t.ui.voiceChat}</span>
             </button>
           )}
@@ -516,29 +524,14 @@ export function Tutor() {
         </div>
       </div>
 
-      {/* Estado del modo conversación por voz */}
-      <AnimatePresence>
-        {voiceMode && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-brand/30 bg-brand/10 px-4 py-2 text-xs font-medium text-brand"
-          >
-            {speech.speaking ? (
-              <><Volume2 className="h-4 w-4 animate-pulse" /> {t.ui.voiceSpeaking}</>
-            ) : loading ? (
-              <><Brain className="h-4 w-4 animate-pulse" /> {t.ui.voiceThinking}</>
-            ) : voice.listening ? (
-              <><Mic className="h-4 w-4 animate-pulse" /> {t.ui.voiceListening}</>
-            ) : (
-              <button type="button" onClick={() => voice.toggle()} className="flex items-center gap-2">
-                <Mic className="h-4 w-4" /> {t.ui.voiceTapToTalk}
-              </button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Pantalla de llamada por voz (orbe animado a pantalla completa) */}
+      <VoiceCall
+        open={voiceMode}
+        status={callStatus}
+        transcript={lastSpoken}
+        onTapToTalk={() => { if (!voice.listening) voice.toggle(); }}
+        onEnd={endCall}
+      />
 
       {/* Input */}
       <form
