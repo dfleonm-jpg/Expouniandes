@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Fondo tipo app-icon (oscuro, acorde al tema de Sereno) -->
+  <rect width="512" height="512" rx="112" fill="#0a0b0e"/>
+  <!-- Símbolo de Sereno: círculo a pincel con una runa/flecha, trazo claro -->
+  <g fill="none" stroke="#f2f3f5" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Círculo con abertura inferior (trazo de pincel) -->
+    <path d="M256 92
+             a164 164 0 1 1 -40 5" />
+    <!-- Trazo vertical largo (baja hasta la punta de la flecha) -->
+    <path d="M250 150 L250 356" />
+    <!-- Flecha diagonal que apunta a la izquierda-abajo -->
+    <path d="M250 356 L178 300 M250 356 L186 360" />
+    <!-- Trazo corto vertical de la derecha -->
+    <path d="M330 196 L330 300 L250 300" />
+  </g>
+</svg>
