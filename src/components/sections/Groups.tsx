@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Copy, Download, FileText, Check, ClipboardPaste, Loader2, Hash } from "lucide-react";
+import { Users, Copy, Download, FileText, Check, ClipboardPaste, Loader2, Hash, UserPlus, Sparkles } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "../ui/Toast";
@@ -22,7 +22,47 @@ export function Groups() {
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
 
+  // Crear grupo: nombre + nota, genera un código al instante.
+  const [groupName, setGroupName] = useState("");
+  const [groupNote, setGroupNote] = useState("");
+  const [creating, setCreating] = useState(false);
+
   const cloudReady = enabled && !!user;
+
+  async function createGroup() {
+    const name = groupName.trim();
+    if (!name) {
+      notify("error", t.groups.nameRequired);
+      return;
+    }
+    setCreating(true);
+    setGeneratedCode("");
+    setCopied(false);
+    try {
+      const code = await publishShare({
+        type: "summary",
+        title: name.slice(0, 120),
+        data: {
+          kind: "group",
+          name,
+          note: groupNote.trim().slice(0, 2000),
+          createdBy: user?.uid ?? null,
+          content: `# ${name}\n\n${groupNote.trim() || t.groups.groupShared}`,
+        },
+        owner: user?.uid ?? null,
+      });
+      if (code) {
+        setGeneratedCode(code);
+        notify("success", t.groups.groupCreated);
+      } else {
+        notify("error", t.groups.shareError);
+      }
+    } catch {
+      notify("error", t.groups.shareError);
+    } finally {
+      setCreating(false);
+    }
+  }
 
   async function shareDoc(id: string) {
     const d = docs.find((x) => x.id === id);
@@ -91,6 +131,39 @@ export function Groups() {
       )}
 
       <div className="mt-6 grid gap-5">
+        {/* Crear grupo (genera un código para compartir al instante) */}
+        <div className="glass glow-border rounded-3xl p-6">
+          <h3 className="flex items-center gap-2 font-semibold">
+            <UserPlus className="h-5 w-5 text-brand" />
+            {t.groups.createTitle}
+          </h3>
+          <p className="mt-1 text-sm text-muted">{t.groups.createDesc}</p>
+          <div className="mt-4 space-y-2">
+            <input
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              placeholder={t.groups.namePlaceholder}
+              maxLength={60}
+              className="glass w-full rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/50"
+            />
+            <textarea
+              value={groupNote}
+              onChange={(e) => setGroupNote(e.target.value)}
+              placeholder={t.groups.notePlaceholder}
+              rows={2}
+              className="glass w-full resize-y rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/50"
+            />
+            <button
+              onClick={createGroup}
+              disabled={!groupName.trim() || creating || !cloudReady}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-40"
+            >
+              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {t.groups.createBtn}
+            </button>
+          </div>
+        </div>
+
         {/* Unirse con código */}
         <div className="glass glow-border rounded-3xl p-6">
           <h3 className="flex items-center gap-2 font-semibold">
