@@ -145,14 +145,18 @@ export const SUMMARY_SHAPE =
 
 export function mindMapPrompt(topic: string, locale?: string, profile?: ProfileInput) {
   const l = lang(locale);
-  return `Crea un MAPA MENTAL completo y bien estructurado sobre: "${topic}".${profileContext(profile)}
+  return `Eres un experto en síntesis de conocimiento y diseño de mapas mentales de estudio. Crea un MAPA MENTAL de ALTA CALIDAD sobre: "${topic}".${profileContext(profile)}${lensPromptBlock(topic || profile?.career)}
 Idioma: ${l}.
-Requisitos:
-- Un resumen de 1 frase del tema (campo "summary").
-- Entre 5 y 7 ramas principales, cada una con: un "emoji" representativo, un "label" corto (2-4 palabras) y entre 3 y 5 "items".
-- Cada "item" tiene un "text" (idea concreta y clara, no genérica) y, cuando aporte, un "detail" breve (una frase con un dato, ejemplo o definición útil).
-- Que las ramas cubran distintos ángulos del tema (definición, tipos, causas, ejemplos, aplicaciones, importancia, etc.) según corresponda.
-- Contenido real y específico, nada de relleno. Todo en ${l}.`;
+Objetivo: que un estudiante entienda el tema COMPLETO de un vistazo, con contenido real y preciso (nada de relleno ni frases vacías).
+Requisitos de estructura:
+- "central": el título del tema, corto y claro (máx. 4 palabras).
+- "summary": 1-2 frases que expliquen la esencia del tema (qué es y por qué importa).
+- Entre 5 y 7 ramas ("branches") que cubran ÁNGULOS DISTINTOS y complementarios (p. ej.: definición/fundamentos, tipos o clasificación, componentes/partes, cómo funciona/proceso, causas o factores, ejemplos reales, aplicaciones, errores comunes, importancia). Elige las ramas que mejor expliquen ESTE tema.
+- Cada rama: un "emoji" representativo, un "label" corto y distintivo (2-3 palabras) y entre 4 y 5 "items".
+- Cada "item": "text" = una idea CONCRETA, específica y autocontenida (una frase corta, no una sola palabra genérica); "detail" = una frase breve que añade un dato clave, cifra, ejemplo o definición que lo haga memorable (incluye "detail" casi siempre).
+- Ordena las ramas de lo fundamental a lo avanzado.
+- Precisión académica: usa la terminología correcta de la materia. Si el tema es cuantitativo, incluye fórmulas o valores clave en los "detail".
+Todo en ${l}.`;
 }
 
 export const MINDMAP_SHAPE =

@@ -11,14 +11,16 @@ import { SectionHeader } from "../ui/SectionHeader";
 import { ErrorBanner } from "../ui/ErrorBanner";
 import type { MindMap as MindMapType } from "@/lib/types";
 
+// Paleta sobria acorde al tema oscuro/plata: grises acero con un acento frío
+// distinto por rama (sutil, nada de arcoíris saturado).
 const COLORS = [
-  { from: "#8b5cf6", to: "#6366f1" },
-  { from: "#22d3ee", to: "#3b82f6" },
-  { from: "#34d399", to: "#14b8a6" },
-  { from: "#fbbf24", to: "#f97316" },
-  { from: "#fb7185", to: "#ec4899" },
-  { from: "#c084fc", to: "#a855f7" },
-  { from: "#38bdf8", to: "#0ea5e9" },
+  { from: "#7f8793", to: "#5c636f" },
+  { from: "#8a93a6", to: "#636b7d" },
+  { from: "#7d8a86", to: "#59655f" },
+  { from: "#93897f", to: "#6b625a" },
+  { from: "#88899a", to: "#616273" },
+  { from: "#7a8b93", to: "#566369" },
+  { from: "#8f8798", to: "#676073" },
 ];
 
 export function MindMap() {
@@ -55,22 +57,25 @@ export function MindMap() {
     });
   }
 
-  // Geometría del mapa radial.
-  const W = 1100;
-  const H = 760;
+  // Geometría del mapa radial (más amplio para que nada se encime).
+  const W = 1280;
+  const H = 900;
   const cx = W / 2;
   const cy = H / 2;
 
   const layout = useMemo(() => {
     if (!data?.branches) return [];
     const n = data.branches.length;
-    const radius = 230;
+    const radius = 300;
     return data.branches.map((b, i) => {
       const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
       const bx = cx + Math.cos(angle) * radius;
       const by = cy + Math.sin(angle) * radius;
       const onRight = Math.cos(angle) >= 0;
-      return { branch: b, i, bx, by, angle, onRight };
+      // Ancho dinámico del nodo según el texto de la etiqueta.
+      const label = `${b.emoji ? b.emoji + " " : ""}${b.label}`;
+      const nodeW = Math.min(260, Math.max(130, label.length * 10 + 28));
+      return { branch: b, i, bx, by, angle, onRight, nodeW };
     });
   }, [data, cx, cy]);
 
@@ -213,8 +218,8 @@ export function MindMap() {
                     </linearGradient>
                   ))}
                   <radialGradient id="mm-center" cx="50%" cy="50%" r="60%">
-                    <stop offset="0%" stopColor="#8b5cf6" />
-                    <stop offset="100%" stopColor="#22d3ee" />
+                    <stop offset="0%" stopColor="#b6bcc5" />
+                    <stop offset="100%" stopColor="#6b727d" />
                   </radialGradient>
                   <filter id="mm-glow" x="-40%" y="-40%" width="180%" height="180%">
                     <feGaussianBlur stdDeviation="6" result="b" />
@@ -253,7 +258,7 @@ export function MindMap() {
                     y={cy}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    className="fill-white"
+                    className="fill-[#101216]"
                     style={{ fontSize: data.central.length > 18 ? 15 : 19, fontWeight: 800 }}
                   >
                     {wrap(data.central, 16).map((line, li, arr) => (
@@ -265,9 +270,11 @@ export function MindMap() {
                 </motion.g>
 
                 {/* Ramas */}
-                {layout.map(({ branch, bx, by, i, onRight }) => {
+                {layout.map(({ branch, bx, by, i, onRight, nodeW }) => {
                   const color = COLORS[i % COLORS.length];
                   const isOpen = expanded.has(i);
+                  const labelLines = wrap(`${branch.emoji ? branch.emoji + " " : ""}${branch.label}`, 20).slice(0, 2);
+                  const nodeH = 30 + labelLines.length * 16;
                   return (
                     <motion.g
                       key={`b-${i}`}
@@ -277,14 +284,16 @@ export function MindMap() {
                       style={{ cursor: "pointer" }}
                       onClick={() => toggle(i)}
                     >
-                      {/* Nodo rama */}
+                      {/* Nodo rama (ancho dinámico, texto envuelto) */}
                       <rect
-                        x={bx - 92}
-                        y={by - 24}
-                        width="184"
-                        height="48"
-                        rx="24"
+                        x={bx - nodeW / 2}
+                        y={by - nodeH / 2}
+                        width={nodeW}
+                        height={nodeH}
+                        rx={nodeH / 2}
                         fill={`url(#mm-grad-${i % COLORS.length})`}
+                        stroke="rgba(255,255,255,0.14)"
+                        strokeWidth="1"
                       />
                       <text
                         x={bx}
@@ -294,16 +303,19 @@ export function MindMap() {
                         className="fill-white"
                         style={{ fontSize: 14, fontWeight: 700 }}
                       >
-                        {branch.emoji ? `${branch.emoji} ` : ""}
-                        {truncate(branch.label, 18)}
+                        {labelLines.map((ln, li) => (
+                          <tspan key={li} x={bx} dy={li === 0 ? -(labelLines.length - 1) * 8 : 16}>
+                            {ln}
+                          </tspan>
+                        ))}
                       </text>
 
                       {/* Items (cuando está abierta) */}
                       <AnimatePresence>
                         {isOpen &&
                           branch.items?.slice(0, 5).map((it, j) => {
-                            const iy = by + 42 + j * 30;
-                            const ix = onRight ? bx + 20 : bx - 20;
+                            const iy = by + nodeH / 2 + 22 + j * 24;
+                            const ix = onRight ? bx - nodeW / 2 + 10 : bx + nodeW / 2 - 10;
                             const anchor = onRight ? "start" : "end";
                             return (
                               <motion.g
@@ -313,15 +325,14 @@ export function MindMap() {
                                 exit={{ opacity: 0 }}
                                 transition={{ delay: j * 0.04 }}
                               >
-                                <circle cx={onRight ? bx - 70 : bx + 70} cy={by + 18} r="2" fill={color.from} />
                                 <text
                                   x={ix}
                                   y={iy}
                                   textAnchor={anchor}
-                                  className="fill-[#e6e6f0]"
-                                  style={{ fontSize: 12.5 }}
+                                  className="fill-[#e8eaee]"
+                                  style={{ fontSize: 13 }}
                                 >
-                                  • {truncate(it.text, onRight ? 34 : 34)}
+                                  • {truncate(it.text, 42)}
                                 </text>
                               </motion.g>
                             );
