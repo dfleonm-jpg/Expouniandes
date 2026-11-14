@@ -201,22 +201,17 @@ h1, h2, h3,
   66% { transform: translate(-5%, -4%) scale(0.95); }
 }
 
-/* Card — superficie con acabado METÁLICO (acero cepillado):
-   degradado vertical sutil claro→oscuro que simula luz reflejada, borde con
-   highlight superior y sombra inferior fina. Minimalista pero con "material". */
+/* Superficie DESPEJADA: casi sin caja. En vez de un panel sólido, un velo muy
+   tenue con borde finísimo — deja ver el fondo del campus y hace que la app se
+   sienta abierta. La ÚNICA caja marcada de la app es el input de escritura. */
 .glass {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.018) 22%, rgba(0, 0, 0, 0.18) 100%),
-    rgba(9, 10, 12, 0.72); /* translúcido: deja ver el campus de fondo */
-  backdrop-filter: blur(16px) saturate(120%);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  border: 1px solid var(--border);
-  border-top-color: rgba(255, 255, 255, 0.22);
-  border-bottom-color: rgba(0, 0, 0, 0.55);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
-    inset 0 -2px 3px 0 rgba(0, 0, 0, 0.45),
-    0 6px 20px -14px rgba(0, 0, 0, 0.9);
+  background: rgba(10, 11, 14, 0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top-color: rgba(255, 255, 255, 0.09);
+  border-bottom-color: rgba(0, 0, 0, 0.3);
+  box-shadow: none;
 }
 .glass-strong {
   background:

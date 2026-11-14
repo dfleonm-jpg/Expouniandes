@@ -319,7 +319,7 @@ export function Tutor() {
       <div
         ref={scrollRef}
         onScroll={onScroll}
-        className="mt-4 flex-1 overflow-y-auto rounded-2xl border border-white/5 bg-white/[0.015] p-4 sm:p-6"
+        className="mt-4 flex-1 overflow-y-auto px-1 py-2 sm:px-2"
       >
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
@@ -460,7 +460,7 @@ export function Tutor() {
           e.preventDefault();
           send(input);
         }}
-        className="mt-3 flex items-end gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-2 backdrop-blur-md"
+        className="mt-3 flex items-end gap-2 rounded-2xl border border-white/15 bg-[rgba(16,18,22,0.85)] p-2 shadow-lg shadow-black/40 backdrop-blur-xl"
       >
         <button
           type="button"
