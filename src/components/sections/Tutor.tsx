@@ -42,42 +42,85 @@ export function Tutor() {
 
   // Modo conversación por voz (manos libres): hablas → se envía solo → la IA
   // responde y lee la respuesta en voz alta → vuelve a escuchar.
+  // Máquina de estados de la llamada por voz. Un único estado evita las
+  // condiciones de carrera entre escuchar/pensar/hablar.
   const [voiceMode, setVoiceMode] = useState(false);
+  const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [lastSpoken, setLastSpoken] = useState("");
   const voiceModeRef = useRef(false);
-  useEffect(() => { voiceModeRef.current = voiceMode; }, [voiceMode]);
+  const callStatusRef = useRef<CallStatus>("idle");
   const speech = useSpeech(locale);
   const sendRef = useRef<(text: string, speakReply?: boolean) => void>(() => {});
 
-  // Dictado: en modo manos libres (llamada) envía automáticamente lo que dijiste.
-  const voice = useVoiceInput(locale, (text) => {
-    if (voiceModeRef.current) {
-      setLastSpoken(text);
-      sendRef.current(text, true);
-    } else {
-      setInput((prev) => (prev ? prev + " " + text : text));
+  useEffect(() => { voiceModeRef.current = voiceMode; }, [voiceMode]);
+  const setStatus = useCallback((s: CallStatus) => {
+    callStatusRef.current = s;
+    setCallStatus(s);
+  }, []);
+
+  // Dictado: en modo llamada envía automáticamente; si no, rellena el input.
+  const voice = useVoiceInput(
+    locale,
+    (text) => {
+      if (voiceModeRef.current) {
+        setLastSpoken(text);
+        setStatus("thinking");
+        sendRef.current(text, true);
+      } else {
+        setInput((prev) => (prev ? prev + " " + text : text));
+      }
+    },
+    {
+      onError: (kind) => {
+        if (!voiceModeRef.current) return;
+        if (kind === "denied") {
+          notify("error", t.ui.voiceDenied);
+          endCallRef.current();
+        } else if (kind === "nospeech") {
+          // No dijo nada: vuelve a escuchar si seguimos en la llamada e inactivos.
+          if (callStatusRef.current === "listening") setStatus("idle");
+        }
+      },
+      onEnd: () => {
+        // El reconocimiento terminó. Si estábamos escuchando y no pasó a pensar,
+        // quedamos a la espera (idle) para reactivar luego.
+        if (voiceModeRef.current && callStatusRef.current === "listening") {
+          setStatus("idle");
+        }
+      },
     }
-  });
+  );
 
-  // Estado de la "llamada" para el orbe animado.
-  const callStatus: CallStatus = speech.speaking
-    ? "speaking"
-    : loading
-      ? "thinking"
-      : voice.listening
-        ? "listening"
-        : "idle";
+  // Refs estables para usar start/stop dentro de efectos sin recrearlos.
+  const voiceStartRef = useRef(voice.start);
+  const voiceStopRef = useRef(voice.stop);
+  const speechStopRef = useRef(speech.stop);
+  useEffect(() => { voiceStartRef.current = voice.start; }, [voice.start]);
+  useEffect(() => { voiceStopRef.current = voice.stop; }, [voice.stop]);
+  useEffect(() => { speechStopRef.current = speech.stop; }, [speech.stop]);
 
-  function startCall() {
+  const endCallRef = useRef(() => {});
+  const startCall = useCallback(() => {
     setVoiceMode(true);
     setLastSpoken("");
-    if (!voice.listening) voice.toggle();
-  }
-  function endCall() {
+    setStatus("listening");
+    voiceStartRef.current();
+  }, [setStatus]);
+  const endCall = useCallback(() => {
     setVoiceMode(false);
-    speech.stop();
-    if (voice.listening) voice.toggle();
-  }
+    setStatus("idle");
+    speechStopRef.current();
+    voiceStopRef.current();
+  }, [setStatus]);
+  useEffect(() => { endCallRef.current = endCall; }, [endCall]);
+
+  // Interrumpir (barge-in): el usuario toca el orbe mientras la IA habla o
+  // piensa → corta la voz y vuelve a escuchar de inmediato.
+  const interrupt = useCallback(() => {
+    speechStopRef.current();
+    setStatus("listening");
+    voiceStartRef.current();
+  }, [setStatus]);
 
   // Genera el id del chat solo en el cliente (evita el error de prerender).
   useEffect(() => {
@@ -242,24 +285,30 @@ export function Tutor() {
     }
     setLoading(false);
 
-    // Modo voz: lee la respuesta en voz alta.
-    if (speakReply && result.ok && result.text.trim() && speech.supported) {
-      speech.speak(result.text);
+    // Modo voz: lee la respuesta en voz alta y, al TERMINAR el audio, reactiva
+    // el micrófono. Usar el callback onDone (y no un timer) evita que el micro
+    // se abra mientras la IA aún habla (auto-escucha) y que se quede colgado.
+    if (speakReply && voiceModeRef.current) {
+      if (result.ok && result.text.trim() && speech.supported) {
+        setStatus("speaking");
+        speech.speak(result.text, () => {
+          if (!voiceModeRef.current) return;
+          // Margen para que el altavoz termine antes de reabrir el micro.
+          setTimeout(() => {
+            if (!voiceModeRef.current) return;
+            setStatus("listening");
+            voiceStartRef.current();
+          }, 350);
+        });
+      } else {
+        // Sin respuesta audible: vuelve a escuchar directamente.
+        setStatus("listening");
+        voiceStartRef.current();
+      }
     }
   }
   // Expone send al callback de voz (que se define antes que send).
   useEffect(() => { sendRef.current = send; });
-
-  // Conversación continua: al terminar de hablar la IA (y sin cargar ni
-  // escuchar), reactiva el micrófono tras una breve pausa.
-  useEffect(() => {
-    if (!voiceMode) return;
-    if (speech.speaking || loading || voice.listening) return;
-    const t = setTimeout(() => {
-      if (voiceModeRef.current && !voice.listening) voice.toggle();
-    }, 600);
-    return () => clearTimeout(t);
-  }, [voiceMode, speech.speaking, loading, voice.listening, voice]);
 
   return (
     <div className="mx-auto flex h-chat max-w-6xl gap-5 px-4">
@@ -529,7 +578,12 @@ export function Tutor() {
         open={voiceMode}
         status={callStatus}
         transcript={lastSpoken}
-        onTapToTalk={() => { if (!voice.listening) voice.toggle(); }}
+        onTap={() => {
+          // Toque en el orbe: interrumpe si está hablando/pensando; si está
+          // esperando (idle), empieza a escuchar; si ya escucha, no hace nada.
+          if (callStatus === "speaking" || callStatus === "thinking") interrupt();
+          else if (callStatus === "idle") { setStatus("listening"); voiceStartRef.current(); }
+        }}
         onEnd={endCall}
       />
 

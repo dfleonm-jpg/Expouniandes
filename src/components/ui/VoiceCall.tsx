@@ -16,13 +16,13 @@ export function VoiceCall({
   open,
   status,
   transcript,
-  onTapToTalk,
+  onTap,
   onEnd,
 }: {
   open: boolean;
   status: CallStatus;
   transcript?: string;
-  onTapToTalk: () => void;
+  onTap: () => void;
   onEnd: () => void;
 }) {
   const { t } = useApp();
@@ -32,6 +32,12 @@ export function VoiceCall({
       : status === "thinking" ? t.ui.voiceThinking
         : status === "listening" ? t.ui.voiceListening
           : t.ui.voiceTapToTalk;
+
+  // Pista contextual bajo el estado.
+  const hint =
+    status === "speaking" || status === "thinking" ? t.ui.voiceInterrupt
+      : status === "idle" ? t.ui.voiceTapToTalk
+        : "";
 
   // Color/intensidad del aura según el estado.
   const aura =
@@ -81,9 +87,9 @@ export function VoiceCall({
               />
             ))}
 
-            {/* Núcleo */}
+            {/* Núcleo — siempre tocable (permite interrumpir a la IA) */}
             <motion.button
-              onClick={status === "idle" || status === "listening" ? onTapToTalk : undefined}
+              onClick={onTap}
               className={cn(
                 "relative flex h-40 w-40 items-center justify-center rounded-full bg-gradient-to-br shadow-2xl",
                 aura
@@ -110,6 +116,9 @@ export function VoiceCall({
                 : <Mic className={cn("h-4 w-4", status === "listening" && "animate-pulse text-calm")} />}
             {label}
           </motion.div>
+
+          {/* Pista contextual (interrumpir / tocar para hablar) */}
+          {hint && <p className="mt-2 text-xs text-muted">{hint}</p>}
 
           {/* Transcripto breve de lo último que dijiste */}
           {transcript && (

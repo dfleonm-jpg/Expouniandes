@@ -126,8 +126,18 @@ export function useSpeech(locale: string) {
   const [state, setState] = useState<SpeechState>({ supported: false, speaking: false, paused: false, voices: [] });
   const [rate, setRate] = useState(1);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
-  // Chrome congela la síntesis en textos largos (~15s): un "latido" que llama
-  // pause()+resume() cada pocos segundos evita que se trabe.
+  // Token de generación: invalida callbacks de locuciones anteriores.
+  const genRef = useRef(0);
+  // Watchdog por utterance: si el navegador no dispara onend (común en iOS),
+  // forzamos el avance para que la locución no se quede colgada.
+  const watchdog = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Callback opcional que se invoca cuando la locución termina del todo.
+  const onDoneRef = useRef<(() => void) | null>(null);
+  const clearWatchdog = () => {
+    if (watchdog.current) { clearTimeout(watchdog.current); watchdog.current = null; }
+  };
+  // ¿Es un dispositivo móvil? El keep-alive de Chrome rompe iOS, así que no se usa en móvil.
+  const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const keepAlive = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopKeepAlive = () => {
     if (keepAlive.current) { clearInterval(keepAlive.current); keepAlive.current = null; }
@@ -146,74 +156,121 @@ export function useSpeech(locale: string) {
       const matching = all.filter((v) => v.lang.startsWith(lang));
       const list = matching.length ? matching : all;
       setState((s) => ({ ...s, supported: true, voices: list }));
-      // Elige por defecto la voz más natural/amigable disponible para el idioma.
-      if (!voiceRef.current && list.length) voiceRef.current = pickFriendlyVoice(list, lang);
+      // Elige la voz más natural/amigable disponible para el idioma actual
+      // (se recalcula si cambia el idioma o si la voz actual no es de ese idioma).
+      const current = voiceRef.current;
+      const sameLang = current && current.lang.toLowerCase().startsWith(lang);
+      if (list.length && !sameLang) voiceRef.current = pickFriendlyVoice(list, lang);
     };
     loadVoices();
     synth.addEventListener("voiceschanged", loadVoices);
     return () => {
       synth.removeEventListener("voiceschanged", loadVoices);
+      clearWatchdog();
       stopKeepAlive();
-      synth.cancel();
+      genRef.current++;
+      try { synth.cancel(); } catch { /* noop */ }
     };
   }, [locale]);
 
   const stop = useCallback(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    genRef.current++;            // invalida cualquier locución en curso
+    clearWatchdog();
     stopKeepAlive();
-    window.speechSynthesis.cancel();
+    onDoneRef.current = null;
+    try { window.speechSynthesis.cancel(); } catch { /* noop */ }
     setState((s) => ({ ...s, speaking: false, paused: false }));
   }, []);
 
   const speak = useCallback(
-    (text: string) => {
+    (text: string, onDone?: () => void) => {
       if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
       const synth = window.speechSynthesis;
-      synth.cancel();
+      // Inicia un turno nuevo: invalida el anterior.
+      const gen = ++genRef.current;
+      clearWatchdog();
       stopKeepAlive();
+      try { synth.cancel(); } catch { /* noop */ }
+      onDoneRef.current = onDone ?? null;
+
       const clean = cleanForSpeech(text, locale);
-      if (!clean) return;
-      // Divide en frases para locuciones largas más estables.
-      const chunks = clean.match(/[^.!?]+[.!?]*/g)?.filter((c) => c.trim()) ?? [clean];
+      if (!clean) { onDoneRef.current?.(); onDoneRef.current = null; return; }
+
+      // Trocea por frases, pero une las muy cortas y parte las muy largas para
+      // una prosodia estable (y para que el watchdog no sea ni corto ni eterno).
+      const raw = clean.match(/[^.!?\n]+[.!?]*/g)?.map((c) => c.trim()).filter(Boolean) ?? [clean];
+      const chunks: string[] = [];
+      for (const part of raw) {
+        if (part.length > 220) {
+          // parte larga: córtala por comas para no pasar un bloque enorme
+          const sub = part.match(/[^,;]+[,;]?/g) ?? [part];
+          chunks.push(...sub.map((x) => x.trim()).filter(Boolean));
+        } else if (chunks.length && (chunks[chunks.length - 1].length + part.length) < 90) {
+          chunks[chunks.length - 1] += " " + part;
+        } else {
+          chunks.push(part);
+        }
+      }
+
       const lang = LOCALE_TO_LANG[locale] ?? "es-ES";
       let idx = 0;
+
+      const finish = () => {
+        if (gen !== genRef.current) return; // turno obsoleto
+        clearWatchdog();
+        stopKeepAlive();
+        setState((s) => ({ ...s, speaking: false, paused: false }));
+        const cb = onDoneRef.current;
+        onDoneRef.current = null;
+        cb?.();
+      };
+
       const speakNext = () => {
-        if (idx >= chunks.length) {
-          stopKeepAlive();
-          setState((s) => ({ ...s, speaking: false, paused: false }));
-          return;
-        }
-        const u = new SpeechSynthesisUtterance(chunks[idx].trim());
+        if (gen !== genRef.current) return; // turno cancelado/reemplazado
+        if (idx >= chunks.length) { finish(); return; }
+        const chunk = chunks[idx];
+        const u = new SpeechSynthesisUtterance(chunk);
         u.lang = lang;
-        u.rate = rate * 0.95;  // un pelín más pausado = más natural
-        u.pitch = 1.06;        // tono ligeramente más cálido/amigable
+        u.rate = rate * 0.95;
+        u.pitch = 1.05;
         if (voiceRef.current) u.voice = voiceRef.current;
+
         let advanced = false;
         const advance = () => {
-          if (advanced) return;
+          if (advanced || gen !== genRef.current) return;
           advanced = true;
+          clearWatchdog();
           idx++;
           speakNext();
         };
         u.onend = advance;
-        u.onerror = () => {
-          // Un error puntual no debe cortar toda la locución: pasa al siguiente.
+        u.onerror = advance; // un fallo puntual no debe colgar la locución
+
+        // Watchdog: estima la duración y, si no llegó onend a tiempo, avanza.
+        const estMs = Math.min(20000, Math.max(2500, chunk.length * 80));
+        clearWatchdog();
+        watchdog.current = setTimeout(() => {
+          if (gen !== genRef.current) return;
+          // Si el motor dice que ya no habla, o se pasó el tiempo, fuerza avance.
           advance();
-        };
-        synth.speak(u);
+        }, estMs);
+
+        try { synth.speak(u); } catch { advance(); }
       };
-      // Latido anti-congelamiento mientras habla (bug de Chrome en textos largos).
-      stopKeepAlive();
-      keepAlive.current = setInterval(() => {
-        if (synth.speaking && !synth.paused) {
-          synth.pause();
-          synth.resume();
-        }
-      }, 9000);
+
+      // Keep-alive SOLO en escritorio (en iOS pause/resume rompe la síntesis).
+      if (!isMobile) {
+        keepAlive.current = setInterval(() => {
+          if (gen !== genRef.current) { stopKeepAlive(); return; }
+          if (synth.speaking && !synth.paused) { try { synth.pause(); synth.resume(); } catch { /* noop */ } }
+        }, 9000);
+      }
+
       setState((s) => ({ ...s, speaking: true, paused: false }));
       speakNext();
     },
-    [locale, rate]
+    [locale, rate, isMobile]
   );
 
   const pause = useCallback(() => {
