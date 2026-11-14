@@ -15,14 +15,15 @@
   --muted: #868c98;
   --border: rgba(255, 255, 255, 0.07);
 
-  /* Marca: azul sobrio único. Acentos muy cercanos (nada de arcoíris). */
-  --brand: #4f7cf0;        /* azul profesional */
-  --brand-2: #6b93f5;      /* azul claro */
-  --accent: #6b93f5;       /* mismo azul (evita el cian saturado) */
-  --accent-2: #8aa8f7;     /* azul-lavanda suave */
-  --calm: #3ecf8e;         /* verde sobrio (positivo) */
-  --warn: #e8b339;         /* ámbar contenido */
-  --danger: #ef5f5f;       /* rojo coral */
+  /* Marca: gris acero neutro (el azul no pegaba con el look oscuro/campus).
+     Tono medio para que el texto blanco encima siga legible en botones. */
+  --brand: #71767f;        /* gris acero medio */
+  --brand-2: #868b94;      /* gris medio-claro */
+  --accent: #9aa0aa;       /* plata (iconos/acentos de texto) */
+  --accent-2: #b6bcc5;     /* plata clara */
+  --calm: #8fc7a8;         /* verde apagado (positivo) */
+  --warn: #d8c08a;         /* arena/ámbar apagado */
+  --danger: #e08b8b;       /* rojo apagado */
 }
 
 @theme inline {

@@ -202,7 +202,57 @@ export function Tutor() {
   }
 
   return (
-    <div className="mx-auto flex h-chat max-w-4xl flex-col px-4">
+    <div className="mx-auto flex h-chat max-w-6xl gap-4 px-4">
+      {/* Historial SIEMPRE visible como columna lateral (solo en desktop) */}
+      <aside className="hidden w-64 shrink-0 flex-col lg:flex">
+        <div className="glass flex h-full flex-col rounded-2xl p-3">
+          <div className="mb-2 flex items-center justify-between px-1">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold">
+              <History className="h-4 w-4 text-accent" />
+              {t.ui.history}
+            </h3>
+          </div>
+          <button
+            onClick={newChat}
+            className="mb-2 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-accent px-3 py-2 text-xs font-semibold text-white transition hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            {t.ui.newChat2}
+          </button>
+          <div className="flex-1 space-y-1.5 overflow-y-auto pr-0.5 [scrollbar-width:thin]">
+            {!user ? (
+              <p className="rounded-xl bg-white/[0.03] p-3 text-center text-xs text-muted">{t.ui.historyLoginNote}</p>
+            ) : chats.length === 0 ? (
+              <p className="rounded-xl bg-white/[0.03] p-3 text-center text-xs text-muted">{t.ui.noHistory}</p>
+            ) : (
+              chats.map((c) => (
+                <div
+                  key={c.id}
+                  className={cn(
+                    "group flex items-center gap-1.5 rounded-lg px-2.5 py-2 transition",
+                    c.id === chatId ? "bg-white/[0.08] ring-1 ring-white/15" : "hover:bg-white/5"
+                  )}
+                >
+                  <button onClick={() => openChat(c)} className="min-w-0 flex-1 text-left">
+                    <p className="truncate text-xs font-medium">{c.title}</p>
+                    <p className="text-[10px] text-muted">{new Date(c.updatedAt).toLocaleDateString()}</p>
+                  </button>
+                  <button
+                    onClick={() => removeChat(c.id)}
+                    aria-label={t.ui.deleteChat}
+                    className="text-muted opacity-0 transition hover:text-danger group-hover:opacity-100"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* Columna principal del chat */}
+      <div className="flex min-w-0 flex-1 flex-col">
       <div className="flex items-center justify-between gap-3">
         <SectionHeader icon={Brain} title={t.tutor.title} subtitle={t.tutor.subtitle} />
         <div className="flex shrink-0 items-center gap-2">
@@ -213,9 +263,10 @@ export function Tutor() {
             <Plus className="h-4 w-4 text-brand" />
             <span className="hidden sm:inline">{t.ui.newChat2}</span>
           </button>
+          {/* Botón de historial: solo en móvil (en desktop la columna ya está visible) */}
           <button
             onClick={() => setHistoryOpen(true)}
-            className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10"
+            className="glass flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition hover:bg-white/10 lg:hidden"
           >
             <History className="h-4 w-4 text-accent" />
             <span className="hidden sm:inline">{t.ui.history}</span>
@@ -516,6 +567,7 @@ export function Tutor() {
           </button>
         )}
       </form>
+      </div>
     </div>
   );
 }

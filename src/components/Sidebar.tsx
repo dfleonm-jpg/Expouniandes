@@ -183,9 +183,9 @@ export function Sidebar({
 
   return (
     <>
-      {/* Sidebar desktop — acordeón colapsable */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col p-3 lg:flex">
-        <div className="glass-strong flex h-full flex-col rounded-3xl p-4">
+      {/* Sidebar desktop — acordeón colapsable, integrado al borde (sin flotar) */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col lg:flex">
+        <div className="flex h-full flex-col border-r border-white/10 bg-[rgba(9,10,12,0.55)] p-4 backdrop-blur-xl">
           {/* Logo */}
           <button
             onClick={() => onNavigate("home")}

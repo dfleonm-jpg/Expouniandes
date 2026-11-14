@@ -1,19 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
-// Logo propio de "Sereno": el cerebro provisto como asset (public/sereno-brain.avif),
-// dentro de un contenedor redondeado con el degradado de marca para que luzca
-// consistente en toda la app (header, sidebar, login, etc.).
+// Logo de "Sereno": símbolo a pincel (public/sereno-logo.jpg, negro sobre blanco).
+// Como la app es de tema oscuro, invertimos la imagen y usamos "screen" para que
+// el fondo blanco desaparezca y el trazo quede claro, sin recuadro.
 
 export function SerenoLogo({ className = "" }: { className?: string }) {
   return (
     <span
-      className={`relative inline-flex items-center justify-center overflow-hidden rounded-[28%] bg-gradient-to-br from-brand to-accent ${className}`}
+      className={`relative inline-flex items-center justify-center ${className}`}
       role="img"
       aria-label="Sereno"
     >
       <img
-        src="/sereno-brain.avif"
+        src="/sereno-logo.jpg"
         alt=""
-        className="h-[72%] w-[72%] object-contain"
+        className="h-full w-full object-contain"
+        style={{ mixBlendMode: "screen", filter: "invert(1) contrast(1.1)" }}
         draggable={false}
       />
     </span>
