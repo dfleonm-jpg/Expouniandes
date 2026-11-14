@@ -18,7 +18,7 @@ type Question = {
 type Phase = "setup" | "loading" | "quiz" | "results";
 
 export function Quiz() {
-  const { t, locale, addStat, trackMastery } = useApp();
+  const { t, locale, addStat, trackMastery, addQuizErrors } = useApp();
   const [phase, setPhase] = useState<Phase>("setup");
   const [topic, setTopic] = useState("");
   const [count, setCount] = useState(5);
@@ -71,6 +71,18 @@ export function Quiz() {
       if (topic.trim()) {
         trackMastery(topic.trim(), [{ topic: topic.trim(), performance: (score / Math.max(questions.length, 1)) * 100 }]);
       }
+      // Guarda las preguntas falladas para repasarlas después.
+      const wrong = questions
+        .map((q, i) => ({ q, i }))
+        .filter(({ q, i }) => answers[i] !== q.correctIndex)
+        .map(({ q, i }) => ({
+          topic: topic.trim() || t.quiz.title,
+          question: q.question,
+          chosen: answers[i] >= 0 ? q.options[answers[i]] : "—",
+          correct: q.options[q.correctIndex],
+          explanation: q.explanation,
+        }));
+      if (wrong.length) addQuizErrors(wrong);
       setPhase("results");
     }
   }

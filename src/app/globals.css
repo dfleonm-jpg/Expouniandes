@@ -292,6 +292,24 @@ h1, h2, h3,
     0 4px 14px -6px rgba(79, 124, 240, 0.5);
 }
 
+/* Micro-animaciones globales: botones e ítems interactivos responden con una
+   transición suave (hover, focus, active). Da sensación "viva" en toda la app. */
+button, a, [role="button"], input, textarea, select, summary {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    box-shadow 0.2s ease, transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+/* Los botones "primarios" (gradiente de marca) y las tarjetas que invitan a
+   pulsarse se hunden levemente al hacer click. */
+button:active:not(:disabled), [role="button"]:active {
+  transform: scale(0.97);
+}
+/* Entrada suave con desenfoque (más orgánica que un fade plano). */
+@keyframes rise-blur {
+  from { opacity: 0; transform: translateY(14px); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.animate-rise { animation: rise-blur 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
 /* Aparición al entrar (CSS puro, siempre termina visible) */
 .reveal {
   animation: reveal-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;

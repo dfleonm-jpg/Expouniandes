@@ -367,7 +367,7 @@ export function Tutor() {
       <div
         ref={scrollRef}
         onScroll={onScroll}
-        className="glass mt-4 flex-1 overflow-y-auto rounded-3xl p-4 sm:p-6"
+        className="mt-4 flex-1 overflow-y-auto rounded-2xl border border-white/5 bg-white/[0.015] p-4 sm:p-6"
       >
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
@@ -412,8 +412,10 @@ export function Tutor() {
                   </div>
                   <div className="group/msg max-w-[80%]">
                     <div
-                      className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                        m.role === "user" ? "bg-brand/90 text-white" : "glass text-foreground/90"
+                      className={`text-sm leading-relaxed ${
+                        m.role === "user"
+                          ? "rounded-2xl rounded-tr-sm bg-white/[0.07] px-4 py-3 text-foreground"
+                          : "px-1 py-1 text-foreground/90"
                       }`}
                     >
                       {m.text ? (
@@ -464,7 +466,7 @@ export function Tutor() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent">
                   <Brain className="h-5 w-5 text-white" />
                 </div>
-                <div className="glass flex items-center gap-2 rounded-2xl px-4 py-3">
+                <div className="flex items-center gap-2 px-1 py-2">
                   {searching ? (
                     <span className="flex items-center gap-2 text-sm text-muted">
                       <Globe className="h-4 w-4 animate-pulse text-accent" />

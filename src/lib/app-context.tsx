@@ -49,6 +49,17 @@ export type ExamRecord = {
   date: string; // ISO
 };
 
+// Error de quiz guardado para repasar después (retroalimentación persistente).
+export type QuizErrorRecord = {
+  id: string;
+  topic: string;
+  question: string;
+  chosen: string;       // opción elegida (incorrecta)
+  correct: string;      // opción correcta
+  explanation: string;  // explicación del porqué
+  date: string;         // ISO
+};
+
 type Streak = { count: number; lastDay: string };
 
 export type EventType = "exam" | "quiz" | "assignment" | "project";
@@ -97,6 +108,9 @@ type AppContextType = {
   setUserName: (name: string) => void;
   examHistory: ExamRecord[];
   addExamRecord: (rec: Omit<ExamRecord, "id" | "date">) => void;
+  quizErrors: QuizErrorRecord[];
+  addQuizErrors: (errs: Omit<QuizErrorRecord, "id" | "date">[]) => void;
+  clearQuizErrors: () => void;
   examEvents: ExamEvent[];
   addExamEvent: (subject: string, date: string, type?: EventType) => void;
   removeExamEvent: (id: string) => void;
@@ -121,6 +135,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [streak, setStreak] = useState(0);
   const [userName, setUserNameState] = useState("");
   const [examHistory, setExamHistory] = useState<ExamRecord[]>([]);
+  const [quizErrors, setQuizErrors] = useState<QuizErrorRecord[]>([]);
   const [examEvents, setExamEvents] = useState<ExamEvent[]>([]);
   const [a11y, setA11yState] = useState<A11y>(DEFAULT_A11Y);
   const [profile, setProfileState] = useState<StudentProfile>(DEFAULT_PROFILE);
@@ -144,6 +159,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const savedExams = localStorage.getItem("sereno:examHistory");
       if (savedExams) setExamHistory(JSON.parse(savedExams));
+
+      const savedQuizErrors = localStorage.getItem("sereno:quizErrors");
+      if (savedQuizErrors) setQuizErrors(JSON.parse(savedQuizErrors));
 
       const savedEvents = localStorage.getItem("sereno:examEvents");
       if (savedEvents) setExamEvents(JSON.parse(savedEvents));
@@ -250,6 +268,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const addQuizErrors = useCallback((errs: Omit<QuizErrorRecord, "id" | "date">[]) => {
+    if (!errs.length) return;
+    setQuizErrors((prev) => {
+      const now = new Date().toISOString();
+      const added = errs.map((e) => ({ ...e, id: crypto.randomUUID(), date: now }));
+      const next = [...added, ...prev].slice(0, 100);
+      try {
+        localStorage.setItem("sereno:quizErrors", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  const clearQuizErrors = useCallback(() => {
+    setQuizErrors([]);
+    try {
+      localStorage.setItem("sereno:quizErrors", JSON.stringify([]));
+    } catch {}
+  }, []);
+
   const addExamEvent = useCallback((subject: string, date: string, type: EventType = "exam") => {
     setExamEvents((prev) => {
       const next = [...prev, { id: crypto.randomUUID(), subject, date, type }].sort((a, b) =>
@@ -343,6 +381,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (cloud.stats) setStats((prev) => ({ ...prev, ...(cloud.stats as Stats) }));
         if (cloud.userName) setUserNameState(cloud.userName as string);
         if (cloud.examHistory) setExamHistory(cloud.examHistory as ExamRecord[]);
+        if (cloud.quizErrors) setQuizErrors(cloud.quizErrors as QuizErrorRecord[]);
         if (cloud.examEvents) setExamEvents(cloud.examEvents as ExamEvent[]);
         if (cloud.docs) setDocs(cloud.docs as SereneDoc[]);
         if (typeof cloud.streak === "number") setStreak(cloud.streak as number);
@@ -363,7 +402,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user || !cloudLoaded.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      saveUserData(user.uid, { stats, userName, examHistory, examEvents, docs, streak, profile, mastery });
+      saveUserData(user.uid, { stats, userName, examHistory, quizErrors, examEvents, docs, streak, profile, mastery });
       // Publica la puntuación en el ranking (XP y nivel).
       const xp = computeXP(stats);
       publishScore({
@@ -377,7 +416,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [user, stats, userName, examHistory, examEvents, docs, streak, profile, mastery]);
+  }, [user, stats, userName, examHistory, quizErrors, examEvents, docs, streak, profile, mastery]);
 
   const value: AppContextType = {
     locale,
@@ -393,6 +432,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUserName,
     examHistory,
     addExamRecord,
+    quizErrors,
+    addQuizErrors,
+    clearQuizErrors,
     examEvents,
     addExamEvent,
     removeExamEvent,

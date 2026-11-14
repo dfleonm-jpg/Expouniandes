@@ -29,6 +29,7 @@ import { Diagnostic } from "@/components/sections/Diagnostic";
 import { Progress } from "@/components/sections/Progress";
 import { Ranking } from "@/components/sections/Ranking";
 import { Pet } from "@/components/sections/Pet";
+import { Mistakes } from "@/components/sections/Mistakes";
 import { Profile } from "@/components/sections/Profile";
 import { Onboarding } from "@/components/ui/Onboarding";
 
@@ -46,9 +47,10 @@ function Keep({ active, children }: { active: boolean; children: React.ReactNode
 function Fade({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
+      initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
@@ -72,7 +74,7 @@ const SHORTCUTS: Record<string, Section> = {
 const VALID_SECTIONS: Section[] = [
   "home", "tutor", "quiz", "exam", "openExam", "search", "flashcards", "summary", "mindmap",
   "methods", "codePractice", "mathPractice", "designStudio", "planner", "calendar", "groups", "blog",
-  "wellbeing", "support", "diagnostic", "progress", "ranking", "pet", "profile",
+  "wellbeing", "support", "diagnostic", "progress", "ranking", "pet", "mistakes", "profile",
 ];
 
 function sectionFromHash(): Section {
@@ -202,6 +204,7 @@ export default function Page() {
               {section === "progress" && <Progress />}
               {section === "ranking" && <Ranking />}
               {section === "pet" && <Pet />}
+              {section === "mistakes" && <Mistakes />}
               {section === "profile" && <Profile />}
             </Fade>
           </AnimatePresence>

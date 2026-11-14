@@ -13,7 +13,7 @@ export const translations = {
   es: {
     brand: "Sereno",
     tagline: "Tu tutor con IA para estudiar sin estrés",
-    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Parcial", openExam: "Parcial abierto", search: "Buscar", flashcards: "Flashcards", summary: "Resúmenes", mindmap: "Mapas mentales", methods: "Métodos de estudio", codePractice: "Práctica de código", mathPractice: "Práctica de cálculo", designStudio: "Estudio de diseño", planner: "Planificador", calendar: "Calendario", groups: "Grupos", blog: "Blog", wellbeing: "Bienestar", support: "Apoyo", diagnostic: "Diagnóstico", progress: "Progreso", ranking: "Ranking", pet: "Mi mascota", profile: "Mi perfil" },
+    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Parcial", openExam: "Parcial abierto", search: "Buscar", flashcards: "Flashcards", summary: "Resúmenes", mindmap: "Mapas mentales", methods: "Métodos de estudio", codePractice: "Práctica de código", mathPractice: "Práctica de cálculo", designStudio: "Estudio de diseño", planner: "Planificador", calendar: "Calendario", groups: "Grupos", blog: "Blog", wellbeing: "Bienestar", support: "Apoyo", diagnostic: "Diagnóstico", progress: "Progreso", ranking: "Ranking", pet: "Mi mascota", mistakes: "Repasar errores", profile: "Mi perfil" },
     navGroups: { home: "Inicio", learn: "Aprender", practice: "Practicar", science: "Ciencias e Ing.", organize: "Organizar", wellness: "Bienestar", you: "Tu avance" },
     landing: {
       badge: "Proyecto ExpoUniandes",
@@ -668,6 +668,15 @@ export const translations = {
       sayHappy2: "Se siente feliz contigo.",
       sayHappy3: "¡Sigue así, vas genial!",
     },
+    mistakes: {
+      title: "Repasar errores",
+      subtitle: "Tus respuestas falladas en los quizzes, guardadas para que estudies y no vuelvas a caer.",
+      empty: "Aún no tienes errores guardados. Haz un quiz y aquí quedarán las preguntas que falles, con su explicación.",
+      saved: "errores guardados",
+      clearAll: "Borrar todo",
+      yourAnswer: "Tu respuesta",
+      correctAnswer: "Correcta",
+    },
     diagnostic: {
       title: "Diagnóstico de bienvenida",
       subtitle: "Un mini-test para conocer tus fortalezas y debilidades, y armarte un plan.",
@@ -827,7 +836,7 @@ export const translations = {
   en: {
     brand: "Sereno",
     tagline: "Your AI tutor to study without stress",
-    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Exam", openExam: "Open exam", search: "Search", flashcards: "Flashcards", summary: "Summaries", mindmap: "Mind maps", methods: "Study methods", codePractice: "Code practice", mathPractice: "Calculus practice", designStudio: "Design studio", planner: "Planner", calendar: "Calendar", groups: "Groups", blog: "Blog", wellbeing: "Wellbeing", support: "Support", diagnostic: "Diagnostic", progress: "Progress", ranking: "Ranking", pet: "My pet", profile: "My profile" },
+    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Exam", openExam: "Open exam", search: "Search", flashcards: "Flashcards", summary: "Summaries", mindmap: "Mind maps", methods: "Study methods", codePractice: "Code practice", mathPractice: "Calculus practice", designStudio: "Design studio", planner: "Planner", calendar: "Calendar", groups: "Groups", blog: "Blog", wellbeing: "Wellbeing", support: "Support", diagnostic: "Diagnostic", progress: "Progress", ranking: "Ranking", pet: "My pet", mistakes: "Review mistakes", profile: "My profile" },
     navGroups: { home: "Home", learn: "Learn", practice: "Practice", science: "Science & Eng.", organize: "Organize", wellness: "Wellbeing", you: "Your progress" },
     landing: {
       badge: "ExpoUniandes Project",
@@ -1482,6 +1491,15 @@ export const translations = {
       sayHappy2: "It feels happy with you.",
       sayHappy3: "Keep it up, you're doing great!",
     },
+    mistakes: {
+      title: "Review mistakes",
+      subtitle: "Your wrong quiz answers, saved so you can study them and not slip again.",
+      empty: "No saved mistakes yet. Take a quiz and the questions you miss will appear here with their explanation.",
+      saved: "saved mistakes",
+      clearAll: "Clear all",
+      yourAnswer: "Your answer",
+      correctAnswer: "Correct",
+    },
     diagnostic: {
       title: "Welcome diagnostic",
       subtitle: "A mini-test to find your strengths and weaknesses, and build you a plan.",
@@ -1641,7 +1659,7 @@ export const translations = {
   pt: {
     brand: "Sereno",
     tagline: "Seu tutor com IA para estudar sem estresse",
-    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Prova", openExam: "Prova aberta", search: "Buscar", flashcards: "Flashcards", summary: "Resumos", mindmap: "Mapas mentais", methods: "Métodos de estudo", codePractice: "Prática de código", mathPractice: "Prática de cálculo", designStudio: "Estúdio de design", planner: "Planejador", calendar: "Calendário", groups: "Grupos", blog: "Blog", wellbeing: "Bem-estar", support: "Apoio", diagnostic: "Diagnóstico", progress: "Progresso", ranking: "Ranking", pet: "Meu bichinho", profile: "Meu perfil" },
+    nav: { tutor: "Tutor", quiz: "Quizzes", exam: "Prova", openExam: "Prova aberta", search: "Buscar", flashcards: "Flashcards", summary: "Resumos", mindmap: "Mapas mentais", methods: "Métodos de estudo", codePractice: "Prática de código", mathPractice: "Prática de cálculo", designStudio: "Estúdio de design", planner: "Planejador", calendar: "Calendário", groups: "Grupos", blog: "Blog", wellbeing: "Bem-estar", support: "Apoio", diagnostic: "Diagnóstico", progress: "Progresso", ranking: "Ranking", pet: "Meu bichinho", mistakes: "Revisar erros", profile: "Meu perfil" },
     navGroups: { home: "Início", learn: "Aprender", practice: "Praticar", science: "Ciências e Eng.", organize: "Organizar", wellness: "Bem-estar", you: "Seu progresso" },
     landing: {
       badge: "Projeto ExpoUniandes",
@@ -2296,6 +2314,15 @@ export const translations = {
       sayHappy2: "Ele se sente feliz com você.",
       sayHappy3: "Continue assim, você vai muito bem!",
     },
+    mistakes: {
+      title: "Revisar erros",
+      subtitle: "Suas respostas erradas nos quizzes, salvas para você estudar e não errar de novo.",
+      empty: "Ainda não há erros salvos. Faça um quiz e as perguntas que você errar aparecerão aqui com a explicação.",
+      saved: "erros salvos",
+      clearAll: "Apagar tudo",
+      yourAnswer: "Sua resposta",
+      correctAnswer: "Correta",
+    },
     diagnostic: {
       title: "Diagnóstico de boas-vindas",
       subtitle: "Um mini-teste para conhecer seus pontos fortes e fracos, e montar um plano.",
@@ -2455,7 +2482,7 @@ export const translations = {
   fr: {
     brand: "Sereno",
     tagline: "Votre tuteur IA pour étudier sans stress",
-    nav: { tutor: "Tuteur", quiz: "Quiz", exam: "Examen", openExam: "Examen ouvert", search: "Rechercher", flashcards: "Flashcards", summary: "Résumés", mindmap: "Cartes mentales", methods: "Méthodes d'étude", codePractice: "Pratique de code", mathPractice: "Pratique de calcul", designStudio: "Studio de design", planner: "Planning", calendar: "Calendrier", groups: "Groupes", blog: "Blog", wellbeing: "Bien-être", support: "Soutien", diagnostic: "Diagnostic", progress: "Progrès", ranking: "Classement", pet: "Mon animal", profile: "Mon profil" },
+    nav: { tutor: "Tuteur", quiz: "Quiz", exam: "Examen", openExam: "Examen ouvert", search: "Rechercher", flashcards: "Flashcards", summary: "Résumés", mindmap: "Cartes mentales", methods: "Méthodes d'étude", codePractice: "Pratique de code", mathPractice: "Pratique de calcul", designStudio: "Studio de design", planner: "Planning", calendar: "Calendrier", groups: "Groupes", blog: "Blog", wellbeing: "Bien-être", support: "Soutien", diagnostic: "Diagnostic", progress: "Progrès", ranking: "Classement", pet: "Mon animal", mistakes: "Réviser les erreurs", profile: "Mon profil" },
     navGroups: { home: "Accueil", learn: "Apprendre", practice: "Pratiquer", science: "Sciences & Ing.", organize: "Organiser", wellness: "Bien-être", you: "Votre progression" },
     landing: {
       badge: "Projet ExpoUniandes",
@@ -3109,6 +3136,15 @@ export const translations = {
       sayHappy1: "Il adore votre compagnie ! 💛",
       sayHappy2: "Il se sent heureux avec vous.",
       sayHappy3: "Continuez, vous êtes génial !",
+    },
+    mistakes: {
+      title: "Réviser les erreurs",
+      subtitle: "Vos mauvaises réponses aux quiz, enregistrées pour les étudier et ne plus vous tromper.",
+      empty: "Aucune erreur enregistrée. Faites un quiz et les questions ratées apparaîtront ici avec leur explication.",
+      saved: "erreurs enregistrées",
+      clearAll: "Tout effacer",
+      yourAnswer: "Votre réponse",
+      correctAnswer: "Correcte",
     },
     diagnostic: {
       title: "Diagnostic de bienvenue",

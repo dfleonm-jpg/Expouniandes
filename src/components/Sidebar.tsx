@@ -27,6 +27,7 @@ import {
   Palette,
   Egg,
   Newspaper,
+  BookX,
   ChevronDown,
   Home,
   LayoutGrid,
@@ -64,6 +65,7 @@ export type Section =
   | "progress"
   | "ranking"
   | "pet"
+  | "mistakes"
   | "profile";
 
 type NavKey = keyof ReturnType<typeof useApp>["t"]["nav"];
@@ -122,6 +124,7 @@ const GROUPS: { group: GroupKey; items: Item[] }[] = [
       { id: "profile", icon: UserCircle, key: "profile" },
       { id: "diagnostic", icon: Compass, key: "diagnostic" },
       { id: "progress", icon: BarChart3, key: "progress" },
+      { id: "mistakes", icon: BookX, key: "mistakes" },
       { id: "ranking", icon: Trophy, key: "ranking" },
       { id: "pet", icon: Egg, key: "pet" },
     ],
