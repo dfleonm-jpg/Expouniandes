@@ -28,24 +28,35 @@ export function useVoiceInput(locale: string, onResult: (text: string) => void) 
     if (!SR) return;
 
     if (listening) {
-      recRef.current?.stop();
+      try { recRef.current?.stop(); } catch { /* noop */ }
       setListening(false);
       return;
     }
 
-    const rec = new SR();
+    // Reutiliza o crea el reconocedor.
+    const rec = recRef.current ?? new SR();
     rec.lang = LOCALE_TO_LANG[locale] ?? "es-ES";
     rec.interimResults = false;
     rec.continuous = false;
+    rec.maxAlternatives = 1;
     rec.onresult = (e: any) => {
-      const text = e.results?.[0]?.[0]?.transcript ?? "";
-      if (text) onResult(text);
+      const text = e.results?.[e.results.length - 1]?.[0]?.transcript ?? "";
+      if (text) onResult(text.trim());
     };
     rec.onend = () => setListening(false);
-    rec.onerror = () => setListening(false);
+    rec.onerror = (e: any) => {
+      // "no-speech"/"aborted" son normales; no los tratamos como fallo ruidoso.
+      setListening(false);
+    };
     recRef.current = rec;
-    rec.start();
-    setListening(true);
+    try {
+      rec.start();
+      setListening(true);
+    } catch {
+      // "InvalidStateError": ya estaba iniciado; lo reiniciamos limpio.
+      try { rec.stop(); } catch { /* noop */ }
+      setListening(false);
+    }
   }, [listening, locale, onResult]);
 
   return { listening, supported, toggle };
