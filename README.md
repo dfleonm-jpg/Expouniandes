@@ -382,4 +382,22 @@ Verificación de tipos sin emitir archivos: `npx tsc --noEmit`.
 
 ---
 
+## 17. Licencia y derechos
+
+Copyright (c) 2026 **Daniel Felipe León Martínez** y **Grupo Sereno**. Todos los derechos reservados.
+
+Este es un proyecto de software propietario. El código, el diseño, la identidad visual y la documentación son propiedad exclusiva de los titulares y están protegidos por las leyes de derechos de autor de Colombia y los tratados internacionales aplicables. Su publicación en este repositorio no implica cesión ni licencia de uso. Queda prohibida la reproducción, modificación, distribución o explotación sin autorización previa y escrita de los titulares.
+
+Documentos legales incluidos en el repositorio:
+
+- `LICENSE` — Licencia de software propietario y reserva de derechos.
+- `NOTICE` — Aviso de titularidad y componentes de terceros.
+- `TERMS.md` — Términos y Condiciones de uso.
+- `PRIVACY.md` — Política de Privacidad.
+
+El nombre y el escudo de la Universidad de los Andes pertenecen a dicha institución y se usan únicamente para identificar el origen del proyecto, sin implicar afiliación ni respaldo.
+
+---
+
 Proyecto desarrollado para la ExpoUniandes, Universidad de los Andes.
+Autoría: Daniel Felipe León Martínez — Grupo Sereno.

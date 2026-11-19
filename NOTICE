@@ -1,0 +1,21 @@
+Sereno
+Copyright (c) 2026 Daniel Felipe León Martínez y Grupo Sereno.
+Todos los derechos reservados.
+
+Autor y titular de los derechos: Daniel Felipe León Martínez.
+Titularidad colectiva: Grupo Sereno.
+
+Proyecto desarrollado en el marco de ExpoUniandes, Universidad de los Andes.
+
+Este producto incluye software de terceros sujeto a sus respectivas licencias
+(entre otros: Next.js, React, Firebase, Framer Motion, Lucide, KaTeX,
+highlight.js, pdf.js, Tesseract.js). Dichos componentes conservan sus propias
+condiciones de licencia y titularidad.
+
+"Sereno" y su identidad visual son signos distintivos de los titulares. El
+nombre y el escudo de la Universidad de los Andes pertenecen a dicha
+institución y se usan únicamente para identificar el origen del proyecto.
+
+El uso, copia, modificación o distribución del código y los materiales
+originales de este proyecto se rige por el archivo LICENSE incluido en este
+repositorio.

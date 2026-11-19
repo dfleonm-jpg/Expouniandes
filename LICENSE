@@ -1,0 +1,74 @@
+Licencia de Software Propietario — Sereno
+
+Copyright (c) 2026 Daniel Felipe León Martínez y Grupo Sereno.
+Todos los derechos reservados. (All rights reserved.)
+
+===============================================================================
+
+1. TITULARIDAD
+
+Este software, su código fuente, diseño, interfaz, logotipos, textos,
+documentación y demás materiales asociados (en adelante, el "Software" o
+"Sereno") son propiedad exclusiva de Daniel Felipe León Martínez y del
+Grupo Sereno (en adelante, los "Titulares"). El Software está protegido por
+las leyes de derechos de autor de la República de Colombia (Ley 23 de 1982 y
+Ley 1915 de 2018), por la Decisión Andina 351 de 1993 y por los tratados
+internacionales aplicables.
+
+La publicación de este repositorio en una plataforma como GitHub no implica,
+en ningún caso, la cesión, renuncia o licencia de los derechos de autor ni de
+cualquier otro derecho de propiedad intelectual sobre el Software.
+
+2. RESERVA DE DERECHOS
+
+Salvo autorización previa, expresa y por escrito de los Titulares, queda
+PROHIBIDO a cualquier tercero:
+
+   a) Copiar, reproducir o almacenar total o parcialmente el Software.
+   b) Modificar, adaptar, traducir o crear obras derivadas.
+   c) Distribuir, sublicenciar, vender, alquilar o ceder el Software.
+   d) Usar el Software con fines comerciales.
+   e) Realizar ingeniería inversa, descompilación o desensamblado, salvo en
+      la medida en que la ley aplicable lo permita de forma imperativa.
+   f) Eliminar, ocultar o alterar los avisos de derechos de autor, marcas o
+      cualquier otro aviso de titularidad.
+
+3. USO PERMITIDO
+
+Se permite únicamente la visualización del código fuente con fines de
+consulta, evaluación académica y referencia personal, sin derecho a los usos
+reservados en la cláusula 2. Cualquier otro uso requiere autorización escrita
+de los Titulares.
+
+4. MARCAS
+
+"Sereno" y sus logotipos e identidad visual son signos distintivos de los
+Titulares. Nada en esta licencia concede derecho alguno sobre dichas marcas.
+
+El escudo y el nombre de la Universidad de los Andes son propiedad de dicha
+institución y se utilizan únicamente a efectos de identificar el origen del
+proyecto en el marco de ExpoUniandes; su uso no implica afiliación,
+patrocinio ni respaldo por parte de la Universidad.
+
+5. COMPONENTES DE TERCEROS
+
+El Software utiliza bibliotecas y servicios de terceros (por ejemplo, Next.js,
+React, Firebase, y proveedores de inteligencia artificial), cada uno sujeto a
+sus propias licencias. Esta licencia aplica exclusivamente al código y a los
+materiales originales de los Titulares, no a dichos componentes de terceros.
+
+6. AUSENCIA DE GARANTÍA
+
+EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O
+IMPLÍCITA, INCLUYENDO, SIN LIMITACIÓN, LAS GARANTÍAS DE COMERCIABILIDAD,
+IDONEIDAD PARA UN FIN PARTICULAR Y NO INFRACCIÓN. LOS TITULARES NO SERÁN
+RESPONSABLES POR RECLAMACIÓN, DAÑO U OTRA RESPONSABILIDAD DERIVADA DEL USO DEL
+SOFTWARE.
+
+7. LEY APLICABLE
+
+Esta licencia se rige e interpreta conforme a las leyes de la República de
+Colombia.
+
+Para solicitudes de autorización o consultas, contactar a los Titulares:
+Daniel Felipe León Martínez — Grupo Sereno.

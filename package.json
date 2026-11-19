@@ -2,6 +2,12 @@
   "name": "sereno",
   "version": "0.1.0",
   "private": true,
+  "author": "Daniel Felipe León Martínez",
+  "contributors": [
+    "Grupo Sereno"
+  ],
+  "license": "SEE LICENSE IN LICENSE",
+  "copyright": "Copyright (c) 2026 Daniel Felipe León Martínez y Grupo Sereno. Todos los derechos reservados.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
