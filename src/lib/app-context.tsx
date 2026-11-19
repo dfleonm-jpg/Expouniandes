@@ -128,6 +128,32 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** Lee y parsea una clave de localStorage de forma aislada: si está corrupta,
+ *  devuelve el fallback sin afectar la carga de las demás claves. */
+function readLS<T>(key: string, fallback: T, validate?: (v: unknown) => boolean): T {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw == null) return fallback;
+    const parsed = JSON.parse(raw);
+    if (validate && !validate(parsed)) return fallback;
+    return parsed as T;
+  } catch {
+    return fallback;
+  }
+}
+
+/** Fuerza que todos los campos de Stats sean números finitos no negativos. */
+function sanitizeStats(raw: unknown): Stats {
+  const out = { ...DEFAULT_STATS } as Record<string, number>;
+  if (raw && typeof raw === "object") {
+    for (const k of Object.keys(DEFAULT_STATS)) {
+      const v = (raw as Record<string, unknown>)[k];
+      if (typeof v === "number" && Number.isFinite(v) && v >= 0) out[k] = v;
+    }
+  }
+  return out as Stats;
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("es");
   const [stats, setStats] = useState<Stats>(DEFAULT_STATS);
@@ -142,38 +168,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [mastery, setMastery] = useState<MasteryState>(EMPTY_MASTERY);
   const [mounted, setMounted] = useState(false);
 
-  // Cargar preferencias guardadas.
+  // Cargar preferencias guardadas. Cada clave se lee de forma AISLADA: una
+  // entrada corrupta ya no aborta la carga de las demás.
   useEffect(() => {
     try {
       const savedLocale = localStorage.getItem("sereno:locale") as Locale | null;
       if (savedLocale && savedLocale in translations) setLocaleState(savedLocale);
 
-      const savedStats = localStorage.getItem("sereno:stats");
-      if (savedStats) setStats({ ...DEFAULT_STATS, ...JSON.parse(savedStats) });
+      setStats(sanitizeStats(readLS<unknown>("sereno:stats", null)));
+      setDocs(readLS<SereneDoc[]>("sereno:docs", [], Array.isArray));
 
-      const savedDocs = localStorage.getItem("sereno:docs");
-      if (savedDocs) setDocs(JSON.parse(savedDocs));
-
-      const savedName = localStorage.getItem("sereno:userName");
+      const savedName = readLS<string | null>("sereno:userName", null, (v) => typeof v === "string");
       if (savedName) setUserNameState(savedName);
 
-      const savedExams = localStorage.getItem("sereno:examHistory");
-      if (savedExams) setExamHistory(JSON.parse(savedExams));
+      setExamHistory(readLS<ExamRecord[]>("sereno:examHistory", [], Array.isArray));
+      setQuizErrors(readLS<QuizErrorRecord[]>("sereno:quizErrors", [], Array.isArray));
+      setExamEvents(readLS<ExamEvent[]>("sereno:examEvents", [], Array.isArray));
 
-      const savedQuizErrors = localStorage.getItem("sereno:quizErrors");
-      if (savedQuizErrors) setQuizErrors(JSON.parse(savedQuizErrors));
+      setA11yState({ ...DEFAULT_A11Y, ...readLS<object>("sereno:a11y", {}, (v) => typeof v === "object" && v !== null) });
+      setProfileState({ ...DEFAULT_PROFILE, ...readLS<object>("sereno:profile", {}, (v) => typeof v === "object" && v !== null) });
 
-      const savedEvents = localStorage.getItem("sereno:examEvents");
-      if (savedEvents) setExamEvents(JSON.parse(savedEvents));
-
-      const savedA11y = localStorage.getItem("sereno:a11y");
-      if (savedA11y) setA11yState({ ...DEFAULT_A11Y, ...JSON.parse(savedA11y) });
-
-      const savedProfile = localStorage.getItem("sereno:profile");
-      if (savedProfile) setProfileState({ ...DEFAULT_PROFILE, ...JSON.parse(savedProfile) });
-
-      const savedMastery = localStorage.getItem("sereno:mastery");
-      if (savedMastery) setMastery({ topics: { ...(JSON.parse(savedMastery).topics ?? {}) } });
+      const m = readLS<{ topics?: object }>("sereno:mastery", {}, (v) => typeof v === "object" && v !== null);
+      setMastery({ topics: { ...(m.topics ?? {}) } });
 
       // Racha de estudio: incrementa si entra en días consecutivos.
       const rawStreak = localStorage.getItem("sereno:streak");

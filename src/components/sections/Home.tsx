@@ -29,13 +29,13 @@ export function Home({ onNavigate }: { onNavigate: (s: Section) => void }) {
   }, [t]);
 
   const features = [
-    { icon: MessageSquare, ...t.features.tutor, section: "tutor" as Section, color: "from-violet-500 to-indigo-500" },
-    { icon: ListChecks, ...t.features.quiz, section: "quiz" as Section, color: "from-cyan-500 to-blue-500" },
-    { icon: GraduationCap, title: t.exam.title, desc: t.exam.subtitle, section: "exam" as Section, color: "from-indigo-500 to-blue-600" },
-    { icon: Layers, title: t.nav.flashcards, desc: t.flashcards.subtitle, section: "flashcards" as Section, color: "from-amber-500 to-orange-500" },
-    { icon: FileText, title: t.nav.summary, desc: t.summary.subtitle, section: "summary" as Section, color: "from-fuchsia-500 to-purple-500" },
-    { icon: CalendarClock, ...t.features.planner, section: "planner" as Section, color: "from-emerald-500 to-teal-500" },
-    { icon: HeartPulse, ...t.features.wellbeing, section: "wellbeing" as Section, color: "from-rose-500 to-pink-500" },
+    { icon: MessageSquare, ...t.features.tutor, section: "tutor" as Section, color: "from-slate-500 to-slate-600" },
+    { icon: ListChecks, ...t.features.quiz, section: "quiz" as Section, color: "from-slate-400 to-slate-600" },
+    { icon: GraduationCap, title: t.exam.title, desc: t.exam.subtitle, section: "exam" as Section, color: "from-slate-500 to-slate-700" },
+    { icon: Layers, title: t.nav.flashcards, desc: t.flashcards.subtitle, section: "flashcards" as Section, color: "from-stone-400 to-stone-600" },
+    { icon: FileText, title: t.nav.summary, desc: t.summary.subtitle, section: "summary" as Section, color: "from-zinc-500 to-slate-600" },
+    { icon: CalendarClock, ...t.features.planner, section: "planner" as Section, color: "from-slate-500 to-slate-700" },
+    { icon: HeartPulse, ...t.features.wellbeing, section: "wellbeing" as Section, color: "from-slate-500 to-zinc-600" },
   ];
 
   return (

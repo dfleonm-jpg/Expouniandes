@@ -68,7 +68,7 @@ export function Support() {
       <div ref={scrollRef} onScroll={onScroll} className="glass mt-4 flex-1 overflow-y-auto rounded-3xl p-4 sm:p-6">
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-500 to-zinc-600">
               <Heart className="h-8 w-8 text-white" />
             </div>
             <p className="mb-6 text-muted">{t.support.empty}</p>
@@ -96,7 +96,7 @@ export function Support() {
                 >
                   <div
                     className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                      m.role === "user" ? "bg-white/10" : "bg-gradient-to-br from-rose-500 to-pink-500"
+                      m.role === "user" ? "bg-white/10" : "bg-gradient-to-br from-slate-500 to-zinc-600"
                     }`}
                   >
                     {m.role === "user" ? "🧑" : <Heart className="h-5 w-5 text-white" />}
@@ -151,7 +151,7 @@ export function Support() {
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 text-white transition hover:opacity-90 disabled:opacity-40"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-500 to-zinc-600 text-white transition hover:opacity-90 disabled:opacity-40"
           aria-label={t.support.send}
         >
           <Send className="h-5 w-5" />

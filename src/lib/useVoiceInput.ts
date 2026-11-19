@@ -22,7 +22,11 @@ export function useVoiceInput(
   opts?: { onError?: (kind: "denied" | "nospeech" | "other") => void; onEnd?: () => void }
 ) {
   const [listening, setListening] = useState(false);
-  const [supported, setSupported] = useState(false);
+  // Soporte calculado una sola vez (inicializador perezoso), no en un efecto.
+  const [supported] = useState(
+    () => typeof window !== "undefined" &&
+      Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
+  );
   const recRef = useRef<any>(null);
   const startingRef = useRef(false);     // evita dobles start()
   const manualStopRef = useRef(false);   // distingue stop() manual de fin natural
@@ -35,10 +39,8 @@ export function useVoiceInput(
   useEffect(() => { onErrorRef.current = opts?.onError; }, [opts?.onError]);
   useEffect(() => { onEndRef.current = opts?.onEnd; }, [opts?.onEnd]);
 
+  // Limpieza: aborta cualquier reconocimiento al desmontar.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    setSupported(Boolean(SR));
     return () => {
       try { recRef.current?.abort?.(); } catch { /* noop */ }
     };

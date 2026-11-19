@@ -47,12 +47,12 @@ export function Progress() {
   }
 
   const cards = [
-    { icon: ListChecks, label: t.progress.quizzesTaken, value: stats.quizzesTaken, color: "from-cyan-500 to-blue-500" },
-    { icon: MessageSquare, label: t.progress.questionsAnswered, value: stats.questionsAnswered, color: "from-violet-500 to-indigo-500" },
-    { icon: Timer, label: t.progress.focusMinutes, value: stats.focusMinutes, color: "from-emerald-500 to-teal-500" },
-    { icon: CheckCircle2, label: t.progress.tasksDone, value: stats.tasksDone, color: "from-rose-500 to-pink-500" },
-    { icon: Layers, label: t.nav.flashcards, value: stats.flashcardsReviewed, color: "from-amber-500 to-orange-500" },
-    { icon: FileText, label: t.nav.summary, value: stats.summariesCreated, color: "from-fuchsia-500 to-purple-500" },
+    { icon: ListChecks, label: t.progress.quizzesTaken, value: stats.quizzesTaken, color: "from-slate-400 to-slate-600" },
+    { icon: MessageSquare, label: t.progress.questionsAnswered, value: stats.questionsAnswered, color: "from-slate-500 to-slate-600" },
+    { icon: Timer, label: t.progress.focusMinutes, value: stats.focusMinutes, color: "from-slate-500 to-slate-700" },
+    { icon: CheckCircle2, label: t.progress.tasksDone, value: stats.tasksDone, color: "from-slate-500 to-zinc-600" },
+    { icon: Layers, label: t.nav.flashcards, value: stats.flashcardsReviewed, color: "from-stone-400 to-stone-600" },
+    { icon: FileText, label: t.nav.summary, value: stats.summariesCreated, color: "from-zinc-500 to-slate-600" },
   ];
 
   const totalActivity = Object.values(stats).reduce((a, b) => a + b, 0);
@@ -493,8 +493,8 @@ function GradeChart({
         ))}
         <defs>
           <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#3b6fe5" />
-            <stop offset="100%" stopColor="#38bdf8" />
+            <stop offset="0%" stopColor="var(--brand)" />
+            <stop offset="100%" stopColor="var(--accent-2)" />
           </linearGradient>
         </defs>
       </svg>

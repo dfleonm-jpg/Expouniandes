@@ -123,7 +123,12 @@ export type SpeechState = {
  * control de velocidad y selección de voz. Usa la Web Speech API del navegador.
  */
 export function useSpeech(locale: string) {
-  const [state, setState] = useState<SpeechState>({ supported: false, speaking: false, paused: false, voices: [] });
+  const [state, setState] = useState<SpeechState>(() => ({
+    supported: typeof window !== "undefined" && "speechSynthesis" in window,
+    speaking: false,
+    paused: false,
+    voices: [],
+  }));
   const [rate, setRate] = useState(1);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   // Token de generación: invalida callbacks de locuciones anteriores.
@@ -144,11 +149,7 @@ export function useSpeech(locale: string) {
   };
 
   useEffect(() => {
-    const supported = typeof window !== "undefined" && "speechSynthesis" in window;
-    if (!supported) {
-      setState((s) => ({ ...s, supported: false }));
-      return;
-    }
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     const synth = window.speechSynthesis;
     const loadVoices = () => {
       const all = synth.getVoices();
@@ -164,11 +165,12 @@ export function useSpeech(locale: string) {
     };
     loadVoices();
     synth.addEventListener("voiceschanged", loadVoices);
+    const gen = genRef;
     return () => {
       synth.removeEventListener("voiceschanged", loadVoices);
       clearWatchdog();
       stopKeepAlive();
-      genRef.current++;
+      gen.current++;
       try { synth.cancel(); } catch { /* noop */ }
     };
   }, [locale]);

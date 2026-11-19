@@ -57,11 +57,22 @@ export async function publishShare(
     const ref = doc(db, "shares", code);
     const existing = await getDoc(ref);
     if (existing.exists()) continue; // colisión: reintenta
+    // Acota el contenido para no subir documentos gigantes (límite ~1 MB de Firestore).
+    let safeData = resource.data;
+    try {
+      const serialized = JSON.stringify(resource.data ?? {});
+      if (serialized.length > 300_000) {
+        // Demasiado grande: no compartimos el bruto, se avisa con un marcador.
+        safeData = { truncated: true, note: "Contenido demasiado grande para compartir." };
+      }
+    } catch {
+      safeData = {};
+    }
     await setDoc(ref, {
       code,
       type: resource.type,
       title: resource.title.slice(0, 120),
-      data: resource.data,
+      data: safeData,
       owner: resource.owner ?? null,
       createdAt: serverTimestamp(),
     });
@@ -79,7 +90,17 @@ export async function fetchShare(codeInput: string): Promise<SharedResource | nu
   try {
     const snap = await getDoc(doc(db, "shares", code));
     if (!snap.exists()) return null;
-    return snap.data() as SharedResource;
+    const d = snap.data() as Record<string, unknown>;
+    // Validación defensiva: solo devolvemos recursos con la forma esperada.
+    const type = d.type as string;
+    if (!["summary", "quiz", "flashcards", "plan"].includes(type)) return null;
+    return {
+      code,
+      type: type as ShareType,
+      title: typeof d.title === "string" ? d.title : "",
+      data: d.data ?? {},
+      owner: (d.owner as string | null) ?? null,
+    };
   } catch {
     return null;
   }

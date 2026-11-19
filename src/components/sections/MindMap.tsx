@@ -271,7 +271,6 @@ export function MindMap() {
 
                 {/* Ramas */}
                 {layout.map(({ branch, bx, by, i, onRight, nodeW }) => {
-                  const color = COLORS[i % COLORS.length];
                   const isOpen = expanded.has(i);
                   const labelLines = wrap(`${branch.emoji ? branch.emoji + " " : ""}${branch.label}`, 20).slice(0, 2);
                   const nodeH = 30 + labelLines.length * 16;

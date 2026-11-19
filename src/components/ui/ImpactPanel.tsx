@@ -27,10 +27,10 @@ export function ImpactPanel() {
   if (total === 0) return null;
 
   const cards = [
-    { icon: Timer, value: m.focusMinutes, label: t.ui.impactMinutes, color: "from-emerald-500 to-teal-500" },
-    { icon: ListChecks, value: m.quizzes, label: t.ui.impactQuizzes, color: "from-cyan-500 to-blue-500" },
-    { icon: MessageSquare, value: m.questions, label: t.ui.impactQuestions, color: "from-violet-500 to-indigo-500" },
-    { icon: FileText, value: m.summaries, label: t.ui.impactSummaries, color: "from-fuchsia-500 to-purple-500" },
+    { icon: Timer, value: m.focusMinutes, label: t.ui.impactMinutes, color: "from-slate-500 to-slate-700" },
+    { icon: ListChecks, value: m.quizzes, label: t.ui.impactQuizzes, color: "from-slate-400 to-slate-600" },
+    { icon: MessageSquare, value: m.questions, label: t.ui.impactQuestions, color: "from-slate-500 to-slate-600" },
+    { icon: FileText, value: m.summaries, label: t.ui.impactSummaries, color: "from-zinc-500 to-slate-600" },
   ];
 
   return (

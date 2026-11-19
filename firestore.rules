@@ -64,11 +64,21 @@ service cloud.firestore {
     // editar/borrar (los códigos son inmutables una vez creados).
     match /shares/{code} {
       allow read: if true;
+      // Creación validada: forma exacta de campos, dueño = quien crea, fecha de
+      // servidor y contenido acotado (evita documentos arbitrarios o enormes).
       allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['code','type','title','data','owner','createdAt'])
+        && request.resource.data.keys().hasAll(['code','type','title','data','createdAt'])
         && request.resource.data.code == code
         && request.resource.data.type in ['summary', 'quiz', 'flashcards', 'plan']
         && request.resource.data.title is string
-        && request.resource.data.title.size() <= 120;
+        && request.resource.data.title.size() >= 1
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.data is map
+        && request.resource.data.createdAt == request.time
+        && (!('owner' in request.resource.data)
+            || request.resource.data.owner == null
+            || request.resource.data.owner == request.auth.uid);
       allow update, delete: if false;
     }
 
@@ -183,17 +193,20 @@ service cloud.firestore {
         && (!('flashcards' in data)   || (data.flashcards is number && data.flashcards >= 0));
     }
 
-    function fieldGrows(name) {
+    // Un campo solo puede crecer, y como máximo MAX_DELTA por operación
+    // (evita que un usuario infle los contadores globales con un salto enorme).
+    function fieldGrows(name, maxDelta) {
       return !(name in request.resource.data)
         || !(name in resource.data)
-        || request.resource.data[name] >= resource.data[name];
+        || (request.resource.data[name] >= resource.data[name]
+            && request.resource.data[name] - resource.data[name] <= maxDelta);
     }
     function isIncrementOnly() {
-      return fieldGrows('focusMinutes')
-        && fieldGrows('quizzes')
-        && fieldGrows('questions')
-        && fieldGrows('summaries')
-        && fieldGrows('flashcards');
+      return fieldGrows('focusMinutes', 600)
+        && fieldGrows('quizzes', 50)
+        && fieldGrows('questions', 500)
+        && fieldGrows('summaries', 50)
+        && fieldGrows('flashcards', 500);
     }
   }
 }
