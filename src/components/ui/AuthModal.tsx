@@ -24,6 +24,10 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [accepted, setAccepted] = useState(false);
+
+  // Al registrarse se exige aceptar términos y privacidad (consentimiento).
+  const needsConsent = isRegister && !accepted;
 
   function toggleMode() {
     setIsRegister((r) => !r);
@@ -32,6 +36,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
   }
 
   async function doGoogle() {
+    if (needsConsent) { setError(t.ui.mustAccept); return; }
     setBusy(true);
     setError("");
     setInfo("");
@@ -47,6 +52,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
 
   async function doEmail() {
     if (!email.trim() || password.length < 6) return;
+    if (needsConsent) { setError(t.ui.mustAccept); return; }
     setBusy(true);
     setError("");
     setInfo("");
@@ -117,11 +123,29 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
             {error && <p className="mb-4 rounded-xl bg-danger/15 px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
             {info && <p className="mb-4 rounded-xl bg-calm/15 px-3 py-2 text-sm text-calm" role="status">{info}</p>}
 
+            {/* Consentimiento obligatorio al registrarse */}
+            {isRegister && auth.enabled && (
+              <label className="mb-4 flex cursor-pointer items-start gap-2.5 rounded-xl bg-white/[0.03] px-3 py-2.5 text-xs text-foreground/80">
+                <input
+                  type="checkbox"
+                  checked={accepted}
+                  onChange={(e) => setAccepted(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--brand)]"
+                />
+                <span>
+                  {t.ui.acceptPrefix}{" "}
+                  <a href="#legal" onClick={onClose} className="text-accent underline">{t.legal.termsTab}</a>
+                  {" "}{t.ui.acceptAnd}{" "}
+                  <a href="#legal" onClick={onClose} className="text-accent underline">{t.legal.privacyTab}</a>.
+                </span>
+              </label>
+            )}
+
             {auth.enabled ? (
               <div className="space-y-3">
                 <button
                   onClick={doGoogle}
-                  disabled={busy}
+                  disabled={busy || needsConsent}
                   className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-6 py-3.5 font-semibold text-gray-800 transition hover:bg-gray-100 disabled:opacity-60"
                 >
                   {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
@@ -173,7 +197,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
                 )}
                 <button
                   onClick={doEmail}
-                  disabled={busy || !email.trim() || password.length < 6}
+                  disabled={busy || !email.trim() || password.length < 6 || needsConsent}
                   className="shine flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-accent px-6 py-3.5 font-semibold text-white transition hover:opacity-90 disabled:opacity-40"
                 >
                   {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
