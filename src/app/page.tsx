@@ -30,6 +30,7 @@ import { Progress } from "@/components/sections/Progress";
 import { Ranking } from "@/components/sections/Ranking";
 import { Pet } from "@/components/sections/Pet";
 import { Mistakes } from "@/components/sections/Mistakes";
+import { Legal } from "@/components/sections/Legal";
 import { Profile } from "@/components/sections/Profile";
 import { Onboarding } from "@/components/ui/Onboarding";
 
@@ -74,7 +75,7 @@ const SHORTCUTS: Record<string, Section> = {
 const VALID_SECTIONS: Section[] = [
   "home", "tutor", "quiz", "exam", "openExam", "search", "flashcards", "summary", "mindmap",
   "methods", "codePractice", "mathPractice", "designStudio", "planner", "calendar", "groups", "blog",
-  "wellbeing", "support", "diagnostic", "progress", "ranking", "pet", "mistakes", "profile",
+  "wellbeing", "support", "diagnostic", "progress", "ranking", "pet", "mistakes", "legal", "profile",
 ];
 
 function sectionFromHash(): Section {
@@ -205,6 +206,7 @@ export default function Page() {
               {section === "ranking" && <Ranking />}
               {section === "pet" && <Pet />}
               {section === "mistakes" && <Mistakes />}
+              {section === "legal" && <Legal />}
               {section === "profile" && <Profile />}
             </Fade>
           </AnimatePresence>

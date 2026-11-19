@@ -66,6 +66,7 @@ export type Section =
   | "ranking"
   | "pet"
   | "mistakes"
+  | "legal"
   | "profile";
 
 type NavKey = keyof ReturnType<typeof useApp>["t"]["nav"];

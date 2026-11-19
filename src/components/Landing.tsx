@@ -327,10 +327,19 @@ export function Landing() {
                   <li>Universidad de los Andes</li>
                 </ul>
               </div>
+              <div>
+                <p className="mb-3 font-semibold text-foreground/90">{L.footerLegal}</p>
+                <ul className="space-y-2 text-muted">
+                  <li><a href="#legal" className="transition hover:text-foreground">{t.legal.termsTab}</a></li>
+                  <li><a href="#legal" className="transition hover:text-foreground">{t.legal.privacyTab}</a></li>
+                  <li><a href="#legal" className="transition hover:text-foreground">{t.legal.rightsTab}</a></li>
+                </ul>
+              </div>
             </div>
           </div>
-          <div className="mt-8 border-t border-white/5 pt-6 text-center text-xs text-muted">
-            {L.footerMadeBy}
+          <div className="mt-8 space-y-1 border-t border-white/5 pt-6 text-center text-xs text-muted">
+            <p>{L.footerMadeBy}</p>
+            <p>{t.legal.copyright}</p>
           </div>
         </div>
       </footer>
