@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { UserCircle, Flame, Trophy, ListChecks, MessageSquare, Timer, Layers, FileText, CheckCircle2, Pencil, Share2 } from "lucide-react";
+import { UserCircle, Flame, Trophy, ListChecks, MessageSquare, Timer, Layers, FileText, CheckCircle2, Pencil, Share2, Download, Trash2, LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "../ui/Toast";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { getLeaderboard } from "@/lib/leaderboard-store";
 import { computeXP, levelInfo } from "@/lib/levels";
 import { overallMastery, subjectBreakdown } from "@/lib/mastery";
@@ -14,10 +15,58 @@ import { SectionHeader } from "../ui/SectionHeader";
 import { cn } from "@/lib/utils";
 
 export function Profile() {
-  const { t, stats, streak, examHistory, profile, setProfile, mastery } = useApp();
-  const { user } = useAuth();
+  const { t, locale, stats, streak, examHistory, examEvents, quizErrors, profile, setProfile, mastery } = useApp();
+  const { user, logout, deleteAccount } = useAuth();
   const { notify } = useToast();
   const [rank, setRank] = useState<number | null>(null);
+  const [askDelete, setAskDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Exporta todos los datos del usuario a un archivo JSON descargable
+  // (derecho de portabilidad — Ley 1581 de 2012).
+  function exportData() {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      account: { name: user?.name ?? null, email: user?.email ?? null },
+      locale,
+      stats,
+      streak,
+      profile,
+      examHistory,
+      examEvents,
+      quizErrors,
+      mastery,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sereno-mis-datos.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    notify("success", t.account.exported);
+  }
+
+  async function confirmDelete() {
+    setDeleting(true);
+    try {
+      const res = await deleteAccount();
+      if (res.ok) {
+        notify("success", t.account.deleted);
+        // El cambio de sesión llevará a la landing automáticamente.
+      } else if (res.reauth) {
+        notify("error", t.account.reauth);
+        await logout();
+      } else {
+        notify("error", t.account.deleteError);
+      }
+    } catch {
+      notify("error", t.account.deleteError);
+    } finally {
+      setDeleting(false);
+      setAskDelete(false);
+    }
+  }
 
   const xp = computeXP(stats);
   const lvl = levelInfo(xp);
@@ -221,6 +270,52 @@ export function Profile() {
           </span>
         ))}
       </div>
+
+      {/* Cuenta y datos (privacidad: exportar / cerrar sesión / eliminar) */}
+      {user && (
+        <>
+          <h3 className="mb-3 mt-7 font-bold">{t.account.title}</h3>
+          <div className="glass space-y-2 rounded-2xl p-4">
+            <button
+              onClick={exportData}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-white/5"
+            >
+              <Download className="h-4 w-4 text-accent" />
+              <span className="flex-1">
+                <span className="font-medium">{t.account.export}</span>
+                <span className="block text-xs text-muted">{t.account.exportDesc}</span>
+              </span>
+            </button>
+            <button
+              onClick={() => logout()}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-white/5"
+            >
+              <LogOut className="h-4 w-4 text-muted" />
+              <span className="font-medium">{t.ui.logout}</span>
+            </button>
+            <button
+              onClick={() => setAskDelete(true)}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-danger transition hover:bg-danger/10"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="flex-1">
+                <span className="font-medium">{t.account.delete}</span>
+                <span className="block text-xs text-danger/70">{t.account.deleteDesc}</span>
+              </span>
+            </button>
+          </div>
+        </>
+      )}
+
+      <ConfirmDialog
+        open={askDelete}
+        danger
+        title={t.account.deleteTitle}
+        body={t.account.deleteBody}
+        confirmLabel={deleting ? t.account.deleting : t.account.deleteConfirm}
+        onConfirm={confirmDelete}
+        onCancel={() => setAskDelete(false)}
+      />
     </div>
   );
 }

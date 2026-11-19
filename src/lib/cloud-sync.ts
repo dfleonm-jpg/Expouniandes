@@ -1,6 +1,6 @@
 "use client";
 
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
 import { getDb } from "./firebase";
 
 // Lee/escribe el documento de progreso del usuario en Firestore:
@@ -45,4 +45,22 @@ export async function saveUserData(uid: string, data: Record<string, unknown>): 
   } catch (e) {
     console.error("saveUserData error:", e);
   }
+}
+
+/** Borra TODOS los datos del usuario en Firestore: su documento de progreso,
+ *  la subcolección de chats y su entrada de ranking. (Ejercicio del derecho de
+ *  supresión — Ley 1581 de 2012.) */
+export async function deleteUserData(uid: string): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+  // Borra la subcolección de chats (los documentos hijos no se borran solos).
+  try {
+    const chats = await getDocs(collection(db, "users", uid, "chats"));
+    await Promise.all(chats.docs.map((d) => deleteDoc(d.ref)));
+  } catch (e) {
+    console.error("deleteUserData chats error:", e);
+  }
+  // Borra el documento principal y la entrada de ranking.
+  try { await deleteDoc(doc(db, "users", uid)); } catch (e) { console.error("deleteUserData user error:", e); }
+  try { await deleteDoc(doc(db, "leaderboard", uid)); } catch { /* puede no existir */ }
 }

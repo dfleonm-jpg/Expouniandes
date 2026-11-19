@@ -1,38 +1,53 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 import { Landing } from "@/components/Landing";
 import { Sidebar, type Section } from "@/components/Sidebar";
 import { AIStatusBanner } from "@/components/ui/AIStatusBanner";
+import { SectionBoundary } from "@/components/ui/SectionBoundary";
+import { Onboarding } from "@/components/ui/Onboarding";
+
+// Secciones ligeras / de uso frecuente: carga directa.
 import { Home } from "@/components/sections/Home";
 import { Tutor } from "@/components/sections/Tutor";
 import { Quiz } from "@/components/sections/Quiz";
-import { Exam } from "@/components/sections/Exam";
-import { OpenExam } from "@/components/sections/OpenExam";
 import { Search } from "@/components/sections/Search";
-import { Flashcards } from "@/components/sections/Flashcards";
 import { Summary } from "@/components/sections/Summary";
-import { MindMap } from "@/components/sections/MindMap";
 import { Methods } from "@/components/sections/Methods";
-import { CodePractice } from "@/components/sections/CodePractice";
-import { MathPractice } from "@/components/sections/MathPractice";
-import { DesignStudio } from "@/components/sections/DesignStudio";
-import { Planner } from "@/components/sections/Planner";
-import { Calendar } from "@/components/sections/Calendar";
-import { Groups } from "@/components/sections/Groups";
-import { Blog } from "@/components/sections/Blog";
-import { Wellbeing } from "@/components/sections/Wellbeing";
-import { Support } from "@/components/sections/Support";
-import { Diagnostic } from "@/components/sections/Diagnostic";
-import { Progress } from "@/components/sections/Progress";
-import { Ranking } from "@/components/sections/Ranking";
-import { Pet } from "@/components/sections/Pet";
-import { Mistakes } from "@/components/sections/Mistakes";
-import { Legal } from "@/components/sections/Legal";
-import { Profile } from "@/components/sections/Profile";
-import { Onboarding } from "@/components/ui/Onboarding";
+
+// Spinner de carga para las secciones diferidas.
+function SectionLoader() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-brand" />
+    </div>
+  );
+}
+// Secciones pesadas o poco frecuentes: diferidas (reducen el bundle inicial).
+// Turbopack exige que las opciones sean un objeto literal en línea.
+const Exam = dynamic(() => import("@/components/sections/Exam").then((m) => m.Exam), { loading: SectionLoader });
+const OpenExam = dynamic(() => import("@/components/sections/OpenExam").then((m) => m.OpenExam), { loading: SectionLoader });
+const Flashcards = dynamic(() => import("@/components/sections/Flashcards").then((m) => m.Flashcards), { loading: SectionLoader });
+const MindMap = dynamic(() => import("@/components/sections/MindMap").then((m) => m.MindMap), { loading: SectionLoader });
+const CodePractice = dynamic(() => import("@/components/sections/CodePractice").then((m) => m.CodePractice), { loading: SectionLoader });
+const MathPractice = dynamic(() => import("@/components/sections/MathPractice").then((m) => m.MathPractice), { loading: SectionLoader });
+const DesignStudio = dynamic(() => import("@/components/sections/DesignStudio").then((m) => m.DesignStudio), { loading: SectionLoader });
+const Planner = dynamic(() => import("@/components/sections/Planner").then((m) => m.Planner), { loading: SectionLoader });
+const Calendar = dynamic(() => import("@/components/sections/Calendar").then((m) => m.Calendar), { loading: SectionLoader });
+const Groups = dynamic(() => import("@/components/sections/Groups").then((m) => m.Groups), { loading: SectionLoader });
+const Blog = dynamic(() => import("@/components/sections/Blog").then((m) => m.Blog), { loading: SectionLoader });
+const Wellbeing = dynamic(() => import("@/components/sections/Wellbeing").then((m) => m.Wellbeing), { loading: SectionLoader });
+const Support = dynamic(() => import("@/components/sections/Support").then((m) => m.Support), { loading: SectionLoader });
+const Diagnostic = dynamic(() => import("@/components/sections/Diagnostic").then((m) => m.Diagnostic), { loading: SectionLoader });
+const Progress = dynamic(() => import("@/components/sections/Progress").then((m) => m.Progress), { loading: SectionLoader });
+const Ranking = dynamic(() => import("@/components/sections/Ranking").then((m) => m.Ranking), { loading: SectionLoader });
+const Pet = dynamic(() => import("@/components/sections/Pet").then((m) => m.Pet), { loading: SectionLoader });
+const Mistakes = dynamic(() => import("@/components/sections/Mistakes").then((m) => m.Mistakes), { loading: SectionLoader });
+const Legal = dynamic(() => import("@/components/sections/Legal").then((m) => m.Legal), { loading: SectionLoader });
+const Profile = dynamic(() => import("@/components/sections/Profile").then((m) => m.Profile), { loading: SectionLoader });
 
 /** Envoltura que mantiene la sección montada pero oculta cuando no está activa,
  *  preservando su estado interno (chat, quiz a medias, etc.). */
@@ -158,6 +173,7 @@ export default function Page() {
       <main className="pt-4 lg:pt-6">
         <AIStatusBanner />
 
+        <SectionBoundary>
         {/* Secciones persistentes (mantienen su estado) */}
         <Keep active={section === "tutor"}>
           <Tutor />
@@ -211,6 +227,7 @@ export default function Page() {
             </Fade>
           </AnimatePresence>
         )}
+        </SectionBoundary>
       </main>
     </div>
   );

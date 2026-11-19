@@ -10,9 +10,11 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  deleteUser,
   type User,
 } from "firebase/auth";
 import { getFirebaseAuth, firebaseEnabled } from "./firebase";
+import { deleteUserData } from "./cloud-sync";
 
 export type SerenoUser = {
   uid: string;
@@ -30,6 +32,7 @@ type AuthContextType = {
   registerEmail: (name: string, email: string, password: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<{ ok: boolean; reauth?: boolean }>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -104,8 +107,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   }, []);
 
+  // Borra la cuenta y TODOS los datos del usuario (derecho de supresión).
+  // Firebase exige una sesión reciente para borrar; si no la hay, devuelve
+  // { reauth: true } para que la UI pida volver a iniciar sesión.
+  const deleteAccount = useCallback(async (): Promise<{ ok: boolean; reauth?: boolean }> => {
+    const auth = getFirebaseAuth();
+    if (!auth || !auth.currentUser) return { ok: false };
+    const uid = auth.currentUser.uid;
+    try {
+      // 1) Borra los datos en Firestore (mientras aún hay permisos de dueño).
+      await deleteUserData(uid);
+      // 2) Borra la cuenta de autenticación.
+      await deleteUser(auth.currentUser);
+      // 3) Limpia el almacenamiento local.
+      try {
+        Object.keys(localStorage)
+          .filter((k) => k.startsWith("sereno:"))
+          .forEach((k) => localStorage.removeItem(k));
+      } catch { /* noop */ }
+      return { ok: true };
+    } catch (e) {
+      const code = (e as { code?: string })?.code;
+      if (code === "auth/requires-recent-login") return { ok: false, reauth: true };
+      console.error("deleteAccount error:", e);
+      return { ok: false };
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ enabled: firebaseEnabled, user, loading, loginGoogle, loginEmail, registerEmail, resetPassword, logout }}>
+    <AuthContext.Provider value={{ enabled: firebaseEnabled, user, loading, loginGoogle, loginEmail, registerEmail, resetPassword, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
